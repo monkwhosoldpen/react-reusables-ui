@@ -64,6 +64,8 @@ export function useGlobalSupabase() {
         .eq('username', username)
         .single();
 
+        console.log(data);
+
       if (configError) throw configError;
 
       return {
