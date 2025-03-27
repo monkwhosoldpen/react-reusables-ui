@@ -64,8 +64,11 @@ export function useGlobalSupabase() {
         .eq('username', username)
         .single();
 
-        console.log(data);
 
+
+        console.log(data);
+        data.connection_config.tenant_supabase_url = GLOBAL_SUPABASE_URL;
+        data.connection_config.tenant_supabase_anon_key = GLOBAL_SUPABASE_ANON_KEY;
       if (configError) throw configError;
 
       return {
