@@ -58,15 +58,12 @@ export function useGlobalSupabase() {
       setIsLoading(true);
       setError(null);
 
-      const { data, error: configError } = await getGlobalSupabase()
-        .from('tenant_config')
-        .select('*')
-        .eq('username', username)
-        .single();
-
-        console.log(data);
-
-      if (configError) throw configError;
+        let data = {
+          connection_config: {
+            tenant_supabase_url: GLOBAL_SUPABASE_URL,
+            tenant_supabase_anon_key: GLOBAL_SUPABASE_ANON_KEY
+          }
+        };
 
       return {
         success: true,
