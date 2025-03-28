@@ -1,4 +1,5 @@
-SOcialData: 1743|2KWLuhj4HszimXjjAfntO6G1yd9YfL5TNlwPGDmT07314d6e
+SocialData: 1743|2KWLuhj4HszimXjjAfntO6G1yd9YfL5TNlwPGDmT07314d6e
+
 # Starter base
 
 A starting point to help you set up your project quickly and use the common components provided by `react-native-reusables`. The idea is to make it easier for you to get started.
