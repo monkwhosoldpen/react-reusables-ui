@@ -1,0 +1,125 @@
+{
+  "name": "nchat",
+  "short_name": "nchat",
+  "description": "Connect and chat securely with nchat - your messaging app for everyday communication",
+  "start_url": "/?source=pwa",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#FFFFFF",
+  "theme_color": "#25D366",
+  "categories": ["social", "communication", "chat", "messaging"],
+  "launch_handler": {
+    "client_mode": ["focus-existing", "auto"]
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "shortcuts": [
+    {
+      "name": "New Chat",
+      "short_name": "Chat",
+      "description": "Start a new conversation",
+      "url": "/new",
+      "icons": [{ "src": "/icons/quick-action-new-chat.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Camera",
+      "short_name": "Camera",
+      "description": "Take photos or videos",
+      "url": "/camera",
+      "icons": [{ "src": "/icons/quick-action-camera.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Status",
+      "short_name": "Status",
+      "description": "View and update your status",
+      "url": "/status",
+      "icons": [{ "src": "/icons/quick-action-status.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Calls",
+      "short_name": "Calls",
+      "description": "Make voice and video calls",
+      "url": "/calls",
+      "icons": [{ "src": "/icons/quick-action-calls.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icons/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop view of nchat messenger"
+    },
+    {
+      "src": "/icons/screenshot-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile view of nchat messenger"
+    },
+    {
+      "src": "/icons/screenshot-tablet.png",
+      "sizes": "1200x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tablet view of nchat messenger"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+nchat",
+      "url": "/open?id=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "message",
+          "accept": ["text/*", "image/*", "video/*", "audio/*", "application/*"]
+        }
+      ]
+    }
+  }
+} 
