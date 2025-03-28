@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { PreviewData } from '~/lib/types/superfeed';
+import { PreviewData } from '~/lib/enhanced-chat/types/superfeed';
 
 interface UseCollapseProps {
   data: PreviewData;

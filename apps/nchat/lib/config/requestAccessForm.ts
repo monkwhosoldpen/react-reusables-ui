@@ -1,4 +1,4 @@
-import { MediaItem } from '../types/superfeed';
+import { MediaItem } from '../enhanced-chat/types/superfeed';
 
 export interface RequestAccessField {
   type: 'text' | 'email' | 'phone' | 'image' | 'select' | 'multiselect';

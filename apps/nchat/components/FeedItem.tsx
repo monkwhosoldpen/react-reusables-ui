@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import type { FormDataType } from '~/lib/types/superfeed';
+import type { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
 
 interface FeedItemProps {
   data: FormDataType;

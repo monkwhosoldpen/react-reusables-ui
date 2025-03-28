@@ -12,7 +12,7 @@ import type {
   ChannelWithOnboarding,
   RequestAccessFormProps,
   TenantOnboardingRequest 
-} from '~/lib/types/forms';
+} from '~/lib/enhanced-chat/types/forms';
 
 export default function RequestAccessForm({ username, onComplete, onBack }: RequestAccessFormProps) {
   // Core hooks

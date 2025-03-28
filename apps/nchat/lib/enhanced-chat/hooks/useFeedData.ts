@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '~/lib/supabase';
-import { PreviewData } from '~/lib/types/superfeed';
-import { transformFeedItemToPreview } from '~/lib/utils/feed';
+import { PreviewData } from '~/lib/enhanced-chat/types/superfeed';
+import { transformFeedItemToPreview } from '~/lib/enhanced-chat/utils/feed';
 
 const MOCK_ITEMS = [
   {

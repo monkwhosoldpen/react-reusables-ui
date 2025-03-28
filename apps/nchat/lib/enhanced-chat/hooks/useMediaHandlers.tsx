@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ViewStyle, DimensionValue } from 'react-native';
-import { MediaItem } from '~/lib/types/superfeed';
+import { MediaItem } from '~/lib/enhanced-chat/types/superfeed';
 
 export function useMediaHandlers() {
   const [mediaLoadingStates, setMediaLoadingStates] = useState<Record<number, boolean>>({});

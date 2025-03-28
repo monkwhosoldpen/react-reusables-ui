@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { supabase } from '~/lib/supabase';
-import { FormDataType, TabType, Stats, MediaItem } from '~/lib/types/superfeed';
+import { FormDataType, TabType, Stats, MediaItem } from '~/lib/enhanced-chat/types/superfeed';
 
 interface SuperFeedItem {
   type: TabType;

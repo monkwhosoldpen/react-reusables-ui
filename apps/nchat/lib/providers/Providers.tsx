@@ -4,7 +4,7 @@ import { ColorSchemeProvider } from '~/lib/providers/theme/ColorSchemeProvider';
 import { DesignProvider } from '~/lib/providers/theme/DesignSystemProvider';
 import { ThemeProvider } from '~/lib/providers/theme/ThemeProvider';
 import { StorageProvider } from '~/lib/providers/storage/StorageProvider';
-import { FeedInteractionProvider } from '~/lib/providers/feed/FeedInteractionProvider';
+import { FeedInteractionProvider } from '~/lib/enhanced-chat/FeedInteractionProvider';
 import { APIProvider } from '~/lib/providers/api/APIProvider';
 import { RealtimeProvider } from '~/lib/providers/RealtimeProvider';
 import { NotificationProvider } from './NotificationProvider';

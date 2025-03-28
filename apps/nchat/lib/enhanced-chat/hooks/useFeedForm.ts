@@ -7,7 +7,7 @@ import {
   Stats, 
   InteractiveContent, 
   FillRequirement 
-} from '~/lib/types/superfeed';
+} from '~/lib/enhanced-chat/types/superfeed';
 
 interface UseFeedFormProps {
   user: { email: string };

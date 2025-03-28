@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
-import { useUser } from '../auth/AuthProvider';
+import { useUser } from '../providers/auth/AuthProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface InteractionConfig {

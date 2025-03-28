@@ -2,9 +2,9 @@ import React from 'react';
 import { View, ScrollView, StyleSheet, TextInput, Switch, Pressable, Animated, RefreshControl } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
-import { useFeedForm } from '~/lib/hooks/useFeedForm';
+import { useFeedForm } from '~/lib/enhanced-chat/hooks/useFeedForm';
 import { FeedItem } from '~/components/feed/FeedItem';
-import { useMockFeedItems } from '~/lib/hooks/useMockFeedItems';
+import { useMockFeedItems } from '~/lib/enhanced-chat/hooks/useMockFeedItems';
 import { 
   FormDataType, 
   MediaLayout, 
@@ -19,11 +19,11 @@ import {
   Stats,
   InteractiveContent,
   FillRequirement
-} from '~/lib/types/superfeed';
+} from '~/lib/enhanced-chat/types/superfeed';
 import { useUser } from '~/lib/providers/auth/AuthProvider';
 import { useRouter } from 'expo-router';
 import { supabase } from '~/lib/supabase';
-import { generateMockFeedItem } from '~/lib/utils/mockData';
+import { generateMockFeedItem } from '~/lib/enhanced-chat/utils/mockData';
 import { useRealtime } from '~/lib/providers/RealtimeProvider';
 
 const DEFAULT_VISIBILITY: Visibility = {

@@ -2,8 +2,8 @@ import React from 'react';
 import { View, StyleSheet, Pressable, Image } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
-import { FormDataType, PollData, QuizData, SurveyData } from '~/lib/types/superfeed';
-import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
+import { FormDataType, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
+import { useInteractiveContent } from '~/lib/enhanced-chat/hooks/useInteractiveContent';
 import { LinearGradient } from 'expo-linear-gradient';
 import Markdown from 'react-native-markdown-display';
 
