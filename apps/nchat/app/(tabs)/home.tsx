@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, TextInput, Switch, Pressable, Animated, R
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
 import { useFeedForm } from '~/lib/hooks/useFeedForm';
-import { FeedItem } from '~/components/feed/FeedItem';
+import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { useMockFeedItems } from '~/lib/hooks/useMockFeedItems';
 import { 
   FormDataType, 

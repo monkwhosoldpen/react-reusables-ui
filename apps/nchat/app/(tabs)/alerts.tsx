@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, RefreshControl, Platform, FlatList } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { FeedItem } from '~/components/feed/FeedItem';
+import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { supabase } from '~/lib/supabase';
 import type { FormDataType, Stats, Metadata, InteractiveContent, FillRequirement } from '~/lib/enhanced-chat/types/superfeed';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
