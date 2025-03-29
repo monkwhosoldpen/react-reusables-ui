@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
-import { FormDataType } from '~/lib/types/superfeed';
+import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
 import { FEED_CONSTANTS } from '~/lib/enhanced-chat/constants/feed';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '~/lib/supabase';

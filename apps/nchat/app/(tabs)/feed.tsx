@@ -19,7 +19,7 @@ import {
   Stats,
   InteractiveContent,
   FillRequirement
-} from '~/lib/types/superfeed';
+} from '~/lib/enhanced-chat/types/superfeed';
 import { useUser } from '~/lib/providers/auth/AuthProvider';
 import { useRouter } from 'expo-router';
 import { supabase } from '~/lib/supabase';

@@ -1,4 +1,4 @@
-import { FormDataType, Visibility, Metadata, PollData, QuizData, FeedItemType } from '~/lib/types/superfeed';
+import { FormDataType, Visibility, Metadata, PollData, QuizData, FeedItemType } from '~/lib/enhanced-chat/types/superfeed';
 
 const DEFAULT_VISIBILITY: Visibility = {
   stats: true,

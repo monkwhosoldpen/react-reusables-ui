@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '~/lib/supabase';
 import { useUser } from '~/lib/providers/auth/AuthProvider';
-import { FormDataType } from '~/lib/types/superfeed';
+import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
 
 interface InteractiveResponse {
   id: string;

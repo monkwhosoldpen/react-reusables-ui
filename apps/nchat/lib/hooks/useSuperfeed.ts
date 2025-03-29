@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { SuperFeedItem } from '~/lib/types/superfeed';
+import type { SuperFeedItem } from '~/lib/enhanced-chat/types/superfeed';
 import { useBaseFeedFetch } from './useBaseFeedFetch';
 
 interface FeedItemComponentProps {

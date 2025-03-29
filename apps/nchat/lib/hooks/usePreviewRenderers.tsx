@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { View, StyleSheet, Platform, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { PreviewData } from '~/lib/types/superfeed';
+import { PreviewData } from '~/lib/enhanced-chat/types/superfeed';
 import { User } from '@supabase/supabase-js';
 import { useTheme } from '~/lib/providers/theme/ThemeProvider';
 import { Image } from 'expo-image';

@@ -3,7 +3,7 @@ import { View, StyleSheet, RefreshControl, Platform, FlatList } from 'react-nati
 import { Text } from '~/components/ui/text';
 import { FeedItem } from '~/components/feed/FeedItem';
 import { supabase } from '~/lib/supabase';
-import type { FormDataType, Stats, Metadata, InteractiveContent, FillRequirement } from '~/lib/types/superfeed';
+import type { FormDataType, Stats, Metadata, InteractiveContent, FillRequirement } from '~/lib/enhanced-chat/types/superfeed';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const DEFAULT_METADATA: Metadata = {
