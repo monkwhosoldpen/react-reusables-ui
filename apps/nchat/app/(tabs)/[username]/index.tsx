@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ChannelSidebar from '~/components/chat/ChannelSidebar';
 import { useGlobalSupabase } from '~/lib/hooks/useGlobalSupabase';
 import { useAuth } from '~/lib/providers/auth/AuthProvider';
-import { Channel } from '~/types/channel';
+import { Channel } from '~/lib/types/channel';
 
 export default function ChatScreen() {
   const { colorScheme } = useColorScheme();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, Pressable, TouchableOpacity, Dimensions, Animated } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { Channel } from '~/types/channel';
+import { Channel } from '~/lib/types/channel';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';

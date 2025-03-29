@@ -1,5 +1,5 @@
-import { FeedItemType, PreviewData, FormDataType, MediaItem, PollData, QuizData, SurveyData } from '../enhanced-chat/types/superfeed';
-import { FEED_CONSTANTS } from '../enhanced-chat/constants/feed';
+import { FeedItemType, PreviewData, FormDataType, MediaItem, PollData, QuizData, SurveyData } from '../types/superfeed';
+import { FEED_CONSTANTS } from '../constants/feed';
 
 export const DEFAULT_POLL: PollData = {
   question: '',

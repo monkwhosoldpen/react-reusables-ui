@@ -23,7 +23,7 @@ import {
 import { useUser } from '~/lib/providers/auth/AuthProvider';
 import { useRouter } from 'expo-router';
 import { supabase } from '~/lib/supabase';
-import { generateMockFeedItem } from '~/lib/utils/mockData';
+import { generateMockFeedItem } from '~/lib/enhanced-chat/utils/mockData';
 import { useRealtime } from '~/lib/providers/RealtimeProvider';
 
 const DEFAULT_VISIBILITY: Visibility = {

@@ -1,4 +1,4 @@
-import type { FormDataType, MediaItem, MediaType } from '../enhanced-chat/types/superfeed';
+import type { FormDataType, MediaItem, MediaType } from '../types/superfeed';
 
 const REALISTIC_USERNAMES = [
   'TechInsider',
