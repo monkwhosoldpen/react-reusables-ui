@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '~/lib/supabase';
-import { useUser } from '~/lib/providers/auth/AuthProvider';
+import { useAuth } from '~/lib/contexts/AuthContext';
 import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
 
 interface InteractiveResponse {
@@ -25,7 +25,7 @@ function isInteractiveResponse(data: unknown): data is InteractiveResponse {
 }
 
 export function useInteractiveContent(feedItem: FormDataType) {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [userResponse, setUserResponse] = useState<InteractiveResponse | null>(null);

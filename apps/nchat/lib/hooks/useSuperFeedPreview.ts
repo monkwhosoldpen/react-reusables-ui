@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { PreviewData } from '~/types/feed';
 import { usePreviewRenderers } from './usePreviewRenderers';
 import { useTheme } from '~/lib/providers/theme/ThemeProvider';
+import { PreviewData } from '../enhanced-chat/types/superfeed';
 
 export function useSuperFeedPreview(data: PreviewData) {
   const [isCollapsed, setIsCollapsed] = useState(true);

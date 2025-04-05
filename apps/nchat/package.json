@@ -36,6 +36,8 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^4.1.0",
+    "sonner": "^1.7.4",
+    "idb": "^8.0.2",
     "expo": "^52.0.41",
     "expo-av": "~15.0.1",
     "expo-calendar": "~14.0.5",

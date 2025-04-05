@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../supabase';
 import { PreviewData } from '../enhanced-chat/types/superfeed';
 import { transformFeedItemToPreview } from '../enhanced-chat/utils/feed';
+import { supabase } from '../supabase';
 
 type RealtimeContextType = {
   feedItems: PreviewData[];

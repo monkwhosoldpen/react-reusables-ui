@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS superfeed_responses (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     feed_item_id UUID NOT NULL REFERENCES superfeed(id) ON DELETE CASCADE,
     user_id TEXT NOT NULL,
+    response_type TEXT NOT NULL CHECK (response_type IN ('poll', 'quiz', 'survey')),
     response_data JSONB NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),

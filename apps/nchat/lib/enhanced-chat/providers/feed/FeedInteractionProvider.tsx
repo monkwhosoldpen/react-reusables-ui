@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
-import { useUser } from '../../../providers/auth/AuthProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '~/lib/contexts/AuthContext';
 
 interface InteractionConfig {
   startTime?: Date;
@@ -46,7 +46,7 @@ interface FeedInteractionProviderProps {
 }
 
 export function FeedInteractionProvider({ children }: FeedInteractionProviderProps) {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [interactionStates, setInteractionStates] = useState<Record<string, InteractionState>>({});
 
   // Load interaction states from storage on mount or user change

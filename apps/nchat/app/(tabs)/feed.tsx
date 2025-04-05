@@ -20,7 +20,6 @@ import {
   InteractiveContent,
   FillRequirement
 } from '~/lib/enhanced-chat/types/superfeed';
-import { useUser } from '~/lib/providers/auth/AuthProvider';
 import { useRouter } from 'expo-router';
 import { supabase } from '~/lib/supabase';
 import { generateMockFeedItem } from '~/lib/enhanced-chat/utils/mockData';
@@ -405,7 +404,6 @@ const PLACEHOLDER_VIDEOS: MediaItem[] = [
 ];
 
 export default function FeedScreen() {
-  const { user } = useUser();
   const { generateMockData } = useMockFeedItems();
   const router = useRouter();
   const [isInteractive, setIsInteractive] = React.useState(false);

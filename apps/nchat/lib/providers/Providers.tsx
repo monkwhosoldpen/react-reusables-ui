@@ -1,13 +1,13 @@
 import React from 'react';
-import { AuthProvider } from '~/lib/providers/auth/AuthProvider';
-import { ColorSchemeProvider } from '~/lib/providers/theme/ColorSchemeProvider';
-import { DesignProvider } from '~/lib/providers/theme/DesignSystemProvider';
-import { ThemeProvider } from '~/lib/providers/theme/ThemeProvider';
-import { StorageProvider } from '~/lib/providers/storage/StorageProvider';
-import { FeedInteractionProvider } from '~/lib/enhanced-chat/providers/feed/FeedInteractionProvider';
-import { APIProvider } from '~/lib/providers/api/APIProvider';
-import { RealtimeProvider } from '~/lib/providers/RealtimeProvider';
-import { NotificationProvider } from './NotificationProvider';
+import { AuthProvider } from '../contexts/AuthContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
+import { FeedInteractionProvider } from '../enhanced-chat/providers/feed/FeedInteractionProvider';
+import { APIProvider } from './api/APIProvider';
+import { RealtimeProvider } from './RealtimeProvider';
+import { ColorSchemeProvider } from './theme/ColorSchemeProvider';
+import { DesignProvider } from './theme/DesignSystemProvider';
+import { ThemeProvider } from './theme/ThemeProvider';
+import { Toaster } from 'sonner';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -15,24 +15,31 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <StorageProvider>
+    <>
       <AuthProvider>
         <APIProvider>
           <ColorSchemeProvider>
             <DesignProvider>
               <ThemeProvider>
                 <RealtimeProvider>
-                  <NotificationProvider>
+                  <>
                     <FeedInteractionProvider>
-                      {children}
+                      <>
+                        <NotificationProvider>
+                          <FeedInteractionProvider>
+                            {children}
+                          </FeedInteractionProvider>
+                        </NotificationProvider>
+                      </>
+                      <Toaster position="top-right" closeButton richColors />
                     </FeedInteractionProvider>
-                  </NotificationProvider>
+                  </>
                 </RealtimeProvider>
               </ThemeProvider>
             </DesignProvider>
           </ColorSchemeProvider>
         </APIProvider>
       </AuthProvider>
-    </StorageProvider>
+    </>
   );
 } 

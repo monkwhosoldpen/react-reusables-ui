@@ -1,51 +1,72 @@
 import React from 'react';
-import { View, ActivityIndicator, TextInput } from 'react-native';
-import { Button } from '~/components/ui/button';
+import { View } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import { Card } from '~/components/ui/card';
-import { Input } from '~/components/ui/input';
-import { cn } from '~/lib/utils';
-import { useUser } from '~/lib/providers/auth/AuthProvider';
+import { useAuth } from '~/lib/contexts/AuthContext';
+import LoginCommon from '~/components/common/LoginCommon';
 
 export default function LoginModal() {
   const router = useRouter();
-  const { signIn, signInAsGuest } = useUser();
-  const [loading, setLoading] = React.useState(false);
+  const { signIn, signInAnonymously, signInAsGuest } = useAuth();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleGuestSignIn = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      await signInAsGuest();
-      router.dismiss();
-    } catch (err) {
-      setError('Failed to sign in as guest. Please try again.');
-      console.error('Guest sign in error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailSignIn = async () => {
+  const handleSubmit = async () => {
     if (!email || !password) {
       setError('Please enter both email and password');
       return;
     }
 
+    setIsLoading(true);
+    setError('');
+
     try {
-      setLoading(true);
-      setError('');
       await signIn(email, password);
-      router.dismiss();
+      setTimeout(() => {
+        router.dismiss();
+      }, 1000);
     } catch (err) {
       setError('Invalid email or password');
       console.error('Email sign in error:', err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
+    }
+  };
+
+  const handleAnonymousSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await signInAnonymously();
+      setTimeout(() => {
+        router.dismiss();
+      }, 1000);
+    } catch (err) {
+      setError('Failed to sign in anonymously');
+      console.error('Anonymous sign in error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGuestSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await signInAsGuest();
+      setTimeout(() => {
+        router.dismiss();
+      }, 1000);
+    } catch (err) {
+      setError('Failed to sign in as guest');
+      console.error('Guest sign in error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,80 +81,18 @@ export default function LoginModal() {
           </Text>
         </View>
 
-        <View className="p-4 space-y-4">
-          {/* Email/Password Form */}
-          <View className="space-y-3">
-            <Input
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              className="bg-background"
-            />
-            <Input
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              className="bg-background"
-            />
-            {error ? (
-              <Text className="text-sm text-destructive px-1">{error}</Text>
-            ) : null}
-            <Button 
-              onPress={handleEmailSignIn}
-              disabled={loading}
-              className="w-full"
-            >
-              <View className="flex-row items-center justify-center py-1">
-                {loading ? (
-                  <>
-                    <ActivityIndicator size="small" color="white" />
-                    <Text className="text-primary-foreground ml-2 text-base">Signing in...</Text>
-                  </>
-                ) : (
-                  <Text className="text-primary-foreground text-base">Sign in with Email</Text>
-                )}
-              </View>
-            </Button>
-          </View>
-
-          {/* Divider */}
-          <View className="flex-row items-center py-2">
-            <View className="flex-1 h-[1px] bg-border" />
-            <Text className="mx-4 text-muted-foreground">or</Text>
-            <View className="flex-1 h-[1px] bg-border" />
-          </View>
-
-          {/* Guest Sign In */}
-          <Button 
-            onPress={handleGuestSignIn}
-            disabled={loading}
-            variant="outline"
-            className="w-full"
-          >
-            <View className="flex-row items-center justify-center py-1">
-              {loading ? (
-                <>
-                  <ActivityIndicator size="small" color="currentColor" />
-                  <Text className="text-foreground ml-2 text-base">Signing in...</Text>
-                </>
-              ) : (
-                <Text className="text-foreground text-base">Continue as Guest</Text>
-              )}
-            </View>
-          </Button>
-
-          {/* Cancel button */}
-          <Button 
-            variant="ghost" 
-            onPress={() => router.dismiss()}
-            className="w-full"
-          >
-            <Text className="text-muted-foreground text-base">Cancel</Text>
-          </Button>
-        </View>
+        <LoginCommon
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          error={error}
+          isLoading={isLoading}
+          handleSubmit={handleSubmit}
+          handleAnonymousSignIn={handleAnonymousSignIn}
+          handleGuestSignIn={handleGuestSignIn}
+          onCancel={() => router.dismiss()}
+        />
       </Card>
     </View>
   );

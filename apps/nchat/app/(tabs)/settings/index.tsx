@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { useAuth } from '~/lib/providers/auth/AuthProvider';
 import { useColorScheme, type ThemeName } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { Switch } from '~/components/ui/switch';
@@ -10,6 +9,7 @@ import { Button } from '~/components/ui/button';
 import { supabase } from '~/lib/supabase';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '~/lib/contexts/AuthContext';
 
 export default function SettingsScreen() {
   const { user } = useAuth();

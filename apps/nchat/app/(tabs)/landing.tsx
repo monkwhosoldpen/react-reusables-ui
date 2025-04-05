@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -16,13 +16,14 @@ export default function Home() {
   }
 
   return (
-    <>
+    <View>
       {user ? (
-        <>
+        <View>
           {/* <ChannelsPage /> */}
-        </>
+          <Text>Welcome to nchat</Text>
+        </View>
       ) : (
-        <>
+        <View>
           {/* Main Content */}
           <main className="flex-1 w-full py-12 flex items-center justify-center">
             <div className="w-full max-w-4xl mx-auto px-6">
@@ -45,14 +46,14 @@ export default function Home() {
                   onPress={() => router.push('/login')}
                   className="mt-6 px-8 text-lg h-12 bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all duration-300"
                 >
-                  <Text>Get Started</Text>
+                  Get Started
                 </Button>
               </div>
             </div>
           </main>
-        </>
+        </View>
       )}
-    </>
+    </View>
   );
 }
 

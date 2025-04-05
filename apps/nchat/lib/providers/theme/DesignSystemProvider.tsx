@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { useStorage } from '../storage/StorageProvider';
 import { DesignType, DesignConfig } from './types';
 
 // Twitter's design system - Clean and professional
@@ -197,24 +196,23 @@ interface DesignProviderProps {
 }
 
 export function DesignProvider({ children }: DesignProviderProps) {
-  const { getItem, setItem } = useStorage();
   const [currentDesign, setCurrentDesign] = useState<DesignConfig>(designs.whatsapp);
 
-  const loadSavedDesign = useCallback(async () => {
-    const savedDesign = await getItem('theme_design');
+  const loadSavedDesign = useCallback(() => {
+    const savedDesign = localStorage.getItem('theme_design');
     if (savedDesign && designs[savedDesign as DesignType]) {
       setCurrentDesign(designs[savedDesign as DesignType]);
     }
-  }, [getItem]);
+  }, []);
 
   React.useEffect(() => {
     loadSavedDesign();
   }, [loadSavedDesign]);
 
-  const updateDesign = useCallback(async (designType: DesignType) => {
+  const updateDesign = useCallback((designType: DesignType) => {
     setCurrentDesign(designs[designType]);
-    await setItem('theme_design', designType);
-  }, [setItem]);
+    localStorage.setItem('theme_design', designType);
+  }, []);
 
   return (
     <DesignContext.Provider value={{ design: currentDesign, updateDesign }}>

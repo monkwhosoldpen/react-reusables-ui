@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { View } from 'react-native';
-import { Providers } from '~/lib/providers/Providers';
-import { useTheme } from '~/lib/providers/theme/ThemeProvider';
+import { Providers } from '@/lib/providers/Providers';
+import { useTheme } from '@/lib/providers/theme/ThemeProvider';
 
 export default function Layout() {
   return (
@@ -28,8 +28,21 @@ function RootLayout() {
         }}
       >
         <Stack.Screen
+          name="home"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
           name="(tabs)"
           options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="(modals)"
+          options={{
+            presentation: 'modal',
             headerShown: false,
           }}
         />
