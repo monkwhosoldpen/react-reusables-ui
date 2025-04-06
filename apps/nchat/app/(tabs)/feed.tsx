@@ -424,7 +424,7 @@ export default function FeedScreen() {
     fetchLatestItem,
     isLoading 
   } = useFeedForm({
-    user: { email: 'demo@example.com' }
+    user: { email: 'elonmusk' }
   });
   
   // Set initial form data when component mounts
@@ -645,13 +645,13 @@ export default function FeedScreen() {
             onPress={() => handleAddMedia('image')}
             style={styles.mediaButton}
           >
-            Add Image
+            <Text>Add Image</Text>
           </Button>
           <Button
             onPress={() => handleAddMedia('video')}
             style={styles.mediaButton}
           >
-            Add Video
+            <Text>Add Video</Text>
           </Button>
         </View>
 
@@ -695,7 +695,7 @@ export default function FeedScreen() {
                 onPress={() => handleRemoveMedia(index)}
                 style={styles.removeButton}
               >
-                Remove
+                <Text>Remove</Text>
               </Button>
             </View>
 
