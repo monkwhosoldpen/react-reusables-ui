@@ -92,7 +92,7 @@ const SettingsItem = ({
 
 export default function TestPage() {
   const { user, userInfo, loading: userLoading, signOut } = useAuth();
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, isDarkMode } = useColorScheme();
   const { design } = useDesign();
   const insets = useSafeAreaInsets();
   const [dbContent, setDbContent] = useState<any>(null);
@@ -354,17 +354,17 @@ export default function TestPage() {
           <Button 
             onPress={fetchIndexedDBContent}
             disabled={!dbInitialized}
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: colorScheme.colors.primary }]}
           >
-            <Text style={styles.buttonText}>Refresh Raw IndexedDB</Text>
+            <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>Refresh Raw IndexedDB</Text>
           </Button>
           
           <Button 
             onPress={fetchRawApiResponse}
             disabled={apiLoading || !user?.id}
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: colorScheme.colors.primary }]}
           >
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
               {apiLoading ? 'Loading...' : 'Fetch Raw API Response'}
             </Text>
           </Button>
@@ -372,9 +372,9 @@ export default function TestPage() {
           <Button 
             onPress={saveRawApiToIndexedDB}
             disabled={saveLoading || !rawApiResponse || !dbInitialized}
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: colorScheme.colors.primary }]}
           >
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
               {saveLoading ? 'Saving...' : 'Save API Data to IndexedDB'}
             </Text>
           </Button>
@@ -382,9 +382,9 @@ export default function TestPage() {
           {user && (
             <Button 
               onPress={() => console.log('Current User:', user)}
-              style={styles.actionButton}
+              style={[styles.actionButton, { backgroundColor: colorScheme.colors.primary }]}
             >
-              <Text style={styles.buttonText}>Log Current User</Text>
+              <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>Log Current User</Text>
             </Button>
           )}
           
@@ -404,11 +404,14 @@ export default function TestPage() {
             {MOCK_USERNAMES.map(username => (
               <View 
                 key={username} 
-                style={[styles.mockUserItem, { borderColor: colorScheme.colors.border }]}
+                style={[styles.mockUserItem, { 
+                  borderColor: colorScheme.colors.border,
+                  backgroundColor: colorScheme.colors.card 
+                }]}
               >
                 <View style={styles.mockUserInfo}>
-                  <View style={[styles.avatar, { backgroundColor: colorScheme.colors.card }]}>
-                    <Text style={{ color: colorScheme.colors.text }}>
+                  <View style={[styles.avatar, { backgroundColor: colorScheme.colors.primary }]}>
+                    <Text style={{ color: colorScheme.colors.background }}>
                       {username[0].toUpperCase()}
                     </Text>
                   </View>
@@ -530,9 +533,9 @@ export default function TestPage() {
                         }
                       }
                     }}
-                    style={styles.preferenceButton}
+                    style={[styles.preferenceButton, { backgroundColor: colorScheme.colors.primary }]}
                   >
-                    <Text style={styles.buttonText}>Toggle Notifications</Text>
+                    <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>Toggle Notifications</Text>
                   </Button>
                 </View>
               </View>
@@ -545,7 +548,7 @@ export default function TestPage() {
               </Text>
               {userInfo.tenantRequests && userInfo.tenantRequests.length > 0 ? (
                 <View style={styles.tenantRequestsTable}>
-                  <View style={styles.tableHeader}>
+                  <View style={[styles.tableHeader, { borderBottomColor: colorScheme.colors.border }]}>
                     <Text style={[styles.tableHeaderText, { color: colorScheme.colors.text }]}>Type</Text>
                     <Text style={[styles.tableHeaderText, { color: colorScheme.colors.text }]}>Username</Text>
                     <Text style={[styles.tableHeaderText, { color: colorScheme.colors.text }]}>Status</Text>
@@ -571,7 +574,6 @@ export default function TestPage() {
                 </Text>
               )}
             </View>
-
           </View>
         )}
         
@@ -586,6 +588,7 @@ export default function TestPage() {
                 onPress={() => fetchStoreRecords(store)}
                 style={[
                   styles.storeButton,
+                  { backgroundColor: colorScheme.colors.primary },
                   selectedStore === store && { backgroundColor: colorScheme.colors.primary }
                 ]}
                 disabled={!dbInitialized}
@@ -593,7 +596,7 @@ export default function TestPage() {
                 <Text 
                   style={[
                     styles.storeButtonText,
-                    selectedStore === store && { color: 'white' }
+                    { color: colorScheme.colors.background }
                   ]}
                 >
                   {store}
@@ -618,7 +621,6 @@ export default function TestPage() {
               </Text>
             ) : storeRecords.length > 0 ? (
               <Text style={[styles.recordsText, { color: colorScheme.colors.text }]}>
-                {/* {JSON.stringify(storeRecords, null, 2)} */}
                 {storeRecords.length} Records found in this store
               </Text>
             ) : (
@@ -628,7 +630,6 @@ export default function TestPage() {
             )}
           </View>
         </View>
- 
       </View>
     </ScrollView>
   );

@@ -266,17 +266,13 @@ export function FollowButton({
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 1000
     },
     dialogView: {
-      backgroundColor: isDarkMode ? colorScheme.colors.card : 'white',
-      padding: Number(design.spacing.padding.card),
-      borderRadius: Number(design.radius.lg),
-      minWidth: 300,
-      maxWidth: '90%',
+      width: '90%',
+      maxWidth: 400,
       maxHeight: '90%',
       overflow: 'scroll' as const
     }
@@ -289,39 +285,57 @@ export function FollowButton({
         size={size}
         className={cn(
           "gap-2 font-medium",
-          following && "bg-blue-500 hover:bg-blue-600 text-white",
-          !following && "text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-950",
+          following && "bg-primary hover:bg-primary/90 text-white",
+          !following && "text-primary border-primary/20 hover:bg-primary/10",
           className
         )}
+        style={{
+          borderRadius: Number(design.radius.md),
+          paddingHorizontal: Number(design.spacing.padding.item),
+          paddingVertical: Number(design.spacing.padding.item) / 2,
+          backgroundColor: following ? colorScheme.colors.primary : 'transparent',
+          borderColor: following ? 'transparent' : colorScheme.colors.primary,
+        }}
         onPress={handleToggleFollow}
         disabled={loading}
       >
         {loading ? (
-          <Text>Loading...</Text>
+          <Text style={{ 
+            color: following ? colorScheme.colors.background : colorScheme.colors.primary,
+            fontSize: Number(design.spacing.fontSize.sm)
+          }}>Loading...</Text>
         ) : (
-          <View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Number(design.spacing.gap) }}>
             {showIcon && (
               <Heart 
-                className={cn(
-                  "h-4 w-4", 
-                  following ? "fill-current" : "text-blue-500 dark:text-blue-400"
-                )} 
+                size={Number(design.spacing.iconSize)}
+                color={following ? colorScheme.colors.background : colorScheme.colors.primary}
+                fill={following ? colorScheme.colors.background : 'none'}
               />
             )}
-            <Text>{following ? 'Following' : 'Follow'}</Text>
+            <Text style={{ 
+              color: following ? colorScheme.colors.background : colorScheme.colors.primary,
+              fontSize: Number(design.spacing.fontSize.sm),
+              fontWeight: '500'
+            }}>
+              {following ? 'Following' : 'Follow'}
+            </Text>
           </View>
         )}
       </Button>
       
       <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
-        <DialogContent style={dialogStyles.dialogContent}>
-          <View style={dialogStyles.dialogView}>
-            <DialogHeader>
-              <DialogTitle>Sign in to follow channels</DialogTitle>
-              <DialogDescription>
-                You need to be signed in to follow channels and receive updates.
-              </DialogDescription>
-            </DialogHeader>
+        <DialogContent style={[dialogStyles.dialogContent, {
+          backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)',
+        }]}>
+          <View style={[dialogStyles.dialogView, {
+            backgroundColor: colorScheme.colors.card,
+            padding: Number(design.spacing.padding.card),
+            borderRadius: Number(design.radius.lg),
+            gap: Number(design.spacing.gap),
+            borderColor: colorScheme.colors.border,
+            borderWidth: StyleSheet.hairlineWidth,
+          }]}>
             <LoginCommon
               email={email}
               setEmail={setEmail}
@@ -333,6 +347,7 @@ export function FollowButton({
               handleAnonymousSignIn={handleAnonymousSignIn}
               handleGuestSignIn={handleGuestSignIn}
               onCancel={() => setShowLoginDialog(false)}
+              isDarkMode={isDarkMode}
             />
           </View>
         </DialogContent>

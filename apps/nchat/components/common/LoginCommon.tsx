@@ -22,6 +22,7 @@ export default function LoginCommon({
   handleAnonymousSignIn,
   handleGuestSignIn,
   onCancel,
+  isDarkMode,
 }: {
   email: string;
   setEmail: (email: string) => void;
@@ -33,27 +34,56 @@ export default function LoginCommon({
   handleAnonymousSignIn: () => void;
   handleGuestSignIn: () => void;
   onCancel: () => void;
+  isDarkMode: boolean;
 }) {
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
+  const [isEmailLoading, setIsEmailLoading] = React.useState(false);
+  const [isAnonymousLoading, setIsAnonymousLoading] = React.useState(false);
+  const [isGuestLoading, setIsGuestLoading] = React.useState(false);
+
+  const handleEmailSubmit = async () => {
+    setIsEmailLoading(true);
+    try {
+      await handleSubmit();
+    } finally {
+      setIsEmailLoading(false);
+    }
+  };
+
+  const handleAnonymousSubmit = async () => {
+    setIsAnonymousLoading(true);
+    try {
+      await handleAnonymousSignIn();
+    } finally {
+      setIsAnonymousLoading(false);
+    }
+  };
+
+  const handleGuestSubmit = async () => {
+    setIsGuestLoading(true);
+    try {
+      await handleGuestSignIn();
+    } finally {
+      setIsGuestLoading(false);
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
       backgroundColor: colorScheme.colors.card,
       borderRadius: Number(design.radius.lg),
       padding: Number(design.spacing.padding.card) * 1.5,
-      width: '100%',
-      maxWidth: 400,
-      maxHeight: '90%',
+      width: '100%' as const,
       ...Platform.select({
         ios: {
-          shadowColor: colorScheme.colors.text,
+          shadowColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)',
           shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
+          shadowOpacity: isDarkMode ? 0.3 : 0.1,
           shadowRadius: 8,
         },
         android: {
-          elevation: 4,
+          elevation: isDarkMode ? 6 : 4,
         },
       }),
     },
@@ -67,16 +97,16 @@ export default function LoginCommon({
     },
     title: {
       fontSize: Number(design.spacing.fontSize.xl),
-      fontWeight: '700',
+      fontWeight: '700' as const,
       color: colorScheme.colors.primary,
       marginBottom: Number(design.spacing.padding.item),
-      textAlign: 'center',
+      textAlign: 'center' as const,
     },
     subtitle: {
       fontSize: Number(design.spacing.fontSize.base),
       color: colorScheme.colors.text,
-      opacity: 0.7,
-      textAlign: 'center',
+      opacity: isDarkMode ? 0.8 : 0.7,
+      textAlign: 'center' as const,
       lineHeight: Number(design.spacing.fontSize.base) * 1.5,
     },
     formGroup: {
@@ -84,7 +114,7 @@ export default function LoginCommon({
     },
     label: {
       fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '600',
+      fontWeight: '600' as const,
       color: colorScheme.colors.text,
       marginBottom: Number(design.spacing.padding.item) / 2,
     },
@@ -93,15 +123,16 @@ export default function LoginCommon({
       borderColor: colorScheme.colors.border,
       borderRadius: Number(design.radius.md),
       padding: Number(design.spacing.padding.item),
+      color: colorScheme.colors.text,
       ...Platform.select({
         ios: {
-          shadowColor: colorScheme.colors.text,
+          shadowColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
           shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.05,
+          shadowOpacity: isDarkMode ? 0.2 : 0.05,
           shadowRadius: 2,
         },
         android: {
-          elevation: 1,
+          elevation: isDarkMode ? 2 : 1,
         },
       }),
     },
@@ -109,11 +140,11 @@ export default function LoginCommon({
       color: colorScheme.colors.notification,
       fontSize: Number(design.spacing.fontSize.base),
       marginTop: Number(design.spacing.padding.item) / 2,
-      textAlign: 'center',
+      textAlign: 'center' as const,
     },
     divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
       marginVertical: Number(design.spacing.padding.card),
     },
     dividerLine: {
@@ -124,35 +155,35 @@ export default function LoginCommon({
     dividerText: {
       marginHorizontal: Number(design.spacing.padding.item),
       color: colorScheme.colors.text,
-      opacity: 0.5,
+      opacity: isDarkMode ? 0.6 : 0.5,
       fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '500',
+      fontWeight: '500' as const,
     },
     button: {
       marginBottom: Number(design.spacing.padding.item),
       borderRadius: Number(design.radius.md),
-      overflow: 'hidden',
+      overflow: 'hidden' as const,
       ...Platform.select({
         ios: {
-          shadowColor: colorScheme.colors.text,
+          shadowColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.1)',
           shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
+          shadowOpacity: isDarkMode ? 0.2 : 0.1,
           shadowRadius: 4,
         },
         android: {
-          elevation: 2,
+          elevation: isDarkMode ? 3 : 2,
         },
       }),
     },
     buttonContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
       paddingVertical: Number(design.spacing.padding.item),
     },
     buttonText: {
       fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '600',
+      fontWeight: '600' as const,
     },
   });
 
@@ -165,7 +196,6 @@ export default function LoginCommon({
       >
         <View style={styles.header}>
           <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Enter your email to sign in to your account</Text>
         </View>
 
         <View style={styles.formGroup}>
@@ -177,7 +207,8 @@ export default function LoginCommon({
             autoCapitalize="none"
             keyboardType="email-address"
             style={styles.input}
-            editable={!isLoading}
+            editable={!isEmailLoading}
+            placeholderTextColor={isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'}
           />
         </View>
 
@@ -189,7 +220,8 @@ export default function LoginCommon({
             onChangeText={setPassword}
             secureTextEntry
             style={styles.input}
-            editable={!isLoading}
+            editable={!isEmailLoading}
+            placeholderTextColor={isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'}
           />
         </View>
 
@@ -198,20 +230,20 @@ export default function LoginCommon({
         ) : null}
 
         <Button 
-          onPress={handleSubmit}
-          disabled={isLoading}
+          onPress={handleEmailSubmit}
+          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
           style={styles.button}
         >
           <View style={styles.buttonContent}>
-            {isLoading ? (
+            {isEmailLoading ? (
               <>
-                <ActivityIndicator size="small" color="white" />
-                <Text style={[styles.buttonText, { color: 'white', marginLeft: 8 }]}>
+                <ActivityIndicator size="small" color={colorScheme.colors.text} />
+                <Text style={[styles.buttonText, { color: colorScheme.colors.text, marginLeft: 8 }]}>
                   Signing in...
                 </Text>
               </>
             ) : (
-              <Text style={[styles.buttonText, { color: 'white' }]}>
+              <Text style={[styles.buttonText, { color: colorScheme.colors.text }]}>
                 Sign in with Email
               </Text>
             )}
@@ -225,13 +257,13 @@ export default function LoginCommon({
         </View>
 
         <Button 
-          onPress={handleAnonymousSignIn}
-          disabled={isLoading}
+          onPress={handleAnonymousSubmit}
+          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
           variant="outline"
           style={styles.button}
         >
           <View style={styles.buttonContent}>
-            {isLoading ? (
+            {isAnonymousLoading ? (
               <>
                 <ActivityIndicator size="small" color={colorScheme.colors.text} />
                 <Text style={[styles.buttonText, { color: colorScheme.colors.text, marginLeft: 8 }]}>
@@ -247,13 +279,13 @@ export default function LoginCommon({
         </Button>
 
         <Button 
-          onPress={handleGuestSignIn}
-          disabled={isLoading}
+          onPress={handleGuestSubmit}
+          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
           variant="outline"
           style={styles.button}
         >
           <View style={styles.buttonContent}>
-            {isLoading ? (
+            {isGuestLoading ? (
               <>
                 <ActivityIndicator size="small" color={colorScheme.colors.text} />
                 <Text style={[styles.buttonText, { color: colorScheme.colors.text, marginLeft: 8 }]}>
@@ -274,7 +306,7 @@ export default function LoginCommon({
           style={styles.button}
         >
           <View style={styles.buttonContent}>
-            <Text style={[styles.buttonText, { color: colorScheme.colors.text, opacity: 0.7 }]}>
+            <Text style={[styles.buttonText, { color: colorScheme.colors.text, opacity: isDarkMode ? 0.8 : 0.7 }]}>
               Cancel
             </Text>
           </View>

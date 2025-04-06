@@ -13,7 +13,9 @@
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
-      "**/*"
+      "**/*",
+      "assets/*.mp4",
+      "assets/*.png"
     ],
     "ios": {
       "supportsTablet": true,
