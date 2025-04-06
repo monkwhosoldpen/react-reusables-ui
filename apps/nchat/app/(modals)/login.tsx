@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function LoginModal() {
   const router = useRouter();
-  const { signIn, signInAnonymously, signInAsGuest } = useAuth();
+  const { signIn, signInAnonymously, signInAsGuest, refreshUserInfo } = useAuth();
   const { colorScheme } = useColorScheme();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = React.useState('');
@@ -28,9 +28,9 @@ export default function LoginModal() {
 
     try {
       await signIn(email, password);
-      setTimeout(() => {
-        router.dismiss();
-      }, 1000);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserInfo();
+      router.dismiss();
     } catch (err) {
       setError('Invalid email or password');
       console.error('Email sign in error:', err);
@@ -45,9 +45,9 @@ export default function LoginModal() {
 
     try {
       await signInAnonymously();
-      setTimeout(() => {
-        router.dismiss();
-      }, 1000);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserInfo();
+      router.dismiss();
     } catch (err) {
       setError('Failed to sign in anonymously');
       console.error('Anonymous sign in error:', err);
@@ -62,9 +62,9 @@ export default function LoginModal() {
 
     try {
       await signInAsGuest();
-      setTimeout(() => {
-        router.dismiss();
-      }, 1000);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserInfo();
+      router.dismiss();
     } catch (err) {
       setError('Failed to sign in as guest');
       console.error('Guest sign in error:', err);

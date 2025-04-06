@@ -1,79 +1,68 @@
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useRealtime } from '~/lib/providers/RealtimeProvider';
-import { View, Text } from 'react-native';
+import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { Home, Settings, Bell, MessageSquare } from 'lucide-react-native';
 
-export default function TabsLayout() {
-  const { feedItems } = useRealtime();
+export default function TabLayout() {
+  const { colorScheme } = useColorScheme();
+  const { design } = useDesign();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-      }}>
-
+        tabBarStyle: {
+          backgroundColor: colorScheme.colors.card,
+          borderTopColor: colorScheme.colors.border,
+          borderTopWidth: 1,
+          height: Number(design.spacing.iconSize) * 2.5,
+          paddingBottom: Number(design.spacing.padding.item),
+          paddingTop: Number(design.spacing.padding.item),
+        },
+        tabBarActiveTintColor: colorScheme.colors.primary,
+        tabBarInactiveTintColor: colorScheme.colors.text,
+        tabBarLabelStyle: {
+          fontSize: Number(design.spacing.fontSize.sm),
+          fontWeight: '500',
+        },
+      }}
+    >
       <Tabs.Screen
         name="home"
         options={{
           title: 'Home',
-          headerShown: true,
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <View>
-              <Ionicons name="radio-button-on" size={size} color={color} />
-              <View style={{
-                position: 'absolute',
-                right: -6,
-                top: -3,
-                backgroundColor: '#007AFF',
-                borderRadius: 8,
-                minWidth: 16,
-                height: 16,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-                <Text style={{
-                  color: 'white',
-                  fontSize: 10,
-                  fontWeight: 'bold',
-                }}>
-                  {feedItems?.length || 0}
-                </Text>
-              </View>
-            </View>
+          tabBarIcon: ({ color, size }) => (
+            <Home size={size} color={color} />
           ),
         }}
       />
-
       <Tabs.Screen
-        name="channels"
+        name="feed"
         options={{
-          title: 'Channels',
-          headerShown: true,
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
+          title: 'Feed',
+          tabBarIcon: ({ color, size }) => (
+            <MessageSquare size={size} color={color} />
           ),
         }}
       />
-
+      <Tabs.Screen
+        name="testpage"
+        options={{
+          title: 'Test',
+          tabBarIcon: ({ color, size }) => (
+            <Bell size={size} color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          headerShown: true,
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="settings" size={size} color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <Settings size={size} color={color} />
           ),
         }}
       />
-
-      <Tabs.Screen
-        name="feed"
-        options={{
-          headerShown: true,
-          title: 'Feed',
-        }}
-      />
-
     </Tabs>
   );
 } 

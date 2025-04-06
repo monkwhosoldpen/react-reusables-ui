@@ -6,8 +6,19 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Heart } from 'lucide-react-native';
-import { LoginDialog } from './LoginDialog';
-import { View, Text } from 'react-native';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogPortal,
+  DialogOverlay
+} from '@/components/ui/dialog';
+import LoginCommon from './LoginCommon';
+import { View, Text, StyleSheet } from 'react-native';
+import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 
 interface FollowButtonProps {
   username: string;
@@ -24,13 +35,19 @@ export function FollowButton({
   showIcon = false,
   initialFollowing
 }: FollowButtonProps) {
-  const { user, refreshUserInfo, isFollowingChannel, followChannel, unfollowChannel } = useAuth();
+  const { user, refreshUserInfo, isFollowingChannel, followChannel, unfollowChannel, signInAnonymously, signInAsGuest, signIn } = useAuth();
+  const { colorScheme, isDarkMode } = useColorScheme();
+  const { design } = useDesign();
   
   // Use local state to track following status and loading state
   const [following, setFollowing] = useState(initialFollowing ?? false);
   const [loading, setLoading] = useState(false);
   // Add state for login dialog
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   // Flag to track if we should follow after login
   const shouldFollowAfterLogin = useRef(false);
@@ -76,23 +93,23 @@ export function FollowButton({
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
   
   const executeFollowAction = async () => {
+    console.log('Executing follow action');
     if (!user) return;
     
     setLoading(true);
-    // Always set to true (follow) when coming from login
     setFollowing(true);
     
     try {
-      // Use AuthContext method to follow the channel
+      // Wait for auth state to be fully synchronized
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Refresh user info to ensure state is up to date
+      await refreshUserInfo();
+      // Now attempt to follow
       await followChannel(username);
-      
-      // Show success message
       toast.success(`Following @${username}`);
     } catch (error) {
-      // Show error message
+      console.error('Error following channel:', error);
       toast.error(`Failed to follow channel`);
-      
-      // Revert optimistic update on error
       setFollowing(false);
     } finally {
       setLoading(false);
@@ -145,8 +162,15 @@ export function FollowButton({
     }
   };
   
+  // Add debug effect for dialog state
+  useEffect(() => {
+    console.log('Dialog state changed:', showLoginDialog);
+  }, [showLoginDialog]);
+  
   const handleToggleFollow = async () => {
+    console.log('handleToggleFollow called, user:', user);
     if (!user) {
+      console.log('No user, opening login dialog');
       // Set flag to follow after login
       shouldFollowAfterLogin.current = true;
       // Show login dialog
@@ -162,12 +186,104 @@ export function FollowButton({
   };
   
   // Handle successful login
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
+    console.log('Login successful, executing follow action');
     setShowLoginDialog(false);
+    // Wait for auth state to be synchronized
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Refresh user info to ensure state is up to date
+    await refreshUserInfo();
+    // Execute follow action after login
+    await executeFollowAction();
   };
   
+  const handleSubmit = async () => {
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await signIn(email, password);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserInfo();
+      setShowLoginDialog(false);
+      // Execute follow action after successful email sign in
+      await executeFollowAction();
+    } catch (err) {
+      setError('Invalid email or password');
+      console.error('Email sign in error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleAnonymousSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await signInAnonymously();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserInfo();
+      setShowLoginDialog(false);
+      // Execute follow action after successful anonymous sign in
+      await executeFollowAction();
+    } catch (err) {
+      setError('Failed to sign in anonymously');
+      console.error('Anonymous sign in error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGuestSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await signInAsGuest();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserInfo();
+      setShowLoginDialog(false);
+      // Execute follow action after successful guest sign in
+      await executeFollowAction();
+    } catch (err) {
+      setError('Failed to sign in as guest');
+      console.error('Guest sign in error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const dialogStyles = StyleSheet.create({
+    dialogContent: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000
+    },
+    dialogView: {
+      backgroundColor: isDarkMode ? colorScheme.colors.card : 'white',
+      padding: Number(design.spacing.padding.card),
+      borderRadius: Number(design.radius.lg),
+      minWidth: 300,
+      maxWidth: '90%',
+      maxHeight: '90%',
+      overflow: 'scroll' as const
+    }
+  });
+  
   return (
-    <View>
+    <View style={{ position: 'relative' }}>
       <Button
         variant={following ? "default" : "outline"}
         size={size}
@@ -197,13 +313,30 @@ export function FollowButton({
         )}
       </Button>
       
-      {showLoginDialog && (
-        <LoginDialog
-          isOpen={showLoginDialog} 
-          onOpenChange={setShowLoginDialog} 
-          onLoginSuccess={handleLoginSuccess}
-        />
-      )}
+      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <DialogContent style={dialogStyles.dialogContent}>
+          <View style={dialogStyles.dialogView}>
+            <DialogHeader>
+              <DialogTitle>Sign in to follow channels</DialogTitle>
+              <DialogDescription>
+                You need to be signed in to follow channels and receive updates.
+              </DialogDescription>
+            </DialogHeader>
+            <LoginCommon
+              email={email}
+              setEmail={setEmail}
+              password={password}
+              setPassword={setPassword}
+              error={error}
+              isLoading={isLoading}
+              handleSubmit={handleSubmit}
+              handleAnonymousSignIn={handleAnonymousSignIn}
+              handleGuestSignIn={handleGuestSignIn}
+              onCancel={() => setShowLoginDialog(false)}
+            />
+          </View>
+        </DialogContent>
+      </Dialog>
     </View>
   );
 } 

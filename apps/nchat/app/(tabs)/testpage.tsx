@@ -14,9 +14,6 @@ import LanguageChanger from '@/components/common/LanguageChanger';
 import { UserLocation } from '@/components/common/UserLocation';
 import { FollowButton } from '@/components/common/FollowButton';
 import { LogIn, LogOut, ChevronRight, Bell, RefreshCw, Save, Database, CheckCircle, XCircle, DownloadCloud, AlertTriangle, Smartphone, Home, Users, Settings, Activity, PanelLeft, Menu, X } from 'lucide-react-native';
-import { useNotification } from '@/lib/contexts/NotificationContext';
-import { LoginDialog } from '~/components/common/LoginDialog';
-import { NotificationPreference } from '~/components/common/NotificationPreference';
 import { Button } from '~/components/ui/button';
 import { config } from '@/lib/config';
 import { useRouter } from 'expo-router';
@@ -37,10 +34,6 @@ const STORE_NAMES: ValidStoreNames[] = [
   'user_channel_follow',
   'user_channel_last_viewed'
 ];
-
-// VAPID key for push notifications
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 
-  'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
 
 // Mock usernames for testing follow functionality
 const MOCK_USERNAMES = ['elonmusk', 'testusername'];
@@ -99,8 +92,8 @@ const SettingsItem = ({
 
 export default function TestPage() {
   const { user, userInfo, loading: userLoading, signOut } = useAuth();
-  const { colorScheme, themeName, updateTheme, isDarkMode, toggleDarkMode } = useColorScheme();
-  const { design, updateDesign } = useDesign();
+  const { colorScheme } = useColorScheme();
+  const { design } = useDesign();
   const insets = useSafeAreaInsets();
   const [dbContent, setDbContent] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -111,20 +104,8 @@ export default function TestPage() {
   const [saveLoading, setSaveLoading] = useState(false);
   const [dbInitialized, setDbInitialized] = useState(false);
   const [recordsLoading, setRecordsLoading] = useState(true);
-  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const initializationStarted = useRef(false);
   const [logs, setLogs] = useState<Array<{timestamp: string, message: string, type: 'info' | 'success' | 'error' | 'warning'}>>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeSection, setActiveSection] = useState('database');
-  const { 
-    notificationsEnabled, 
-    permissionStatus, 
-    requestPermission, 
-    toggleNotifications,
-    accountPreference,
-    hasActiveSubscription,
-    updatePushSubscription
-  } = useNotification();
   const router = useRouter();
 
   // Initialize IndexedDB as early as possible, even before user is loaded
@@ -282,38 +263,6 @@ export default function TestPage() {
     }
   };
 
-  // Check if a specific username is followed
-  const isFollowingUsername = async (username: string): Promise<boolean> => {
-    if (!user?.id || !dbInitialized) return false;
-    
-    try {
-      // Try direct lookup using composite key [user_id, username]
-      const followRecord = await indexedDB.get('user_channel_follow', [user.id, username]);
-      return !!followRecord;
-    } catch (err) {
-      console.error(`Error checking if following ${username}:`, err);
-      
-      // Fallback to index-based search
-      try {
-        const follows = await fetchUserFollows();
-        return follows.some(follow => follow.username === username);
-      } catch (error) {
-        console.error(`Fallback error checking if following ${username}:`, error);
-        return false;
-      }
-    }
-  };
-
-  // Function to refresh the currently selected store view
-  const refreshCurrentStore = async () => {
-    if (selectedStore === 'user_channel_follow') {
-      const follows = await fetchUserFollows();
-      setStoreRecords(follows);
-    } else {
-      fetchStoreRecords(selectedStore);
-    }
-  };
-
   // Load data as soon as DB is initialized and user is available
   useEffect(() => {
     if (dbInitialized && !userLoading && user?.id) {
@@ -346,64 +295,12 @@ export default function TestPage() {
     }
   }, [dbInitialized, userLoading, user?.id]);
 
-  // Apply design system tokens
-  const sectionStyle = {
-    ...styles.section,
-    backgroundColor: colorScheme.colors.card,
-    padding: Number(design.spacing.padding.card),
-    borderRadius: Number(design.radius.lg),
-  };
-
-  const cardStyle = {
-    backgroundColor: colorScheme.colors.background,
-    padding: Number(design.spacing.padding.item),
-    borderRadius: Number(design.radius.md),
-  };
-
-  const titleStyle = {
-    color: colorScheme.colors.primary,
-    fontSize: Number(design.spacing.fontSize.sm),
-    marginBottom: Number(design.spacing.margin.card),
-  };
-
-  const textStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.base),
-  };
-
-  const labelStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.sm),
-    opacity: 0.7,
-  };
-
-  // Handle successful login
-  const handleLoginSuccess = () => {
-    addLog('Login successful!', 'success');
-    setShowLoginDialog(false);
-  };
-
   // Add logging function
   const addLog = (message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') => {
     const timestamp = new Date().toISOString().slice(11, 19); // HH:MM:SS format
     setLogs(prev => [{timestamp, message, type}, ...prev].slice(0, 100)); // Keep last 100 logs
     console.log(`[${timestamp}][${type.toUpperCase()}] ${message}`);
   };
-  
-  // Clear logs
-  const clearLogs = () => {
-    setLogs([]);
-    addLog('Logs cleared', 'info');
-  };
-  
-  // Log notification state on initial load
-  useEffect(() => {
-    addLog(`Notification state initialized`, 'info');
-    addLog(`Permission status: ${permissionStatus}`, permissionStatus === 'granted' ? 'success' : permissionStatus === 'denied' ? 'error' : 'warning');
-    addLog(`Notifications enabled: ${notificationsEnabled}`, notificationsEnabled ? 'success' : 'info');
-    addLog(`Account preference: ${accountPreference === null ? 'Not set' : accountPreference ? 'Enabled' : 'Disabled'}`, 'info');
-    addLog(`Active subscription: ${hasActiveSubscription ? 'Yes' : 'No'}`, hasActiveSubscription ? 'success' : 'info');
-  }, [permissionStatus, notificationsEnabled, accountPreference, hasActiveSubscription]);
 
   // Log when user info changes
   useEffect(() => {
@@ -415,348 +312,6 @@ export default function TestPage() {
     }
   }, [userInfo]);
   
-  // Test notification permission
-  const testRequestPermission = async () => {
-    addLog('Requesting notification permission...', 'info');
-    try {
-      const permResult = await requestPermission();
-      addLog(`Permission request result: ${permResult}`, permResult === 'granted' ? 'success' : permResult === 'denied' ? 'error' : 'warning');
-    } catch (error) {
-      addLog(`Permission request error: ${error instanceof Error ? error.message : String(error)}`, 'error');
-    }
-  };
-  
-  // Toggle notifications
-  const testToggleNotifications = async (enable: boolean) => {
-    addLog(`${enable ? 'Enabling' : 'Disabling'} notifications...`, 'info');
-    try {
-      await toggleNotifications(enable);
-      addLog(`Notifications ${enable ? 'enabled' : 'disabled'} successfully`, 'success');
-    } catch (error) {
-      addLog(`Error toggling notifications: ${error instanceof Error ? error.message : String(error)}`, 'error');
-    }
-  };
-  
-  // Test sending a notification through the service worker
-  const testServiceWorkerNotification = async () => {
-    addLog('Testing service worker notification...', 'info');
-    try {
-      if (!('serviceWorker' in navigator)) {
-        addLog('Service Worker not supported in this browser', 'error');
-        return;
-      }
-      
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (!registration) {
-        addLog('No service worker registration found', 'error');
-        return;
-      }
-      
-      addLog('Service worker registration found', 'success');
-      
-      // Check if we have permission
-      if (Notification.permission !== 'granted') {
-        addLog('Notification permission not granted', 'error');
-        return;
-      }
-      
-      // Check subscription
-      const subscription = await registration.pushManager.getSubscription();
-      if (!subscription) {
-        addLog('No push subscription found', 'error');
-        
-        // Add diagnostic info about why subscription might not exist
-        if (user && userInfo) {
-          addLog(`User ID: ${user.id.substring(0, 8)}...`, 'info');
-          addLog(`Notification preference: ${userInfo.notifications_enabled ? 'Enabled' : 'Disabled'}`, 'info');
-          
-          // Offer to create a subscription
-          addLog('Attempting to create a subscription...', 'info');
-          try {
-            const newSubscription = await registration.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: vapidPublicKey
-            });
-            
-            if (newSubscription) {
-              addLog('Created new subscription successfully', 'success');
-              addLog(`Endpoint: ${newSubscription.endpoint.slice(0, 30)}...`, 'info');
-              
-              // Update this subscription in the backend
-              if (updatePushSubscription) {
-                try {
-                  await updatePushSubscription(newSubscription, true);
-                  addLog('Saved subscription to backend', 'success');
-                  
-                  // Now try sending the notification again with the new subscription
-                  if (navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
-                      type: 'MANUAL_NOTIFICATION',
-                      notification: {
-                        title: 'Test Notification (Auto-fixed)',
-                        message: 'Created new subscription and sent test notification',
-                        icon: '/icons/icon-192x192.png',
-                        data: {
-                          url: '/testpage',
-                          timestamp: new Date().toISOString(),
-                          testId: Math.random().toString(36).substring(7),
-                          source: 'testpage-autofix'
-                        }
-                      }
-                    });
-                    addLog('Notification request sent with new subscription', 'success');
-                    return;
-                  }
-                } catch (subError) {
-                  addLog(`Error saving subscription: ${subError instanceof Error ? subError.message : String(subError)}`, 'error');
-                }
-              }
-            }
-          } catch (subError) {
-            addLog(`Error creating subscription: ${subError instanceof Error ? subError.message : String(subError)}`, 'error');
-            addLog('Please try disabling and re-enabling notifications', 'warning');
-          }
-        }
-        
-        return;
-      }
-      
-      addLog('Active push subscription found', 'success');
-      addLog(`Subscription endpoint: ${subscription.endpoint.slice(0, 30)}...`, 'info');
-      
-      // Verify this subscription exists in the backend for this user
-      if (user && userInfo && userInfo.notifications) {
-        const subscriptions = userInfo.notifications.subscriptions || [];
-        const matchingSubscription = subscriptions.find(
-          (sub: any) => sub.endpoint === subscription.endpoint
-        );
-        
-        if (!matchingSubscription) {
-          addLog('Warning: This subscription does not exist in the backend for this user', 'warning');
-          addLog('This might be a subscription for a different user account', 'warning');
-          addLog('Try disabling and re-enabling notifications', 'info');
-          
-          // Attempt to fix by registering this subscription for the current user
-          try {
-            if (updatePushSubscription) {
-              await updatePushSubscription(subscription, true);
-              addLog('Automatically registered subscription for current user', 'success');
-            }
-          } catch (regError) {
-            addLog(`Error registering subscription: ${regError instanceof Error ? regError.message : String(regError)}`, 'error');
-          }
-        } else {
-          addLog('Subscription verified in backend', 'success');
-        }
-      }
-      
-      // Manually trigger a notification via the service worker
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'MANUAL_NOTIFICATION',
-          notification: {
-            title: 'Test Notification',
-            message: 'This is a test notification from the test page',
-            icon: '/icons/icon-192x192.png',
-            data: {
-              url: '/testpage',
-              timestamp: new Date().toISOString(),
-              testId: Math.random().toString(36).substring(7),
-              source: 'testpage'
-            }
-          }
-        });
-        addLog('Notification request sent to service worker', 'success');
-      } else {
-        addLog('Service worker not controlling this page', 'error');
-      }
-    } catch (error) {
-      addLog(`Service worker notification error: ${error instanceof Error ? error.message : String(error)}`, 'error');
-    }
-  };
-  
-  // Function to generate test notification through the backend API
-  const testBackendNotification = async () => {
-    if (!user) {
-      addLog('User not logged in', 'error');
-      return;
-    }
-    
-    addLog('Sending test notification request to backend...', 'info');
-    
-    try {
-      const response = await fetch(`${config.api.endpoints.notifications.test}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          message: 'Test notification from API at ' + new Date().toLocaleTimeString(),
-          testId: Math.random().toString(36).substring(7)
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      addLog(`Backend notification response: ${data.message || 'Success'}`, 'success');
-    } catch (error) {
-      addLog(`Backend notification error: ${error instanceof Error ? error.message : String(error)}`, 'error');
-    }
-  };
-  
-  // Function to test the simpler notification API
-  const testSimpleNotification = async () => {
-    if (!user) {
-      addLog('User not logged in', 'error');
-      return;
-    }
-    
-    addLog('Sending simple notification request...', 'info');
-    
-    // First check if we have the necessary prerequisites
-    try {
-      // Check if we have permission
-      if (Notification.permission !== 'granted') {
-        addLog('Notification permission not granted', 'error');
-        addLog('Please enable notification permissions in your browser', 'warning');
-        return;
-      }
-      
-      // Check if service worker is registered
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (!registration) {
-        addLog('No service worker registration found', 'error');
-        return;
-      }
-      
-      // Check subscription
-      const subscription = await registration.pushManager.getSubscription();
-      if (!subscription) {
-        addLog('No push subscription found', 'error');
-        addLog('Try disabling and re-enabling notifications', 'warning');
-        return;
-      }
-      
-      // Verify if this subscription is registered for the current user
-      if (userInfo?.notifications) {
-        const subscriptions = userInfo.notifications.subscriptions || [];
-        const matchingSubscription = subscriptions.find(
-          (sub: any) => sub.endpoint === subscription.endpoint
-        );
-        
-        if (!matchingSubscription) {
-          addLog('Warning: Subscription not found for current user', 'warning');
-          
-          // Try to fix by registering the subscription
-          addLog('Attempting to register subscription for current user...', 'info');
-          try {
-            await updatePushSubscription(subscription, true);
-            addLog('Successfully registered subscription', 'success');
-          } catch (subError) {
-            addLog(`Error registering subscription: ${subError instanceof Error ? subError.message : String(subError)}`, 'error');
-            addLog('Continuing with notification test anyway...', 'info');
-          }
-        } else {
-          addLog('Subscription verified for current user', 'success');
-        }
-      }
-    } catch (checkError) {
-      addLog(`Error checking prerequisites: ${checkError instanceof Error ? checkError.message : String(checkError)}`, 'error');
-      // Continue with the test anyway, as the backend will report what's wrong
-    }
-    
-    // Proceed with the notification test
-    try {
-      const response = await fetch(`${config.api.endpoints.notifications.sendTest}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          message: 'Simple notification test at ' + new Date().toLocaleTimeString(),
-          testId: Math.random().toString(36).substring(7)
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      addLog(`Simple notification response: ${data.message || 'Success'}`, 'success');
-      
-      if (data.successCount === 0 && data.totalSubscriptions > 0) {
-        addLog(`Warning: Sent to 0 of ${data.totalSubscriptions} devices`, 'warning');
-        addLog('This may indicate a problem with the push subscription', 'warning');
-        addLog('Try disabling and re-enabling notifications', 'info');
-      } else if (data.successCount === 0 && data.totalSubscriptions === 0) {
-        addLog('No subscriptions found for your account', 'error');
-        addLog('Try disabling and re-enabling notifications', 'warning');
-      } else {
-        addLog(`Sent to ${data.successCount} of ${data.totalSubscriptions} devices`, 
-          data.successCount > 0 ? 'success' : 'warning');
-      }
-    } catch (error) {
-      addLog(`Simple notification error: ${error instanceof Error ? error.message : String(error)}`, 'error');
-    }
-  };
-  
-  // Function to inspect service worker state
-  const inspectServiceWorker = async () => {
-    addLog('Inspecting service worker state...', 'info');
-    
-    try {
-      if (!('serviceWorker' in navigator)) {
-        addLog('Service Worker not supported in this browser', 'error');
-        return;
-      }
-      
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (!registration) {
-        addLog('No service worker registration found', 'error');
-        return;
-      }
-      
-      addLog(`Service worker state: ${registration.active ? 'Active' : registration.installing ? 'Installing' : registration.waiting ? 'Waiting' : 'Unknown'}`, 'success');
-      
-      // Check subscription
-      const subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        addLog('Push subscription found', 'success');
-        addLog(`Endpoint: ${subscription.endpoint.slice(0, 30)}...`, 'info');
-        
-        const expirationTime = subscription.expirationTime;
-        if (expirationTime) {
-          const expDate = new Date(expirationTime);
-          addLog(`Subscription expires: ${expDate.toLocaleString()}`, 'info');
-        } else {
-          addLog('Subscription has no expiration time', 'info');
-        }
-      } else {
-        addLog('No push subscription found', 'warning');
-      }
-      
-      // Check if controller is active
-      if (navigator.serviceWorker.controller) {
-        addLog('Service worker is controlling this page', 'success');
-      } else {
-        addLog('Service worker is not controlling this page', 'warning');
-      }
-    } catch (error) {
-      addLog(`Service worker inspection error: ${error instanceof Error ? error.message : String(error)}`, 'error');
-    }
-  };
-
-  // Add debug logging
-  useEffect(() => {
-    console.log('Login Dialog State:', showLoginDialog);
-  }, [showLoginDialog]);
-
   return (
     <ScrollView 
       style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
@@ -793,13 +348,6 @@ export default function TestPage() {
             />
           )}
         </View>
-
-        {/* Login Dialog */}
-        <LoginDialog 
-          isOpen={showLoginDialog} 
-          onOpenChange={setShowLoginDialog} 
-          onLoginSuccess={handleLoginSuccess}
-        />
 
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
@@ -846,21 +394,6 @@ export default function TestPage() {
             <LanguageChanger variant="settings" />
           </View>
         </View>
-
-        {/* Notification Preferences Section */}
-        {user && (
-          <View style={[styles.card, { backgroundColor: colorScheme.colors.background }]}>
-            <View style={styles.sectionHeader}>
-              <Bell size={Number(design.spacing.iconSize)} color={colorScheme.colors.text} />
-              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
-                Notification Preferences
-              </Text>
-            </View>
-            <View style={styles.notificationContent}>
-              <NotificationPreference showDebug={true} />
-            </View>
-          </View>
-        )}
 
         {/* Mock Usernames Section */}
         <View style={[styles.card, { backgroundColor: colorScheme.colors.background }]}>
@@ -1038,85 +571,7 @@ export default function TestPage() {
                 </Text>
               )}
             </View>
-            
-            {/* User Actions */}
-            <View style={styles.userActions}>
-              <Button
-                onPress={async () => {
-                  if (!user?.id) return;
-                  
-                  try {
-                    const allUserData = await Promise.all(STORE_NAMES.map(async store => {
-                      if (['users', 'user_language', 'user_notifications', 'user_location'].includes(store)) {
-                        const record = await indexedDB.get(store, user.id);
-                        return { store, data: record ? [record] : [] };
-                      }
-                      else if (['tenant_requests', 'push_subscriptions', 'user_channel_follow', 'user_channel_last_viewed'].includes(store)) {
-                        const records = await indexedDB.getAllFromIndex(store, 'by-user', user.id).catch(() => []);
-                        return { store, data: records || [] };
-                      }
-                      return { store, data: [] };
-                    }));
-                    
-                    const userData = allUserData.filter(item => item.data.length > 0);
-                    console.log('All user-related data:', userData);
-                    
-                    const formattedData = userData.reduce((acc, { store, data }) => {
-                      acc[store] = data;
-                      return acc;
-                    }, {} as Record<string, any>);
-                    
-                    alert(`User data in IndexedDB: ${JSON.stringify(formattedData, null, 2)}`);
-                  } catch (err) {
-                    console.error('Error fetching all user data:', err);
-                  }
-                }}
-                style={styles.userActionButton}
-              >
-                <Text style={styles.buttonText}>View All User Data</Text>
-              </Button>
-              
-              <Button
-                onPress={async () => {
-                  if (!user?.id) return;
-                  
-                  try {
-                    const userData = await indexedDB.get('users', user.id);
-                    console.log('User metadata:', userData);
-                    setStoreRecords([userData]);
-                    setSelectedStore('users');
-                  } catch (err) {
-                    console.error('Error fetching user metadata:', err);
-                  }
-                }}
-                style={styles.userActionButton}
-              >
-                <Text style={styles.buttonText}>View User Record</Text>
-              </Button>
-              
-              <Button
-                onPress={async () => {
-                  if (!user?.id) return;
-                  
-                  try {
-                    await indexedDB.put('user_notifications', {
-                      user_id: user.id,
-                      notifications_enabled: Math.random() > 0.5
-                    });
-                    await indexedDB.setUserLanguage(user.id, Math.random() > 0.5 ? 'english' : 'hindi');
-                    
-                    alert('Randomized user preferences');
-                    // Refresh user data
-                    window.location.reload();
-                  } catch (err) {
-                    console.error('Error updating user preferences:', err);
-                  }
-                }}
-                style={styles.userActionButton}
-              >
-                <Text style={styles.buttonText}>Randomize Preferences</Text>
-              </Button>
-            </View>
+
           </View>
         )}
         
@@ -1173,119 +628,7 @@ export default function TestPage() {
             )}
           </View>
         </View>
-        
-        {/* <View style={[styles.card, { backgroundColor: colorScheme.colors.background }]}>
-          <View style={styles.notificationHeader}>
-            <Bell size={Number(design.spacing.iconSize)} color={colorScheme.colors.primary} />
-            <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
-              Web Push Notification Testing
-            </Text>
-          </View>
-          
-          <View style={styles.notificationButtons}>
-            <Button 
-              onPress={testRequestPermission}
-              style={styles.notificationButton}
-            >
-              <Bell size={Number(design.spacing.iconSize)} color="white" />
-              <Text style={styles.buttonText}>Request Permission</Text>
-            </Button>
-            
-            <Button 
-              onPress={() => testToggleNotifications(true)}
-              disabled={permissionStatus !== 'granted'}
-              style={styles.notificationButton}
-            >
-              <CheckCircle size={Number(design.spacing.iconSize)} color="white" />
-              <Text style={styles.buttonText}>Enable Notifications</Text>
-            </Button>
-            
-            <Button 
-              onPress={() => testToggleNotifications(false)}
-              style={styles.notificationButton}
-            >
-              <XCircle size={Number(design.spacing.iconSize)} color="white" />
-              <Text style={styles.buttonText}>Disable Notifications</Text>
-            </Button>
-            
-            <Button 
-              onPress={testServiceWorkerNotification}
-              disabled={!notificationsEnabled}
-              style={styles.notificationButton}
-            >
-              <Smartphone size={Number(design.spacing.iconSize)} color="white" />
-              <Text style={styles.buttonText}>Test SW Notification</Text>
-            </Button>
-            
-            <Button 
-              onPress={testBackendNotification}
-              disabled={!notificationsEnabled || !user}
-              style={styles.notificationButton}
-            >
-              <DownloadCloud size={Number(design.spacing.iconSize)} color="white" />
-              <Text style={styles.buttonText}>Test API Notification</Text>
-            </Button>
-            
-            <Button 
-              onPress={testSimpleNotification}
-              disabled={!user}
-              style={styles.notificationButton}
-            >
-              <Bell size={Number(design.spacing.iconSize)} color="white" />
-              <Text style={styles.buttonText}>Simple Test</Text>
-            </Button>
-            
-            <Button 
-              onPress={inspectServiceWorker}
-              style={styles.notificationButton}
-            >
-              <AlertTriangle size={Number(design.spacing.iconSize)} color="white" />
-              <Text style={styles.buttonText}>Inspect Service Worker</Text>
-            </Button>
-            
-            <Button 
-              onPress={clearLogs}
-              style={styles.notificationButton}
-            >
-              <RefreshCw size={Number(design.spacing.iconSize)} color="white" />
-              <Text style={styles.buttonText}>Clear Logs</Text>
-            </Button>
-          </View>
-          
-          <View style={[styles.logsContainer, { backgroundColor: colorScheme.colors.card }]}>
-            {logs.length === 0 ? (
-              <Text style={[styles.logsText, { color: colorScheme.colors.text }]}>
-                No logs yet. Test notification features to see logs.
-              </Text>
-            ) : (
-              <View style={styles.logsList}>
-                {logs.map((log, i) => (
-                  <Text 
-                    key={i} 
-                    style={[
-                      styles.logText,
-                      log.type === 'success' ? { color: colorScheme.colors.primary } :
-                      log.type === 'error' ? { color: colorScheme.colors.notification } :
-                      log.type === 'warning' ? { color: colorScheme.colors.primary } :
-                      { color: colorScheme.colors.text }
-                    ]}
-                  >
-                    [{log.timestamp}] {log.message}
-                  </Text>
-                ))}
-              </View>
-            )}
-          </View>
-          
-          <View style={[styles.notificationStatus, { backgroundColor: colorScheme.colors.card }]}>
-            <Text style={[styles.statusText, { color: colorScheme.colors.text }]}>
-              Current Status: Permission: {permissionStatus}, Enabled: {notificationsEnabled ? 'Yes' : 'No'}, 
-              Account Pref: {accountPreference === null ? 'Not set' : accountPreference ? 'Enabled' : 'Disabled'}, 
-              Active Sub: {hasActiveSubscription ? 'Yes' : 'No'}
-            </Text>
-          </View>
-        </View> */}
-
+ 
       </View>
     </ScrollView>
   );
@@ -1556,4 +899,3 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
 });
-

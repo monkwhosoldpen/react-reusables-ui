@@ -5,6 +5,7 @@ import { indexedDB } from '@/lib/services/indexedDB';
 import { supabase } from '@/lib/supabase';
 import { ChannelActivity, Channel, ChannelMessage, TenantRequest } from '../types/channel.types';
 import { config } from '../config';
+import { User } from '@supabase/supabase-js';
 
 interface PushSubscriptionData {
   user_id: string;
@@ -52,9 +53,9 @@ export interface SampleHelperReturn {
   updateChannelLastViewed: (username: string) => Promise<boolean>;
 }
 
-export function SampleHelper(): SampleHelperReturn {
-  // Access AuthHelper directly to get its state
-  const { user, isGuest, refreshUserInfo } = AuthHelper();
+export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperReturn {
+  // Remove direct AuthHelper dependency
+  // const { refreshUserInfo } = AuthHelper();
 
   const testFn = async (username: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -90,8 +91,7 @@ export function SampleHelper(): SampleHelperReturn {
       // Update IndexedDB
       await indexedDB.setUserLanguage(user.id, language);
       
-      // Refresh user info to sync changes
-      await refreshUserInfo();
+      // No need to refresh user info since we're using the passed user state
     } catch (error) {
       console.error('Error updating language preference:', error);
       throw error;
@@ -121,8 +121,7 @@ export function SampleHelper(): SampleHelperReturn {
       // Update IndexedDB
       await indexedDB.setUserNotifications(user.id, enabled);
       
-      // Refresh user info to sync changes
-      await refreshUserInfo();
+      // No need to refresh user info since we're using the passed user state
     } catch (error) {
       console.error('Error updating notification preference:', error);
       throw error;
@@ -175,8 +174,7 @@ export function SampleHelper(): SampleHelperReturn {
 
       if (error) throw error;
 
-      // Refresh user info to sync changes
-      await refreshUserInfo();
+      // No need to refresh user info since we're using the passed user state
 
     } catch (error) {
       console.error('Error updating push subscription:', error);
@@ -227,8 +225,7 @@ export function SampleHelper(): SampleHelperReturn {
         }
       }
       
-      // Refresh user info to update the state
-      await refreshUserInfo();
+      // No need to refresh user info since we're using the passed user state
     } catch (error) {
       console.error('Error following channel:', error);
       throw error; // Re-throw to allow callers to handle the error
@@ -265,8 +262,7 @@ export function SampleHelper(): SampleHelperReturn {
         }
       }
       
-      // Refresh user info to update the state
-      await refreshUserInfo();
+      // No need to refresh user info since we're using the passed user state
     } catch (error) {
       console.error('Error unfollowing channel:', error);
       throw error; // Re-throw to allow callers to handle the error
@@ -427,8 +423,7 @@ export function SampleHelper(): SampleHelperReturn {
           const data = await response.json();
           console.log('Successfully requested tenant channel access:', data);
           
-          // Refresh user info to get updated tenant requests
-          await refreshUserInfo();
+          // No need to refresh user info since we're using the passed user state
           return true;
         }
       }

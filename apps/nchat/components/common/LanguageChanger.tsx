@@ -30,7 +30,7 @@ export default function LanguageChanger({ variant = "default", className = "" }:
   const [isChanging, setIsChanging] = useState(false);
   const [localLanguage, setLocalLanguage] = useState<string | null>(null);
   
-  // Use either the local state or the user's language preference from userInfo
+  // Use either the local state or the user's language preference from userInfo, or default to english
   const currentLanguage = localLanguage || userInfo?.language || "english";
   
   // Get the current language option
@@ -51,8 +51,8 @@ export default function LanguageChanger({ variant = "default", className = "" }:
     setLocalLanguage(newLanguage);
     
     try {
-      if (updateLanguagePreference) {
-        // Update language in backend and IndexedDB via AuthHelper
+      if (updateLanguagePreference && userInfo) {
+        // Only update language in backend and IndexedDB if user is logged in
         await updateLanguagePreference(newLanguage);
         console.log(`Language successfully changed to ${newLanguage}`);
       }
@@ -69,15 +69,6 @@ export default function LanguageChanger({ variant = "default", className = "" }:
   const triggerClassName = variant === "settings" 
     ? "w-[130px] h-9 bg-muted/50 border-none rounded-md focus:ring-offset-0 focus:ring-0" 
     : "w-[130px] h-9 bg-emerald-500/20 dark:bg-emerald-700/40 text-white border-none rounded-full focus:ring-offset-0 focus:ring-0";
-
-  // Show skeleton while loading
-  if (!userInfo) {
-    return (
-      <div className={className}>
-        <Text className="text-muted-foreground">Loading...</Text>
-      </div>
-    );
-  }
 
   return (
     <div className={className}>
