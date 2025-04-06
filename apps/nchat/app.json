@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Starter Base",
-    "slug": "starter-base",
+    "name": "NCHAT",
+    "slug": "nchat",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -17,14 +17,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.monkwhosoldpen.starterbase"
+      "bundleIdentifier": "com.monkwhosoldpen.nchat"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "scale": 1.1
       },
-      "package": "com.monkwhosoldpen.starterbase"
+      "package": "com.monkwhosoldpen.nchat"
     },
     "web": {
       "bundler": "metro",
