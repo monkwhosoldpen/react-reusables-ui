@@ -1,5 +1,5 @@
 {
-  "name": "@rnr/starter-base",
+  "name": "@rnr/nchat",
   "main": "index.js",
   "version": "1.0.0",
   "scripts": {
@@ -19,7 +19,7 @@
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/drawer": "^7.1.1",
-    "@react-navigation/native": "^7.0.0",
+    "@react-navigation/native": "^7.0.14",
     "@rn-primitives/avatar": "~1.1.0",
     "@rn-primitives/dialog": "^1.1.0",
     "@rn-primitives/dropdown-menu": "^1.1.0",
