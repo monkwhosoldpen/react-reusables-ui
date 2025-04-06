@@ -66,31 +66,11 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* Modal routes - not shown in tab bar but accessible via navigation */}
-      <Tabs.Screen
-        name="alerts"
-        options={{
-          presentation: 'modal',
-          headerShown: true,
-          title: 'Alerts',
-        }}
-      />
-
       <Tabs.Screen
         name="feed"
         options={{
-          presentation: 'modal',
           headerShown: true,
           title: 'Feed',
-        }}
-      />
-
-      <Tabs.Screen
-        name="[username]"
-        options={{
-          presentation: 'modal',
-          headerShown: true,
-          title: 'Profile',
         }}
       />
 

@@ -1,8 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
-import { Card } from '~/components/ui/card';
 import { useAuth } from '~/lib/contexts/AuthContext';
 import LoginCommon from '~/components/common/LoginCommon';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
@@ -13,7 +11,6 @@ export default function LoginModal() {
   const router = useRouter();
   const { signIn, signInAnonymously, signInAsGuest } = useAuth();
   const { colorScheme } = useColorScheme();
-  const { design } = useDesign();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
