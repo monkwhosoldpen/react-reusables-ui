@@ -19,6 +19,7 @@ import { LoginDialog } from '~/components/common/LoginDialog';
 import { NotificationPreference } from '~/components/common/NotificationPreference';
 import { Button } from '~/components/ui/button';
 import { config } from '@/lib/config';
+import { useRouter } from 'expo-router';
 
 // Type alias for store names to match the one in the indexedDB service
 type ValidStoreNames = StoreNames<NchatDB>;
@@ -124,6 +125,7 @@ export default function TestPage() {
     hasActiveSubscription,
     updatePushSubscription
   } = useNotification();
+  const router = useRouter();
 
   // Initialize IndexedDB as early as possible, even before user is loaded
   useEffect(() => {
@@ -787,7 +789,7 @@ export default function TestPage() {
               icon={LogIn}
               title="Sign In"
               description="Sign in to your account"
-              onPress={() => setShowLoginDialog(true)}
+              onPress={() => router.push('/login')}
             />
           )}
         </View>
@@ -1284,18 +1286,6 @@ export default function TestPage() {
           </View>
         </View> */}
 
-        {/* Login Dialog Test Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Login Dialog Test</Text>
-          <View style={styles.sectionContent}>
-            <Button
-              onPress={() => setShowLoginDialog(true)}
-              style={styles.button}
-            >
-              Open Login Dialog
-            </Button>
-          </View>
-        </View>
       </View>
     </ScrollView>
   );
