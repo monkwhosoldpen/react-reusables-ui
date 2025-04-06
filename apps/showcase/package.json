@@ -18,7 +18,7 @@
     "@hookform/resolvers": "^3.3.4",
     "@react-native-community/slider": "4.5.5",
     "@react-navigation/material-top-tabs": "^7.0.0",
-    "@react-navigation/native": "^7.0.0",
+    "@react-navigation/native": "^7.0.19",
     "@rn-primitives/aspect-ratio": "~1.1.0",
     "@rn-primitives/collapsible": "~1.1.0",
     "@rn-primitives/label": "~1.1.0",
