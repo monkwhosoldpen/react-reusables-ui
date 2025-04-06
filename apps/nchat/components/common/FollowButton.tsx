@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Heart } from 'lucide-react-native';
 import { LoginDialog } from './LoginDialog';
-import { View } from 'react-native';
-import { Text } from '../ui/text';
+import { View, Text } from 'react-native';
 
 interface FollowButtonProps {
   username: string;
@@ -193,7 +192,7 @@ export function FollowButton({
                 )} 
               />
             )}
-            {following ? 'Following' : 'Follow'}
+            <Text>{following ? 'Following' : 'Follow'}</Text>
           </View>
         )}
       </Button>

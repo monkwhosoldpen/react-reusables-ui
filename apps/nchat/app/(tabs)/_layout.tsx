@@ -1,6 +1,5 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { ChatHeaderContent } from '~/components/ChatHeaderContent';
 import { useRealtime } from '~/lib/providers/RealtimeProvider';
 import { View, Text } from 'react-native';
 
@@ -18,7 +17,7 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           headerShown: true,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <View>
               <Ionicons name="radio-button-on" size={size} color={color} />
               <View style={{
@@ -50,7 +49,7 @@ export default function TabsLayout() {
         options={{
           title: 'Channels',
           headerShown: true,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Ionicons name="chatbubbles-outline" size={size} color={color} />
           ),
         }}
@@ -61,31 +60,37 @@ export default function TabsLayout() {
         options={{
           title: 'Settings',
           headerShown: true,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Ionicons name="settings" size={size} color={color} />
           ),
         }}
       />
 
-      {/* Hidden routes - using href: null to completely remove from tab bar */}
+      {/* Modal routes - not shown in tab bar but accessible via navigation */}
       <Tabs.Screen
         name="alerts"
         options={{
-          href: null,
+          presentation: 'modal',
+          headerShown: true,
+          title: 'Alerts',
         }}
       />
 
       <Tabs.Screen
         name="feed"
         options={{
-          href: null,
+          presentation: 'modal',
+          headerShown: true,
+          title: 'Feed',
         }}
       />
 
       <Tabs.Screen
         name="[username]"
         options={{
-          href: null,
+          presentation: 'modal',
+          headerShown: true,
+          title: 'Profile',
         }}
       />
 
