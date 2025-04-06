@@ -1,4 +1,3 @@
-import { useTheme } from '@react-navigation/native';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { LucideIcon } from 'lucide-react-native';
 import * as React from 'react';
@@ -29,8 +28,6 @@ const Alert = React.forwardRef<
       style?: ViewStyle;
     }
 >(({ children, icon: Icon, className, variant, style: styleProp, ...props }, ref) => {
-  const { colors } = useTheme();
-
   return (
     <View
       ref={ref}
@@ -48,10 +45,10 @@ const Alert = React.forwardRef<
             size={21}
             color={
               variant === 'destructive'
-                ? colors.notification
+                ? 'rgb(239, 68, 68)'
                 : variant === 'success'
-                ? '#10b981'
-                : colors.text
+                ? 'rgb(16, 185, 129)'
+                : 'rgb(100, 116, 139)'
             }
           />
         </View>
@@ -68,10 +65,7 @@ const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <Text
     ref={ref}
-    className={cn(
-      'mb-1.5 text-xl font-medium leading-none tracking-tight text-foreground',
-      className
-    )}
+    className={cn('text-foreground mb-1 font-medium leading-none tracking-tight', className)}
     {...props}
   />
 ));
@@ -81,8 +75,12 @@ const AlertDescription = React.forwardRef<
   React.ElementRef<typeof Text>,
   React.ComponentPropsWithoutRef<typeof Text>
 >(({ className, ...props }, ref) => (
-  <Text ref={ref} className={cn('text-muted-foreground', className)} {...props} />
+  <Text
+    ref={ref}
+    className={cn('text-muted-foreground text-sm leading-relaxed', className)}
+    {...props}
+  />
 ));
 AlertDescription.displayName = 'AlertDescription';
 
-export { Alert, AlertDescription, AlertTitle };
+export { Alert, AlertTitle, AlertDescription };
