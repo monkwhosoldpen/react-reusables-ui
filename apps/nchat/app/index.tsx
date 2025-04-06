@@ -182,27 +182,6 @@ export default function Screen() {
           shadowOffset: { width: 0, height: 1 },
           elevation: 2
         }}
-        onPress={() => router.push('/landing')}
-      >
-        <Text style={{ color: theme.colorScheme.colors.text }}>
-          Go to Landing
-        </Text>
-      </Button>
-
-      <Button 
-        style={{ 
-          width: '100%',
-          maxWidth: 380,
-          backgroundColor: theme.colorScheme.colors.primary,
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          borderRadius: 6,
-          shadowColor: theme.colorScheme.colors.text,
-          shadowOpacity: 0.05,
-          shadowRadius: 1,
-          shadowOffset: { width: 0, height: 1 },
-          elevation: 2
-        }}
         onPress={() => router.push('/feed')}
       >
         <Text style={{ color: theme.colorScheme.colors.text }}>

@@ -4,6 +4,9 @@ import { useState } from "react"
 import { useAuth } from "@/lib/contexts/AuthContext"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import LoginCommon from "@/components/common/LoginCommon"
+import { useColorScheme } from "@/lib/providers/theme/ColorSchemeProvider"
+import { useDesign } from "@/lib/providers/theme/DesignSystemProvider"
+import { StyleSheet } from "react-native"
 
 interface LoginDialogProps {
   isOpen: boolean
@@ -13,8 +16,35 @@ interface LoginDialogProps {
 
 export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialogProps) {
   const { signIn, signInAnonymously } = useAuth()
+  const { colorScheme } = useColorScheme()
+  const { design } = useDesign()
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  const styles = StyleSheet.create({
+    dialogContent: {
+      backgroundColor: colorScheme.colors.background,
+      borderColor: colorScheme.colors.border,
+      borderRadius: Number(design.radius.lg),
+      padding: Number(design.spacing.padding.card),
+      width: '100%',
+      maxWidth: 400,
+    },
+    dialogHeader: {
+      marginBottom: Number(design.spacing.padding.card),
+    },
+    dialogTitle: {
+      fontSize: Number(design.spacing.fontSize.xl),
+      fontWeight: '600',
+      color: colorScheme.colors.text,
+      marginBottom: Number(design.spacing.padding.item),
+    },
+    dialogDescription: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: 0.7,
+    },
+  })
 
   const handleAnonymousSignIn = async () => {
     setIsLoading(true)
@@ -79,17 +109,16 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-medium text-gray-800 dark:text-gray-200">
+      <DialogContent style={styles.dialogContent}>
+        <DialogHeader style={styles.dialogHeader}>
+          <DialogTitle style={styles.dialogTitle}>
             Sign in to follow channels
           </DialogTitle>
-          <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
+          <DialogDescription style={styles.dialogDescription}>
             You need to be signed in to follow channels and receive updates.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Right column with login form */}
         <LoginCommon
           email={email}
           setEmail={setEmail}

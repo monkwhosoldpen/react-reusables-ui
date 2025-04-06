@@ -1,14 +1,20 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import { Card } from '~/components/ui/card';
 import { useAuth } from '~/lib/contexts/AuthContext';
 import LoginCommon from '~/components/common/LoginCommon';
+import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function LoginModal() {
   const router = useRouter();
   const { signIn, signInAnonymously, signInAsGuest } = useAuth();
+  const { colorScheme } = useColorScheme();
+  const { design } = useDesign();
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
@@ -71,29 +77,37 @@ export default function LoginModal() {
   };
 
   return (
-    <View className="flex-1 justify-center items-center p-4 bg-background/50">
-      <Card className="w-full max-w-sm overflow-hidden">
-        {/* Header with themed background */}
-        <View className="bg-primary p-4">
-          <Text className="text-primary-foreground text-xl font-semibold">Welcome back</Text>
-          <Text className="text-primary-foreground/80 text-sm mt-1">
-            Sign in to continue to Goats Connect
-          </Text>
-        </View>
-
-        <LoginCommon
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          error={error}
-          isLoading={isLoading}
-          handleSubmit={handleSubmit}
-          handleAnonymousSignIn={handleAnonymousSignIn}
-          handleGuestSignIn={handleGuestSignIn}
-          onCancel={() => router.dismiss()}
-        />
-      </Card>
+    <View 
+      style={[
+        styles.container,
+        { 
+          backgroundColor: colorScheme.colors.background,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        }
+      ]}
+    >
+      <LoginCommon
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        error={error}
+        isLoading={isLoading}
+        handleSubmit={handleSubmit}
+        handleAnonymousSignIn={handleAnonymousSignIn}
+        handleGuestSignIn={handleGuestSignIn}
+        onCancel={() => router.dismiss()}
+      />
     </View>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+}); 

@@ -377,11 +377,8 @@ export default function TestPage() {
 
   // Handle successful login
   const handleLoginSuccess = () => {
+    addLog('Login successful!', 'success');
     setShowLoginDialog(false);
-    // Refresh the page data
-    if (dbInitialized) {
-      fetchIndexedDBContent();
-    }
   };
 
   // Add logging function
@@ -753,6 +750,11 @@ export default function TestPage() {
     }
   };
 
+  // Add debug logging
+  useEffect(() => {
+    console.log('Login Dialog State:', showLoginDialog);
+  }, [showLoginDialog]);
+
   return (
     <ScrollView 
       style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
@@ -791,13 +793,11 @@ export default function TestPage() {
         </View>
 
         {/* Login Dialog */}
-        {showLoginDialog && (
-          <LoginDialog 
-            isOpen={showLoginDialog} 
-            onOpenChange={setShowLoginDialog} 
-            onLoginSuccess={handleLoginSuccess}
-          />
-        )}
+        <LoginDialog 
+          isOpen={showLoginDialog} 
+          onOpenChange={setShowLoginDialog} 
+          onLoginSuccess={handleLoginSuccess}
+        />
 
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
@@ -1283,6 +1283,19 @@ export default function TestPage() {
             </Text>
           </View>
         </View> */}
+
+        {/* Login Dialog Test Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Login Dialog Test</Text>
+          <View style={styles.sectionContent}>
+            <Button
+              onPress={() => setShowLoginDialog(true)}
+              style={styles.button}
+            >
+              Open Login Dialog
+            </Button>
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
@@ -1544,6 +1557,13 @@ const styles = StyleSheet.create({
   settingsItemDescription: {
     fontSize: 12,
     opacity: 0.7,
+  },
+  sectionContent: {
+    marginTop: 16,
+  },
+  button: {
+    padding: 8,
+    borderRadius: 4,
   },
 });
 
