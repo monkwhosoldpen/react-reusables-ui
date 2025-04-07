@@ -38,20 +38,23 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="feed"
+        name="dashboard"
         options={{
-          title: 'Feed',
+          title: 'Dashboard',
+          headerShown: true,
           tabBarIcon: ({ color, size }) => (
             <MessageSquare size={size} color={color} />
           ),
         }}
       />
+
       <Tabs.Screen
-        name="testpage"
+        name="supermenu"
         options={{
-          title: 'Test',
+          title: 'Supermenu',
+          headerShown: true,
           tabBarIcon: ({ color, size }) => (
-            <Bell size={size} color={color} />
+            <Menu size={size} color={color} />
           ),
         }}
       />
@@ -65,16 +68,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="supermenu"
-        options={{
-          title: 'Supermenu',
-          headerShown: true,
-          tabBarIcon: ({ color, size }) => (
-            <Menu size={size} color={color} />
-          ),
-        }}
-      />
+
     </Tabs>
   );
 } 

@@ -14,14 +14,14 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function HomeScreen() {
+export default function DashboardScreen() {
   const { theme } = useTheme();
 
   return (
     <>
       <View style={[styles.container, { backgroundColor: theme.colorScheme.colors.background }]}>
         <Text style={[styles.text, { color: theme.colorScheme.colors.text }]}>
-          Hello Home
+          Hello Dashboard
         </Text>
       </View>
     </>

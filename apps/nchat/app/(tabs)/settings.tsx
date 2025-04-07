@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '~/lib/providers/theme/ThemeProvider';
-import { Stack } from 'expo-router';
 
 const styles = StyleSheet.create({
   container: {
@@ -20,18 +19,6 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: 'Settings',
-          headerStyle: {
-            backgroundColor: theme.colorScheme.colors.card,
-          },
-          headerTintColor: theme.colorScheme.colors.text,
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-        }}
-      />
       <View style={[styles.container, { backgroundColor: theme.colorScheme.colors.background }]}>
         <Text style={[styles.text, { color: theme.colorScheme.colors.text }]}>
           Hello Settings

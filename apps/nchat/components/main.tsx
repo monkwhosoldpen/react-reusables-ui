@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { indexedDB } from '@/lib/services/indexedDB';
 import { StoreNames } from 'idb';
 import { NchatDB } from '@/lib/services/indexedDBSchema';
+import LanguageChanger from '@/components/common/LanguageChanger';
 
 // Mock usernames for testing follow functionality
 const MOCK_USERNAMES = ['elonmusk', 'testusername'];
@@ -185,6 +186,33 @@ const styles = StyleSheet.create({
   noRequests: {
     textAlign: 'center',
     padding: 16,
+  },
+  languageChanger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    padding: 12,
+  },
+  label: {
+    marginRight: 8,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  settingDescription: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginTop: 4,
   },
 });
 
@@ -388,6 +416,24 @@ export function MainScreen() {
         <Text style={[styles.sectionTitle, { color: theme.colorScheme.colors.text }]}>
           Account
         </Text>
+        
+        {/* Language Changer */}
+        <View style={[styles.settingsItem, {
+          backgroundColor: theme.colorScheme.colors.card,
+          borderBottomColor: theme.colorScheme.colors.border,
+        }]}>
+          <View style={styles.settingsItemContent}>
+            <View style={styles.settingsItemText}>
+              <Text style={[styles.settingsItemTitle, { color: theme.colorScheme.colors.text }]}>
+                Language
+              </Text>
+              <Text style={[styles.settingsItemDescription, { color: theme.colorScheme.colors.text }]}>
+                Choose your preferred language
+              </Text>
+            </View>
+            <LanguageChanger variant="settings" />
+          </View>
+        </View>
         
         {user ? (
           <TouchableOpacity
