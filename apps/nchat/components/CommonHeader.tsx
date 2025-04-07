@@ -1,16 +1,22 @@
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 
 export function CommonHeader() {
+  const router = useRouter();
+
   return (
     <View style={styles.header}>
-      <View style={styles.logoContainer}>
+      <TouchableOpacity 
+        style={styles.logoContainer}
+        onPress={() => router.push('/')}
+      >
         <Image
           source={{ uri: 'https://placehold.co/32x32' }}
           style={styles.logo}
           resizeMode="contain"
         />
         <Text style={styles.title}>nchat</Text>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 }

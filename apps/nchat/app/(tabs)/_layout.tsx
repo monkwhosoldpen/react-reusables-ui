@@ -57,16 +57,6 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="supermenu"
-        options={{
-          title: 'Supermenu',
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Menu size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
