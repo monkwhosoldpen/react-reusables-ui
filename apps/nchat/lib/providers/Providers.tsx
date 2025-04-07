@@ -1,7 +1,7 @@
 import React from 'react';
 import { AuthProvider } from '../contexts/AuthContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
-import { FeedInteractionProvider } from '../enhanced-chat/providers/feed/FeedInteractionProvider';
+import { FeedInteractionProvider } from './feed/FeedInteractionProvider';
 import { APIProvider } from './api/APIProvider';
 import { RealtimeProvider } from './RealtimeProvider';
 import { ColorSchemeProvider } from './theme/ColorSchemeProvider';
