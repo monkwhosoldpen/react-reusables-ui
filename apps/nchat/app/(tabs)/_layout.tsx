@@ -15,15 +15,23 @@ export default function TabLayout() {
           backgroundColor: colorScheme.colors.card,
           borderTopColor: colorScheme.colors.border,
           borderTopWidth: 1,
-          height: Number(design.spacing.iconSize) * 2.5,
-          paddingBottom: Number(design.spacing.padding.item),
-          paddingTop: Number(design.spacing.padding.item),
+          height: 65,
+          paddingBottom: 5,
+          paddingTop: 5,
         },
         tabBarActiveTintColor: colorScheme.colors.primary,
         tabBarInactiveTintColor: colorScheme.colors.text,
         tabBarLabelStyle: {
-          fontSize: Number(design.spacing.fontSize.sm),
+          fontSize: 11,
           fontWeight: '500',
+        },
+        tabBarIconStyle: {
+          marginBottom: 0,
+        },
+        tabBarItemStyle: {
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
         },
       }}
     >
@@ -31,7 +39,7 @@ export default function TabLayout() {
         name="home"
         options={{
           title: 'Home',
-          headerShown: true,
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Home size={size} color={color} />
           ),
@@ -41,7 +49,7 @@ export default function TabLayout() {
         name="dashboard"
         options={{
           title: 'Dashboard',
-          headerShown: true,
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MessageSquare size={size} color={color} />
           ),
@@ -52,7 +60,7 @@ export default function TabLayout() {
         name="supermenu"
         options={{
           title: 'Supermenu',
-          headerShown: true,
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Menu size={size} color={color} />
           ),
@@ -62,7 +70,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          headerShown: true,
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Settings size={size} color={color} />
           ),

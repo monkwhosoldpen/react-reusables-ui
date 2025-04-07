@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { View } from 'react-native';
 import { Providers } from '@/lib/providers/Providers';
+import { CommonHeader } from '@/components/CommonHeader';
 
 export default function Layout() {
   return (
@@ -13,6 +14,7 @@ export default function Layout() {
 function RootLayout() {
   return (
     <View style={{ flex: 1 }}>
+      <CommonHeader />
       <Stack
         screenOptions={{
           headerStyle: {

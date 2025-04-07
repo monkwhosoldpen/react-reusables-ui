@@ -18,12 +18,10 @@ export default function SettingsScreen() {
   const { theme } = useTheme();
 
   return (
-    <>
-      <View style={[styles.container, { backgroundColor: theme.colorScheme.colors.background }]}>
-        <Text style={[styles.text, { color: theme.colorScheme.colors.text }]}>
-          Hello Settings
-        </Text>
-      </View>
-    </>
+    <View style={[styles.container, { backgroundColor: theme.colorScheme.colors.background }]}>
+      <Text style={[styles.text, { color: theme.colorScheme.colors.text }]}>
+        Settings
+      </Text>
+    </View>
   );
 } 
