@@ -22,7 +22,6 @@ export default function LoginCommon({
   handleAnonymousSignIn,
   handleGuestSignIn,
   onCancel,
-  isDarkMode,
 }: {
   email: string;
   setEmail: (email: string) => void;
@@ -34,8 +33,8 @@ export default function LoginCommon({
   handleAnonymousSignIn: () => void;
   handleGuestSignIn: () => void;
   onCancel: () => void;
-  isDarkMode: boolean;
 }) {
+  const isDarkMode = useColorScheme().colorScheme.name === 'dark';
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const [isEmailLoading, setIsEmailLoading] = React.useState(false);
