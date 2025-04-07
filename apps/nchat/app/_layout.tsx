@@ -17,15 +17,7 @@ function RootLayout() {
       <CommonHeader />
       <Stack
         screenOptions={{
-          headerStyle: {
-          },
-          headerShadowVisible: false,
-          headerTitleStyle: {
-            fontWeight: '600',
-          },
-          contentStyle: {
-          },
-          animation: 'fade',
+          headerShown: false,
         }}
       >
         <Stack.Screen

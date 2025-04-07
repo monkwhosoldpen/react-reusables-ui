@@ -9,30 +9,13 @@ import {
   ScrollView,
 } from "react-native";
 import { useTheme } from '~/lib/providers/theme/ThemeProvider';
-import { useAuth } from '~/lib/contexts/AuthContext';
+import { TenantRequest, useAuth } from '~/lib/contexts/AuthContext';
 import { FollowButton } from '@/components/common/FollowButton';
 import { LogIn, LogOut } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { indexedDB } from '@/lib/services/indexedDB';
-import { StoreNames } from 'idb';
-import { NchatDB } from '@/lib/services/indexedDBSchema';
 import LanguageChanger from '@/components/common/LanguageChanger';
 
-// Mock usernames for testing follow functionality
-const MOCK_USERNAMES = ['elonmusk', 'testusername'];
-
-// Type definitions
-interface TenantRequest {
-  type: string;
-  username: string;
-  status: string;
-  created_at?: string;
-}
-
-interface UserInfo {
-  tenantRequests?: TenantRequest[];
-  // Add other user info properties as needed
-}
 
 const styles = StyleSheet.create({
   container: {
@@ -65,9 +48,9 @@ const styles = StyleSheet.create({
     backgroundColor: Constants.manifest.splash.backgroundColor,
   },
   contentContainer: {
-    padding: 20,
+    padding: 8,
     width: '100%',
-    maxWidth: 400,
+    maxWidth: "100%",
     marginHorizontal: 'auto',
   },
   title: {
@@ -248,7 +231,6 @@ export function MainScreen() {
     
     try {
       const follows = await indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id);
-      console.log('User follows:', follows);
       return follows || [];
     } catch (err) {
       console.error('Error fetching user follows:', err);
@@ -262,7 +244,6 @@ export function MainScreen() {
     
     try {
       const requests = await indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id);
-      console.log('Tenant requests:', requests);
       return requests || [];
     } catch (err) {
       console.error('Error fetching tenant requests:', err);
@@ -273,8 +254,6 @@ export function MainScreen() {
   // Load data when DB is initialized and user is available
   useEffect(() => {
     if (dbInitialized && user?.id) {
-      console.log('Database initialized and user available, loading data');
-      
       // Fetch followed channels
       fetchUserFollows()
         .then(follows => {
@@ -304,25 +283,13 @@ export function MainScreen() {
       style={styles.mainContainer}
       contentContainerStyle={styles.contentContainer}
     >
-      <Text style={styles.title}>Hello Universe!</Text>
-      <TouchableOpacity 
-        style={styles.startButton}
-        onPress={handleStart}
-      >
-        <Text style={styles.startButtonText}>Start</Text>
-      </TouchableOpacity>
       <TouchableOpacity 
         style={[styles.startButton, { marginTop: 10 }]}
         onPress={() => router.push('/home' as any)}
       >
         <Text style={styles.startButtonText}>Go to Home</Text>
       </TouchableOpacity>
-      <TouchableOpacity 
-        style={[styles.startButton, { marginTop: 10 }]}
-        onPress={() => router.push('/settings' as any)}
-      >
-        <Text style={styles.startButtonText}>Go to Settings</Text>
-      </TouchableOpacity>
+     
       <View style={styles.followSection}>
         <Text style={styles.followText}>Follow Elon Musk</Text>
         <FollowButton username="elonmusk" showIcon />
