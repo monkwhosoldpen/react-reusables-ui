@@ -2,10 +2,18 @@ import { Tabs } from 'expo-router';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { Home, Settings, Bell, MessageSquare, Menu } from 'lucide-react-native';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { Redirect } from 'expo-router';
 
 export default function TabLayout() {
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
+  const { user } = useAuth();
+
+  // If user is not logged in, redirect to index
+  if (!user) {
+    return <Redirect href="/" />;
+  }
 
   return (
     <Tabs
