@@ -16,6 +16,12 @@ import { useRouter } from 'expo-router';
 import { indexedDB } from '@/lib/services/indexedDB';
 import LanguageChanger from '@/components/common/LanguageChanger';
 
+interface MainScreenProps {
+  initialData?: {
+    follows: any[];
+    requests: TenantRequest[];
+  };
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -199,12 +205,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export function MainScreen() {
+export function MainScreen({ initialData }: MainScreenProps) {
   const { theme } = useTheme();
   const { user, signOut, userInfo } = useAuth();
   const router = useRouter();
-  const [followedChannels, setFollowedChannels] = useState<any[]>([]);
-  const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>([]);
+  const [followedChannels, setFollowedChannels] = useState<any[]>(initialData?.follows || []);
+  const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>(initialData?.requests || []);
   const [dbInitialized, setDbInitialized] = useState(false);
   const initializationStarted = useRef(false);
 
