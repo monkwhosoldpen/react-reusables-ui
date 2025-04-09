@@ -73,7 +73,8 @@ export default function LoginCommon({
       backgroundColor: colorScheme.colors.card,
       borderRadius: Number(design.radius.lg),
       padding: Number(design.spacing.padding.card) * 1.5,
-      width: '100%' as const,
+      width: '100%',
+      maxWidth: 400,
       ...Platform.select({
         ios: {
           shadowColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)',
@@ -299,17 +300,6 @@ export default function LoginCommon({
           </View>
         </Button>
 
-        <Button 
-          variant="ghost" 
-          onPress={onCancel}
-          style={styles.button}
-        >
-          <View style={styles.buttonContent}>
-            <Text style={[styles.buttonText, { color: colorScheme.colors.text, opacity: isDarkMode ? 0.8 : 0.7 }]}>
-              Cancel
-            </Text>
-          </View>
-        </Button>
       </ScrollView>
     </Card>
   );

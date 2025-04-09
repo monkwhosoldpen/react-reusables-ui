@@ -1,5 +1,5 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Constants from "expo-constants";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -32,6 +32,83 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Constants.manifest.splash.backgroundColor,
+  },
+  splitContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  leftSection: {
+    width: '35%',
+    maxWidth: 420,
+    borderRightWidth: StyleSheet.hairlineWidth,
+  },
+  rightSection: {
+    flex: 1,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatList: {
+    flex: 1,
+  },
+  chatItem: {
+    flexDirection: 'row',
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+  },
+  chatItemSelected: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#e0e0e0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  avatarText: {
+    fontSize: 20,
+    fontWeight: '500',
+  },
+  chatContent: {
+    flex: 1,
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  chatName: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  timestamp: {
+    fontSize: 12,
+    color: '#666',
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: '#666',
+    marginRight: 40,
+  },
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#0084ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
   videoContainer: {
     flex: 1,
@@ -141,13 +218,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   username: {
     fontWeight: '500',
   },
@@ -250,6 +320,21 @@ const styles = StyleSheet.create({
   loginIcon: {
     marginRight: 8,
   },
+  sectionHeader: {
+    padding: 16,
+    paddingBottom: 8,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  sectionHeaderText: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  noMessageSelected: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
 });
 
 export function MainScreen({ initialData }: MainScreenProps) {
@@ -261,6 +346,8 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const insets = useSafeAreaInsets();
   const [followedChannels, setFollowedChannels] = useState<any[]>(initialData?.follows || []);
   const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>(initialData?.requests || []);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isMediumOrAbove, setIsMediumOrAbove] = useState(Platform.OS === 'web' && window.innerWidth >= 768);
   const [dbInitialized, setDbInitialized] = useState(false);
   const initializationStarted = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -343,6 +430,17 @@ export function MainScreen({ initialData }: MainScreenProps) {
   useEffect(() => {
     setIsDataLoaded(false);
   }, [user?.id]);
+
+  // Handle window resize on web
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const handleResize = () => {
+        setIsMediumOrAbove(window.innerWidth >= 768);
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
 
   const handleStart = useCallback(() => {
     console.log('User:', user);
@@ -454,244 +552,127 @@ export function MainScreen({ initialData }: MainScreenProps) {
     );
   }
 
-  return (
-    <ScrollView
-      style={[styles.mainContainer, { backgroundColor: colorScheme.colors.background }]}
-      contentContainerStyle={[
-        styles.contentContainer,
-        {
-          paddingBottom: insets.bottom + Number(design.spacing.padding.card),
-          paddingTop: Number(design.spacing.padding.card)
-        }
-      ]}
-    >
-      {/* Followed Channels Section - First */}
-      <View style={[
-        styles.card,
-        {
-          backgroundColor: colorScheme.colors.card,
-          padding: Number(design.spacing.padding.card),
-          borderRadius: Number(design.radius.lg)
-        }
-      ]}>
-        <Text style={[
-          styles.sectionTitle,
-          {
-            color: colorScheme.colors.text,
-            fontSize: Number(design.spacing.fontSize.sm),
-            marginBottom: Number(design.spacing.margin.card)
-          }
-        ]}>
+  const renderChatList = () => (
+    <ScrollView style={styles.chatList}>
+      {/* Followed Channels Section */}
+      <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.border + '20' }]}>
+        <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
           Followed Channels
         </Text>
-        <View style={styles.channelsList}>
-          {followedChannels.length > 0 ? (
-            followedChannels.map((channel: any, index: number) => (
-              <TouchableOpacity
-                key={`channel-${channel.username || 'unknown'}-${index}`}
-                style={[styles.channelItem, {
-                  borderColor: colorScheme.colors.border,
-                  backgroundColor: colorScheme.colors.background,
-                  padding: Number(design.spacing.padding.item),
-                  borderRadius: Number(design.radius.md)
-                }]}
-                onPress={() => router.push(`/${channel.username}` as any)}
-              >
-                <View style={styles.channelInfo}>
-                  <View style={[styles.avatar, { backgroundColor: colorScheme.colors.primary }]}>
-                    <Text style={{ color: colorScheme.colors.background }}>
-                      {channel.username[0].toUpperCase()}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={[styles.username, { color: colorScheme.colors.text }]}>
-                      @{channel.username}
-                    </Text>
-                    <Text style={[styles.userType, { color: colorScheme.colors.text }]}>
-                      {channel.type || 'Channel'}
-                    </Text>
-                  </View>
-                </View>
-                <FollowButton username={channel.username} showIcon />
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text style={[styles.noRequests, { color: colorScheme.colors.text }]}>
-              No followed channels
-            </Text>
-          )}
-        </View>
       </View>
-
-      {/* Tenant Requests Section - Second */}
-      <View style={[
-        styles.card,
-        {
-          backgroundColor: colorScheme.colors.card,
-          padding: Number(design.spacing.padding.card),
-          borderRadius: Number(design.radius.lg)
-        }
-      ]}>
-        <Text style={[
-          styles.sectionTitle,
-          {
-            color: colorScheme.colors.text,
-            fontSize: Number(design.spacing.fontSize.sm),
-            marginBottom: Number(design.spacing.margin.card)
-          }
-        ]}>
-          Tenant Requests
-        </Text>
-        {tenantRequests.length > 0 ? (
-          <View style={styles.channelsList}>
-            {tenantRequests.map((request: TenantRequest, index: number) => (
-              <TouchableOpacity
-                key={`request-${request.username || 'unknown'}-${index}`}
-                style={[styles.channelItem, {
-                  borderColor: colorScheme.colors.border,
-                  backgroundColor: colorScheme.colors.background,
-                  padding: Number(design.spacing.padding.item),
-                  borderRadius: Number(design.radius.md)
-                }]}
-                onPress={() => router.push(`/${request.username}` as any)}
-              >
-                <View style={styles.channelInfo}>
-                  <View style={[styles.avatar, { backgroundColor: colorScheme.colors.primary }]}>
-                    <Text style={{ color: colorScheme.colors.background }}>
-                      {request.username?.[0]?.toUpperCase() || '?'}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={[styles.username, { color: colorScheme.colors.text }]}>
-                      @{request.username}
-                    </Text>
-                    <Text style={[styles.userType, { color: colorScheme.colors.text }]}>
-                      {request.type} - {request.status}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ) : (
-          <Text style={[styles.noRequests, { color: colorScheme.colors.text }]}>
-            No tenant requests
-          </Text>
-        )}
-      </View>
-
-      {/* Elon Musk Follow Button - Third */}
-      <View style={[
-        styles.followSection,
-        {
-          backgroundColor: colorScheme.colors.card,
-          padding: Number(design.spacing.padding.card),
-          borderRadius: Number(design.radius.lg)
-        }
-      ]}>
-        <Text style={[styles.followText, { color: colorScheme.colors.text }]}>
-          Follow Elon Musk
-        </Text>
-        <FollowButton username="elonmusk" showIcon />
-      </View>
-
-      {/* Theme Selector Section */}
-      <View style={[
-        styles.card,
-        {
-          backgroundColor: colorScheme.colors.card,
-          padding: Number(design.spacing.padding.card),
-          borderRadius: Number(design.radius.lg)
-        }
-      ]}>
-        <Text style={[
-          styles.sectionTitle,
-          {
-            color: colorScheme.colors.text,
-            fontSize: Number(design.spacing.fontSize.sm),
-            marginBottom: Number(design.spacing.margin.card)
-          }
-        ]}>
-          Appearance
-        </Text>
-
-        <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-          <View>
-            <Text style={[styles.settingTitle, { color: colorScheme.colors.text }]}>
-              Dark Mode
-            </Text>
-            <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-              Use dark theme
-            </Text>
-          </View>
-          <Switch value={isDarkMode} onValueChange={toggleDarkMode} />
-        </View>
-
-        <View style={styles.settingRow}>
-          <View>
-            <Text style={[styles.settingTitle, { color: colorScheme.colors.text }]}>
-              Theme
-            </Text>
-            <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-              Choose your preferred style
-            </Text>
-          </View>
-          <Select
-            defaultValue={{ value: themeName, label: themeName }}
-            onValueChange={handleThemeChange}
-          >
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Select theme" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="whatsapp" label="WhatsApp" />
-              <SelectItem value="dracula" label="Dracula" />
-              <SelectItem value="twitter" label="Twitter" />
-              <SelectItem value="facebook" label="Facebook" />
-            </SelectContent>
-          </Select>
-        </View>
-      </View>
-
-      {/* Language Changer - Above Sign Out */}
-      <View style={[
-        styles.card,
-        {
-          backgroundColor: colorScheme.colors.card,
-          padding: Number(design.spacing.padding.card),
-          borderRadius: Number(design.radius.lg)
-        }
-      ]}>
-        <LanguageChanger />
-      </View>
-
-      {/* Sign Out Section - Last */}
-      <View style={[
-        styles.card,
-        {
-          backgroundColor: colorScheme.colors.card,
-          padding: Number(design.spacing.padding.card),
-          borderRadius: Number(design.radius.lg)
-        }
-      ]}>
-        <TouchableOpacity
-          style={[styles.settingsItem, {
-            backgroundColor: colorScheme.colors.background,
-            borderBottomColor: colorScheme.colors.border,
-            padding: Number(design.spacing.padding.item),
-            borderRadius: Number(design.radius.md)
-          }]}
-          onPress={signOut}
+      {followedChannels.map((channel, index) => (
+        <TouchableOpacity 
+          key={channel.id || index}
+          style={[
+            styles.chatItem, 
+            { borderBottomColor: colorScheme.colors.border },
+            selectedItem?.id === channel.id && styles.chatItemSelected
+          ]}
+          onPress={() => {
+            setSelectedItem(channel);
+            router.push(`/${channel.username}` as any);
+          }}
         >
-          <View style={styles.settingsItemContent}>
-            <LogOut size={20} color={colorScheme.colors.text} />
-            <Text style={[styles.settingsItemTitle, { color: colorScheme.colors.text }]}>
-              Sign Out
+          <View style={[styles.avatar, { backgroundColor: colorScheme.colors.border }]}>
+            <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
+              {channel.username?.[0]?.toUpperCase() || '#'}
+            </Text>
+          </View>
+          <View style={styles.chatContent}>
+            <View style={styles.chatHeader}>
+              <Text style={[styles.chatName, { color: colorScheme.colors.text }]}>
+                {channel.username || 'Unknown Channel'}
+              </Text>
+              <Text style={[styles.timestamp, { color: colorScheme.colors.text, opacity: 0.6 }]}>
+                {channel.last_message_at ? new Date(channel.last_message_at).toLocaleDateString() : ''}
+              </Text>
+            </View>
+            <Text 
+              style={[styles.lastMessage, { color: colorScheme.colors.text, opacity: 0.6 }]}
+              numberOfLines={1}
+            >
+              {channel.last_message || 'No messages yet'}
             </Text>
           </View>
         </TouchableOpacity>
+      ))}
+
+      {/* Tenant Requests Section */}
+      <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.border + '20' }]}>
+        <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
+          Tenant Requests
+        </Text>
       </View>
+      {tenantRequests.map((request, index) => (
+        <TouchableOpacity 
+          key={request.id || index}
+          style={[
+            styles.chatItem, 
+            { borderBottomColor: colorScheme.colors.border },
+            selectedItem?.id === request.id && styles.chatItemSelected
+          ]}
+          onPress={() => {
+            setSelectedItem(request);
+            router.push(`/${request.username}` as any);
+          }}
+        >
+          <View style={[styles.avatar, { backgroundColor: colorScheme.colors.border }]}>
+            <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
+              {request.username?.[0]?.toUpperCase() || '#'}
+            </Text>
+          </View>
+          <View style={styles.chatContent}>
+            <View style={styles.chatHeader}>
+              <Text style={[styles.chatName, { color: colorScheme.colors.text }]}>
+                {request.username || 'Unknown Request'}
+              </Text>
+              <Text style={[styles.timestamp, { color: colorScheme.colors.text, opacity: 0.6 }]}>
+                {request.created_at ? new Date(request.created_at).toLocaleDateString() : ''}
+              </Text>
+            </View>
+            <Text 
+              style={[styles.lastMessage, { color: colorScheme.colors.text, opacity: 0.6 }]}
+              numberOfLines={1}
+            >
+              {`${request.type} - ${request.status}`}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      ))}
     </ScrollView>
+  );
+
+  return (
+    <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+      {isMediumOrAbove ? (
+        <View style={styles.splitContainer}>
+          <View style={[styles.leftSection, { borderRightColor: colorScheme.colors.border }]}>
+            {renderChatList()}
+          </View>
+          <View style={[styles.rightSection, { backgroundColor: colorScheme.colors.background }]}>
+            {selectedItem ? (
+              <Text style={[styles.noMessageSelected, { color: colorScheme.colors.text }]}>
+                Selected: {selectedItem.username}
+              </Text>
+            ) : (
+              <Text style={[styles.noMessageSelected, { color: colorScheme.colors.text }]}>
+                Select a conversation to start messaging
+              </Text>
+            )}
+          </View>
+        </View>
+      ) : (
+        <>
+          {renderChatList()}
+          <TouchableOpacity 
+            style={[styles.fab, { backgroundColor: colorScheme.colors.primary }]}
+            onPress={() => router.push('/new-chat')}
+          >
+            <Text style={{ color: colorScheme.colors.background, fontSize: 24 }}>+</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </View>
   );
 }
 

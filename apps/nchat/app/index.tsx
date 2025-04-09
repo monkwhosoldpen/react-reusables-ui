@@ -50,18 +50,20 @@ function LoginWrapper() {
   };
 
   return (
-    <LoginCommon
-      email={email}
-      setEmail={setEmail}
-      password={password}
-      setPassword={setPassword}
-      error={error}
-      isLoading={isLoading}
-      handleSubmit={handleSubmit}
-      handleAnonymousSignIn={handleAnonymousSignIn}
-      handleGuestSignIn={handleGuestSignIn}
-      onCancel={() => {}}
-    />
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}>
+      <LoginCommon
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        error={error}
+        isLoading={isLoading}
+        handleSubmit={handleSubmit}
+        handleAnonymousSignIn={handleAnonymousSignIn}
+        handleGuestSignIn={handleGuestSignIn}
+        onCancel={() => {}}
+      />
+    </View>
   );
 }
 
@@ -150,7 +152,11 @@ export default function Index() {
 
   // If no user and not loading, show login
   if (!loading) {
-    return <LoginWrapper />;
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.colorScheme.colors.background }}>
+        <LoginWrapper />
+      </View>
+    );
   }
 
   // During loading with no cache, show a blank screen with app background

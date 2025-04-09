@@ -1,19 +1,10 @@
+import React from 'react';
 import { Tabs } from 'expo-router';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
-import { Home, Settings, Bell, MessageSquare, Menu } from 'lucide-react-native';
-import { useAuth } from '@/lib/contexts/AuthContext';
-import { Redirect } from 'expo-router';
+import { Home, Settings, MessageSquare } from 'lucide-react-native';
 
 export default function TabLayout() {
   const { colorScheme } = useColorScheme();
-  const { design } = useDesign();
-  const { user } = useAuth();
-
-  // If user is not logged in, redirect to index
-  if (!user) {
-    return <Redirect href="/" />;
-  }
 
   return (
     <Tabs
@@ -44,7 +35,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="home"
+        name="index"
         options={{
           title: 'Home',
           headerShown: false,
@@ -63,7 +54,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
       <Tabs.Screen
         name="settings"
         options={{
@@ -74,7 +64,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
     </Tabs>
   );
 } 

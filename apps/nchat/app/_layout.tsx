@@ -83,6 +83,12 @@ function RootLayout() {
             }}
           />
           <Tabs.Screen
+            name="[username]"
+            options={{
+              href: null,
+            }}
+          />
+          <Tabs.Screen
             name="(tabs)"
             options={{
               href: null,
