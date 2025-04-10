@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { Text } from '~/components/ui/text'
 import { Button } from '~/components/ui/button'
 import { Channel } from '@/lib/types/channel.types'
-import LanguageChanger from "@/components/common/LanguageChanger"
 import { JoinButton } from "@/components/common/JoinButton"
 import { FollowButton } from '../common/FollowButton'
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
@@ -37,7 +36,7 @@ export function ChannelHeader({ username, channelDetails }: ChannelHeaderProps) 
     <View style={headerStyle}>
       <View style={styles.leftSection}>
         <Link 
-          href="/channels" 
+          href="/explore" 
           className="text-muted-foreground hover:text-foreground transition-colors p-2 rounded-full hover:bg-accent/50"
           aria-label="Back to channels"
         >
@@ -49,30 +48,21 @@ export function ChannelHeader({ username, channelDetails }: ChannelHeaderProps) 
       </View>
 
       <View style={styles.rightSection}>
-        <LanguageChanger />
 
         {channelDetails.is_public ? (
           <FollowButton
             username={username}
             size="sm"
-            showIcon={true}
           />
         ) : (
           <JoinButton
             username={username}
+            channelDetails={channelDetails}
             buttonText="Join Channel"
             size="sm"
           />
         )}
 
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-full p-2"
-          aria-label="Channel settings"
-        >
-          <Settings className="h-5 w-5" />
-        </Button>
       </View>
     </View>
   )

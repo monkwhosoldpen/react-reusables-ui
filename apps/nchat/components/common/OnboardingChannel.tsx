@@ -6,20 +6,26 @@ import { Button } from "@/components/ui/button"
 import { Channel } from '@/lib/types/channel.types';
 import { useAuth } from '@/lib/contexts/AuthContext'
 import LoginCommon from '@/components/common/LoginCommon'
+import { View, Text } from 'react-native'
 
-interface OnboardingChannelProps {
+export interface OnboardingChannelProps {
   username: string
   channelDetails: Channel
   onboardingConfig?: any
-  onClose: () => void
+  onComplete?: () => void
 }
 
 export function OnboardingChannel({
   username,
   channelDetails,
   onboardingConfig,
-  onClose
+  onComplete
 }: OnboardingChannelProps) {
+  console.log('[OnboardingChannel] Component mounted with props:', {
+    hasChannelDetails: !!channelDetails,
+    hasOnCompleteHandler: !!onComplete
+  })
+
   // Track current screen index for the middle screens
   const [currentScreenIndex, setCurrentScreenIndex] = useState<number>(-1)
   // Track overall step (welcome, screens, finish)
@@ -33,7 +39,7 @@ export function OnboardingChannel({
   const [isLoginLoading, setIsLoginLoading] = useState(false)
 
   // Get auth context for user info and completeChannelOnboarding function
-  const { user, userInfo, completeChannelOnboarding } = useAuth()
+  const { completeChannelOnboarding } = useAuth()
 
   // Create default onboarding config if none is provided
   const config = onboardingConfig || {
@@ -66,292 +72,99 @@ export function OnboardingChannel({
     ? config.screens[currentScreenIndex]
     : null
 
-  // Handle start button click
-  const handleStart = () => {
-    console.log('Starting onboarding with:', {
-      username,
-      channelDetails,
-      welcomeScreen: config.welcomescreen,
-      userInfo
-    })
-
-    // If there are screens, go to the first one
-    if (config.screens && config.screens.length > 0) {
-      setCurrentScreenIndex(0)
-      setStep('screens')
-    } else {
-      // If no screens, go straight to finish
-      setStep('finish')
+  // Log when dialog opens/closes
+  const handleOpenChange = (open: boolean) => {
+    console.log('[OnboardingChannel] Dialog open state changed:', open)
+    if (!open && currentScreenIndex === -1) {
+      console.log('[OnboardingChannel] Dialog closed without starting onboarding')
+      onComplete?.()
     }
   }
 
-  // Handle next screen button click
-  const handleNextScreen = () => {
-    console.log('Moving to next screen:', {
-      username,
-      channelDetails,
-      currentScreen,
-      screenIndex: currentScreenIndex,
-      userInfo
-    })
-
-    if (currentScreenIndex < config.screens.length - 1) {
-      setCurrentScreenIndex(currentScreenIndex + 1)
-    } else {
-      setStep('finish')
-    }
+  // Log screen transitions
+  const handleStartClick = () => {
+    console.log('[OnboardingChannel] Starting onboarding process')
+    setCurrentScreenIndex(0)
   }
 
-  // Handle previous screen button click
-  const handlePrevScreen = () => {
-    console.log('Moving to previous screen:', {
-      username,
-      channelDetails,
-      currentScreen,
-      screenIndex: currentScreenIndex
-    })
-
-    if (currentScreenIndex > 0) {
-      setCurrentScreenIndex(currentScreenIndex - 1)
-    } else {
-      setStep('welcome')
-    }
+  const handleNextClick = () => {
+    console.log('[OnboardingChannel] Moving to next screen:', currentScreenIndex + 1)
+    setCurrentScreenIndex(prev => prev + 1)
   }
 
-  // Check if everything is in place to proceed
-  const canProceed = () => {
-    return user !== null && isLocationValid;
-  }
-
-  // Handle finish button click
-  const handleFinish = async () => {
-    console.log('Finishing onboarding with:', {
-      username,
-      channelDetails,
-      finishScreen: config.finishscreen,
-      userInfo
-    })
-
+  const handleFinishClick = async () => {
+    console.log('[OnboardingChannel] Finishing onboarding process')
     try {
-      // Use the completeChannelOnboarding function from useAuth
-      const success = await completeChannelOnboarding(username, channelDetails);
-
-      if (success) {
-        console.log('Channel onboarding completed successfully');
+      if (channelDetails) {
+        console.log('[OnboardingChannel] Calling completeChannelOnboarding with:', channelDetails)
+        await completeChannelOnboarding(username, channelDetails)
+        console.log('[OnboardingChannel] Onboarding completed successfully')
+        onComplete?.()
       } else {
-        console.warn('Channel onboarding completion had an issue');
+        console.error('[OnboardingChannel] Cannot complete onboarding: missing channel details')
       }
     } catch (error) {
-      console.error('Error during onboarding completion:', error);
+      console.error('[OnboardingChannel] Error completing onboarding:', error)
     }
-
-    // Close the modal regardless of the result
-    onClose();
   }
 
-  // Handle dummy login form submission
-  const handleDummyLogin = () => {
-    setIsLoginLoading(true)
-    console.log('Dummy login attempt with:', { email, password })
-    // Simulate API call with timeout
-    setTimeout(() => {
-      // Reset form
-      setEmail('')
-      setPassword('')
-      setIsLoginLoading(false)
-    }, 1000)
-  }
+  console.log('[OnboardingChannel] Current render state:', {
+    currentScreenIndex,
+    isWelcomeScreen: currentScreenIndex === -1,
+    isFinishScreen: currentScreenIndex === config.screens.length
+  })
 
-  // Handle anonymous sign-in in the onboarding context
-  const handleAnonymousSignIn = () => {
-    setIsLoginLoading(true)
-    console.log('Anonymous sign-in attempt in onboarding flow')
-    // Simulate API call with timeout
-    setTimeout(() => {
-      setIsLoginLoading(false)
-      // Optional: close onboarding after login
-      // onClose()
-    }, 1000)
-  }
-
-  // Handle guest sign-in in the onboarding context
-  const handleGuestSignIn = () => {
-    setIsLoginLoading(true)
-    console.log('Guest sign-in attempt in onboarding flow')
-    // Simulate API call with timeout
-    setTimeout(() => {
-      setIsLoginLoading(false)
-      // Optional: close onboarding after login
-      // onClose()
-    }, 1000)
+  // Function to determine if user can proceed to next screen
+  const canProceed = () => {
+    // Add any validation logic here if needed
+    // For now, always allow proceeding
+    return true
   }
 
   return (
-    <Dialog open={true} onOpenChange={(open) => {
-      if (!open) {
-        onClose()
-      }
-    }}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+    <Dialog open onOpenChange={handleOpenChange}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
-            {step === 'welcome' && (config.welcomescreen?.title || 'Welcome to Onboarding')}
+          <DialogTitle>
+            {step === 'welcome' && config.welcomescreen.title}
             {step === 'screens' && currentScreen?.title}
-            {step === 'finish' && 'Setup Complete'}
+            {step === 'finish' && config.finishscreen.title}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="py-4">
-          {/* Welcome Screen */}
-          {step === 'welcome' && (
-            <div className="space-y-6">
-              {config.welcomescreen?.image && (
-                <div className="relative w-full h-48 rounded-lg overflow-hidden">
-                  <img
-                    src={config.welcomescreen.image}
-                    alt="Welcome"
-                    className="object-cover w-full h-full"
-                  />
-                </div>
+        {step === 'welcome' && (
+          <View className="flex-1 items-center justify-center p-4">
+            <Text className="text-lg font-medium mb-2">{config.welcomescreen.subtitle}</Text>
+            <Text className="text-sm text-muted-foreground mb-4">{config.welcomescreen.description}</Text>
+            <Button onPress={handleStartClick}>{config.welcomescreen.buttontext}</Button>
+          </View>
+        )}
+
+        {step === 'screens' && currentScreen && (
+          <View className="flex-1 items-center justify-center p-4">
+            <Text className="text-lg font-medium mb-2">{currentScreen.title}</Text>
+            <Text className="text-sm text-muted-foreground mb-4">{currentScreen.description}</Text>
+            <View className="flex-row gap-2">
+              {currentScreenIndex > 0 && (
+                <Button variant="outline" onPress={() => setCurrentScreenIndex(currentScreenIndex - 1)}>Back</Button>
               )}
+              <Button onPress={handleNextClick} disabled={!canProceed()}>
+                {currentScreen.buttontext}
+              </Button>
+            </View>
+          </View>
+        )}
 
-              <p className="text-lg">{config.welcomescreen?.description || 'Welcome to the channel onboarding process.'}</p>
-
-              {/* Account Status and Login Section */}
-              <div className="bg-muted/50 p-4 rounded-md space-y-3">
-                {user ? (
-                  // When user is logged in
-                  <>
-                   
-                  </>
-                ) : (
-                  // When user is not logged in
-                  <>
-
-                    <div className="bg-background p-4 rounded-md border">
-                      <LoginCommon
-                        email={email}
-                        setEmail={setEmail}
-                        password={password}
-                        setPassword={setPassword}
-                        error=""
-                        isLoading={isLoginLoading}
-                        handleSubmit={handleDummyLogin}
-                        handleAnonymousSignIn={handleAnonymousSignIn}
-                        handleGuestSignIn={handleGuestSignIn}
-                        onCancel={() => onClose()}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="bg-muted p-4 rounded-md">
-                <p className="text-sm font-medium">Channel: @{channelDetails.username}</p>
-                <p className="text-sm">Owner: {channelDetails.owner_username}</p>
-                {!channelDetails.is_public && (
-                  <p className="text-sm text-amber-500 font-medium">Private Channel</p>
-                )}
-              </div>
-
-            </div>
-          )}
-
-          {/* Content Screens */}
-          {step === 'screens' && currentScreen && (
-            <div className="space-y-6">
-              <p className="text-base">{currentScreen.description}</p>
-
-              <div className="bg-muted/50 p-4 rounded-md">
-                <h3 className="font-medium mb-2">Form Fields:</h3>
-                <div className="space-y-4">
-                  {currentScreen.form?.fields.map((field: any, index: number) => (
-                    <div key={index} className="border border-border p-3 rounded-md">
-                      <div className="flex justify-between">
-                        <p className="font-medium">{field.label}</p>
-                        {field.required && <span className="text-xs text-red-500">Required</span>}
-                      </div>
-                      <p className="text-xs text-muted-foreground">Type: {field.type}</p>
-
-                      {field.options && (
-                        <div className="mt-2">
-                          <p className="text-xs text-muted-foreground">Options:</p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {field.options.map((option: string, i: number) => (
-                              <span key={i} className="text-xs bg-background px-2 py-1 rounded-md">
-                                {option}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="text-sm text-muted-foreground">
-                <p>Screen {currentScreenIndex + 1} of {config.screens.length}</p>
-                <p>Screen ID: {currentScreen.slug}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Finish Screen */}
-          {step === 'finish' && (
-            <div className="space-y-6">
-              {config.finishscreen?.image && (
-                <div className="relative w-full h-48 rounded-lg overflow-hidden">
-                  <img
-                    src={config.finishscreen.image}
-                    alt="Setup Complete"
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-              )}
-
-              <p className="text-lg">{config.finishscreen?.description || 'You have completed the onboarding process.'}</p>
-
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-md border border-green-200 dark:border-green-900/30">
-                <p className="text-green-700 dark:text-green-300 font-medium">Setup Complete!</p>
-                <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                  Thank you for completing the onboarding for @{channelDetails.username}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+        {step === 'finish' && (
+          <View className="flex-1 items-center justify-center p-4">
+            <Text className="text-lg font-medium mb-2">{config.finishscreen.subtitle}</Text>
+            <Text className="text-sm text-muted-foreground mb-4">{config.finishscreen.description}</Text>
+            <Button onPress={handleFinishClick}>{config.finishscreen.buttontext}</Button>
+          </View>
+        )}
 
         <DialogFooter>
-          {step === 'welcome' && (
-            <Button
-              onPress={handleStart}
-              className="w-full sm:w-auto"
-            >
-              {canProceed()
-                ? (config.welcomescreen?.buttontext || 'Start') : 'Please complete the form'}
-            </Button>
-          )}
-
-          {step === 'screens' && (
-            <div className="flex justify-between w-full">
-              <Button variant="outline" onPress={handlePrevScreen}>
-                {currentScreenIndex === 0 ? 'Back to Welcome' : 'Previous'}
-              </Button>
-              <Button onPress={handleNextScreen}>
-                {currentScreenIndex === config.screens.length - 1 ? 'Finish' : 'Next'}
-              </Button>
-            </div>
-          )}
-
-          {step === 'finish' && (
-            <Button
-              onPress={handleFinish}
-              className="w-full sm:w-auto"
-            >
-              Complete
-            </Button>
-          )}
+          <Button variant="outline" onPress={() => onComplete?.()}>Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

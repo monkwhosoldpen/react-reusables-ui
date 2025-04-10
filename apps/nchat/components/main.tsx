@@ -335,6 +335,42 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
+  trendsSection: {
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  trendsHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  trendsList: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingBottom: 8,
+    overflow: 'scroll',
+  },
+  trendItem: {
+    alignItems: 'center',
+    width: 72,
+  },
+  trendAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginBottom: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  trendLabel: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  showMoreText: {
+    color: '#1DA1F2',
+    fontSize: 14,
+    marginTop: 8,
+  },
 });
 
 export function MainScreen({ initialData }: MainScreenProps) {
@@ -364,7 +400,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
     if (!initializationStarted.current) {
       initializationStarted.current = true;
       console.log('Initializing IndexedDB on mount');
-      
+
       indexedDB.initialize()
         .then(() => {
           console.log('IndexedDB initialized successfully');
@@ -379,7 +415,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
   // Fetch followed channels
   const fetchUserFollows = async () => {
     if (!user?.id || !dbInitialized) return [];
-    
+
     try {
       const follows = await indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id);
       return follows || [];
@@ -392,7 +428,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
   // Fetch tenant requests
   const fetchTenantRequests = async () => {
     if (!user?.id || !dbInitialized) return [];
-    
+
     try {
       const requests = await indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id);
       return requests || [];
@@ -451,7 +487,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
       <View style={[styles.loginContainer, { backgroundColor: colorScheme.colors.background }]}>
         <View style={[
           styles.loginCard,
-          { 
+          {
             backgroundColor: colorScheme.colors.card,
             shadowOffset: {
               width: 0,
@@ -478,7 +514,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
       <View style={[styles.loginContainer, { backgroundColor: colorScheme.colors.background }]}>
         <View style={[
           styles.loginCard,
-          { 
+          {
             backgroundColor: colorScheme.colors.card,
             shadowOffset: {
               width: 0,
@@ -498,7 +534,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
           <TouchableOpacity
             style={[
               styles.loginButton,
-              { 
+              {
                 backgroundColor: colorScheme.colors.primary,
                 shadowOffset: {
                   width: 0,
@@ -511,9 +547,9 @@ export function MainScreen({ initialData }: MainScreenProps) {
             ]}
             onPress={() => router.push('/login')}
           >
-            <LogIn 
-              size={20} 
-              color={colorScheme.colors.background} 
+            <LogIn
+              size={20}
+              color={colorScheme.colors.background}
               style={styles.loginIcon}
             />
             <Text style={[styles.loginButtonText, { color: colorScheme.colors.background }]}>
@@ -530,7 +566,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
       <View style={[styles.loginContainer, { backgroundColor: colorScheme.colors.background }]}>
         <View style={[
           styles.loginCard,
-          { 
+          {
             backgroundColor: colorScheme.colors.card,
             shadowOffset: {
               width: 0,
@@ -554,6 +590,65 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   const renderChatList = () => (
     <ScrollView style={styles.chatList}>
+      {/* Trends Section */}
+      <View style={[styles.trendsSection, { borderBottomColor: colorScheme.colors.border }]}>
+        <Text style={[styles.trendsHeader, { color: colorScheme.colors.text }]}>
+          Trends for you
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.trendsList}>
+            {[...Array(20)].map((_, index) => {
+              const mockTrend = {
+                id: `trend-${index}`,
+                username: `trend${index + 1}`,
+                description: `Trending topic ${index + 1}`,
+                followers: Math.floor(Math.random() * 10000) + 1000
+              };
+              
+              return (
+                <TouchableOpacity
+                  key={mockTrend.id}
+                  style={styles.trendItem}
+                  onPress={() => {
+                    router.push(`/${mockTrend.username}` as any);
+                  }}
+                >
+                  <View 
+                    style={[
+                      styles.trendAvatar, 
+                      { backgroundColor: colorScheme.colors.primary }
+                    ]}
+                  >
+                    <Text style={{ color: colorScheme.colors.background, fontSize: 16 }}>
+                      {mockTrend.username[0].toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text 
+                    style={[styles.trendLabel, { color: colorScheme.colors.text }]}
+                    numberOfLines={1}
+                  >
+                    {mockTrend.username}
+                  </Text>
+                  <Text 
+                    style={[styles.trendLabel, { 
+                      color: colorScheme.colors.text,
+                      opacity: 0.7,
+                      fontSize: 10 
+                    }]}
+                    numberOfLines={1}
+                  >
+                    {`${mockTrend.followers.toLocaleString()} followers`}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+        <TouchableOpacity onPress={() => router.push('/explore')}>
+          <Text style={styles.showMoreText}>Show more</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Followed Channels Section */}
       <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.border + '20' }]}>
         <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
@@ -561,10 +656,10 @@ export function MainScreen({ initialData }: MainScreenProps) {
         </Text>
       </View>
       {followedChannels.map((channel, index) => (
-        <TouchableOpacity 
+        <TouchableOpacity
           key={channel.id || index}
           style={[
-            styles.chatItem, 
+            styles.chatItem,
             { borderBottomColor: colorScheme.colors.border },
             selectedItem?.id === channel.id && styles.chatItemSelected
           ]}
@@ -587,7 +682,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
                 {channel.last_message_at ? new Date(channel.last_message_at).toLocaleDateString() : ''}
               </Text>
             </View>
-            <Text 
+            <Text
               style={[styles.lastMessage, { color: colorScheme.colors.text, opacity: 0.6 }]}
               numberOfLines={1}
             >
@@ -604,10 +699,10 @@ export function MainScreen({ initialData }: MainScreenProps) {
         </Text>
       </View>
       {tenantRequests.map((request, index) => (
-        <TouchableOpacity 
+        <TouchableOpacity
           key={request.id || index}
           style={[
-            styles.chatItem, 
+            styles.chatItem,
             { borderBottomColor: colorScheme.colors.border },
             selectedItem?.id === request.id && styles.chatItemSelected
           ]}
@@ -630,7 +725,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
                 {request.created_at ? new Date(request.created_at).toLocaleDateString() : ''}
               </Text>
             </View>
-            <Text 
+            <Text
               style={[styles.lastMessage, { color: colorScheme.colors.text, opacity: 0.6 }]}
               numberOfLines={1}
             >
@@ -644,6 +739,55 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+
+      {user ? (
+        <TouchableOpacity
+          style={[styles.settingsItem, {
+            backgroundColor: theme.colorScheme.colors.card,
+            borderBottomColor: theme.colorScheme.colors.border,
+          }]}
+          onPress={signOut}
+        >
+          <View style={styles.settingsItemContent}>
+            <LogOut
+              size={24}
+              color={theme.colorScheme.colors.notification}
+            />
+            <View style={styles.settingsItemText}>
+              <Text style={[styles.settingsItemTitle, { color: theme.colorScheme.colors.notification }]}>
+                Sign Out
+              </Text>
+              <Text style={[styles.settingsItemDescription, { color: theme.colorScheme.colors.text }]}>
+                Sign out of your account
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={[styles.settingsItem, {
+            backgroundColor: theme.colorScheme.colors.card,
+            borderBottomColor: theme.colorScheme.colors.border,
+          }]}
+          onPress={() => router.push('/login')}
+        >
+          <View style={styles.settingsItemContent}>
+            <LogIn
+              size={24}
+              color={theme.colorScheme.colors.text}
+            />
+            <View style={styles.settingsItemText}>
+              <Text style={[styles.settingsItemTitle, { color: theme.colorScheme.colors.text }]}>
+                Sign In
+              </Text>
+              <Text style={[styles.settingsItemDescription, { color: theme.colorScheme.colors.text }]}>
+                Sign in to your account
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      )}
+
       {isMediumOrAbove ? (
         <View style={styles.splitContainer}>
           <View style={[styles.leftSection, { borderRightColor: colorScheme.colors.border }]}>
@@ -664,7 +808,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
       ) : (
         <>
           {renderChatList()}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.fab, { backgroundColor: colorScheme.colors.primary }]}
             onPress={() => router.push('/new-chat')}
           >
@@ -672,6 +816,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
           </TouchableOpacity>
         </>
       )}
+
     </View>
   );
 }

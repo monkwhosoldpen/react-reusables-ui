@@ -24,7 +24,6 @@ function RootLayout() {
   if (user) {
     return (
       <View style={{ flex: 1 }}>
-        <CommonHeader />
         <Tabs
           screenOptions={{
             headerShown: false,
@@ -86,16 +85,24 @@ function RootLayout() {
             name="[username]"
             options={{
               href: null,
+              headerShown: false,
             }}
           />
           <Tabs.Screen
             name="(tabs)"
             options={{
               href: null,
+              headerShown: false,
             }}
           />
           <Tabs.Screen
             name="(modals)"
+            options={{
+              href: null,
+            }}
+          />
+          <Tabs.Screen
+            name="explore"
             options={{
               href: null,
             }}

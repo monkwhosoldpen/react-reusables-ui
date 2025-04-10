@@ -5,11 +5,11 @@ import { Button } from '~/components/ui/button';
 import { useFeedForm } from '~/lib/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { useMockFeedItems } from '~/lib/hooks/useMockFeedItems';
-import { 
-  FormDataType, 
-  MediaLayout, 
-  DisplayMode, 
-  Visibility, 
+import {
+  FormDataType,
+  MediaLayout,
+  DisplayMode,
+  Visibility,
   Metadata,
   PollData,
   QuizData,
@@ -415,18 +415,18 @@ export default function FeedScreen() {
   const feedListRef = React.useRef<ScrollView>(null);
   const { feedItems, isLoading: realtimeLoading, refreshFeed } = useRealtime();
 
-  const { 
-    formData, 
-    handleFormDataChange, 
-    createOrUpdateSuperFeedItem, 
+  const {
+    formData,
+    handleFormDataChange,
+    createOrUpdateSuperFeedItem,
     isSubmitting,
     latestItem,
     fetchLatestItem,
-    isLoading 
+    isLoading
   } = useFeedForm({
     user: { email: 'elonmusk' }
   });
-  
+
   // Set initial form data when component mounts
   React.useEffect(() => {
     const mockData = generateMockData('all');
@@ -443,7 +443,7 @@ export default function FeedScreen() {
 
   const handleSubmit = async () => {
     try {
-      
+
       const submissionData: FormDataType = {
         ...formData,
         type: 'all',
@@ -461,7 +461,7 @@ export default function FeedScreen() {
       };
 
       const success = await createOrUpdateSuperFeedItem(submissionData);
-      
+
       if (success) {
         // Refresh feed after successful submission
         refreshFeed();
@@ -745,11 +745,11 @@ export default function FeedScreen() {
         survey: item.interactive_content?.survey || DEFAULT_SURVEY
       }
     });
-    
+
     // Set appropriate form states based on item
     setIsInteractive(!!item.interactive_content);
     setIncludeMedia(item.media?.length > 0);
-    
+
     if (item.interactive_content) {
       if (item.interactive_content.poll && !item.interactive_content.quiz && !item.interactive_content.survey) {
         setSelectedInteractiveType('poll');
@@ -772,7 +772,7 @@ export default function FeedScreen() {
     setContentType(Math.random() > 0.5 ? 'long' : 'small');
 
     // Generate random content
-    const content = contentType === 'long' 
+    const content = contentType === 'long'
       ? REALISTIC_CONTENT.long[Math.floor(Math.random() * REALISTIC_CONTENT.long.length)]
       : REALISTIC_CONTENT.small[Math.floor(Math.random() * REALISTIC_CONTENT.small.length)];
 
@@ -862,7 +862,7 @@ Innovation = f(ambition × execution)
           type: 'image' as const,
           url,
           caption: `Innovation Snapshot ${index + 1}`,
-          dimensions: { 
+          dimensions: {
             width: parseInt(url.split('x')[0].split('/').pop() || '800'),
             height: parseInt(url.split('x')[1].split('/')[0] || '600')
           }
@@ -1003,7 +1003,7 @@ Innovation = f(ambition × execution)
 
       // Submit to database
       await handleSubmit();
-      
+
     } catch (error) {
     }
   };
@@ -1032,7 +1032,7 @@ Innovation = f(ambition × execution)
           {/* Specific Content Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Content</Text>
-            
+
             {/* Content Toggle */}
             <View style={styles.row}>
               <Text>Include Content</Text>
@@ -1053,11 +1053,11 @@ Innovation = f(ambition × execution)
                   >
                     <Text>{type.charAt(0).toUpperCase() + type.slice(1)} Content</Text>
                     <View style={styles.radio}>
-                      <View 
+                      <View
                         style={[
                           styles.radioInner,
                           contentType === type && styles.radioSelected
-                        ]} 
+                        ]}
                       />
                     </View>
                   </Pressable>
@@ -1124,7 +1124,7 @@ Innovation = f(ambition × execution)
                 />
               </View>
             </View>
-            
+
             {/* Media Toggle */}
             <View style={styles.row}>
               <Text>Include Media</Text>
@@ -1136,7 +1136,7 @@ Innovation = f(ambition × execution)
 
             {/* Media Section */}
             {renderMediaSection()}
-            
+
             {/* Interactive Switch */}
             <View style={styles.row}>
               <Text>Interactive Content</Text>
@@ -1157,25 +1157,25 @@ Innovation = f(ambition × execution)
                   >
                     <Text>{type.charAt(0).toUpperCase() + type.slice(1)}</Text>
                     <View style={styles.radio}>
-                      <View 
+                      <View
                         style={[
                           styles.radioInner,
                           selectedInteractiveType === type && styles.radioSelected
-                        ]} 
+                        ]}
                       />
                     </View>
                   </Pressable>
                 ))}
               </View>
             )}
-            
+
             {/* Interactive Content Forms */}
             <View style={styles.interactiveSection}>
               {renderInteractiveContent()}
             </View>
           </View>
 
-          <Button 
+          <Button
             onPress={handleSubmit}
             disabled={isSubmitting}
             style={styles.submitButton}
@@ -1185,8 +1185,8 @@ Innovation = f(ambition × execution)
         </ScrollView>
 
         {/* Right side - Feed Items */}
-        <ScrollView 
-          style={styles.column} 
+        <ScrollView
+          style={styles.column}
           ref={feedListRef}
           refreshControl={
             <RefreshControl refreshing={realtimeLoading} onRefresh={refreshFeed} />
@@ -1195,7 +1195,7 @@ Innovation = f(ambition × execution)
           <View style={styles.previewHeader}>
             <Text style={styles.sectionTitle}>Feed Items</Text>
           </View>
-          
+
           {feedItems.map((item, index) => (
             <View key={item.id || index} style={styles.feedItemContainer}>
               <FeedItem
@@ -1203,7 +1203,7 @@ Innovation = f(ambition × execution)
                 showHeader={true}
                 showFooter={true}
               />
-              <Button 
+              <Button
                 onPress={() => handleEditItem(item)}
                 style={styles.editButton}
               >

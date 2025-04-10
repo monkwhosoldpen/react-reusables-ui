@@ -347,7 +347,6 @@ export function FollowButton({
               handleAnonymousSignIn={handleAnonymousSignIn}
               handleGuestSignIn={handleGuestSignIn}
               onCancel={() => setShowLoginDialog(false)}
-              isDarkMode={isDarkMode}
             />
           </View>
         </DialogContent>
