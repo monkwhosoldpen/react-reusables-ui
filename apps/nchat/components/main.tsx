@@ -604,7 +604,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
                 description: `Trending topic ${index + 1}`,
                 followers: Math.floor(Math.random() * 10000) + 1000
               };
-              
+
               return (
                 <TouchableOpacity
                   key={mockTrend.id}
@@ -613,9 +613,9 @@ export function MainScreen({ initialData }: MainScreenProps) {
                     router.push(`/${mockTrend.username}` as any);
                   }}
                 >
-                  <View 
+                  <View
                     style={[
-                      styles.trendAvatar, 
+                      styles.trendAvatar,
                       { backgroundColor: colorScheme.colors.primary }
                     ]}
                   >
@@ -623,17 +623,17 @@ export function MainScreen({ initialData }: MainScreenProps) {
                       {mockTrend.username[0].toUpperCase()}
                     </Text>
                   </View>
-                  <Text 
+                  <Text
                     style={[styles.trendLabel, { color: colorScheme.colors.text }]}
                     numberOfLines={1}
                   >
                     {mockTrend.username}
                   </Text>
-                  <Text 
-                    style={[styles.trendLabel, { 
+                  <Text
+                    style={[styles.trendLabel, {
                       color: colorScheme.colors.text,
                       opacity: 0.7,
-                      fontSize: 10 
+                      fontSize: 10
                     }]}
                     numberOfLines={1}
                   >
@@ -740,7 +740,12 @@ export function MainScreen({ initialData }: MainScreenProps) {
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
 
-      {user ? (
+     
+
+      <>
+        {renderChatList()}
+
+        {user ? (
         <TouchableOpacity
           style={[styles.settingsItem, {
             backgroundColor: theme.colorScheme.colors.card,
@@ -787,35 +792,14 @@ export function MainScreen({ initialData }: MainScreenProps) {
           </View>
         </TouchableOpacity>
       )}
-
-      {isMediumOrAbove ? (
-        <View style={styles.splitContainer}>
-          <View style={[styles.leftSection, { borderRightColor: colorScheme.colors.border }]}>
-            {renderChatList()}
-          </View>
-          <View style={[styles.rightSection, { backgroundColor: colorScheme.colors.background }]}>
-            {selectedItem ? (
-              <Text style={[styles.noMessageSelected, { color: colorScheme.colors.text }]}>
-                Selected: {selectedItem.username}
-              </Text>
-            ) : (
-              <Text style={[styles.noMessageSelected, { color: colorScheme.colors.text }]}>
-                Select a conversation to start messaging
-              </Text>
-            )}
-          </View>
-        </View>
-      ) : (
-        <>
-          {renderChatList()}
-          <TouchableOpacity
-            style={[styles.fab, { backgroundColor: colorScheme.colors.primary }]}
-            onPress={() => router.push('/new-chat')}
-          >
-            <Text style={{ color: colorScheme.colors.background, fontSize: 24 }}>+</Text>
-          </TouchableOpacity>
-        </>
-      )}
+      
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: colorScheme.colors.primary }]}
+          onPress={() => router.push('/new-chat')}
+        >
+          <Text style={{ color: colorScheme.colors.background, fontSize: 24 }}>+</Text>
+        </TouchableOpacity>
+      </>
 
     </View>
   );
