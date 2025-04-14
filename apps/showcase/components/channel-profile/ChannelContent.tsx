@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
 import { ChannelHeader } from '@/components/channel-profile/ChannelHeader';
 import { ChannelSidebar } from '@/components/channel-profile/ChannelSidebar';
@@ -94,7 +93,7 @@ export function ChannelContent({ username }: ChannelContentProps) {
   if (loading) {
     return (
       <View className="flex items-center justify-center h-screen" style={{ backgroundColor: colorScheme.colors.background }}>
-        <Spinner size="large" />
+        Loading...
       </View>
     );
   }
@@ -185,7 +184,7 @@ export function ChannelContent({ username }: ChannelContentProps) {
             >
               {loadingMessages ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                  <Spinner size="large" />
+                  Loading...
                 </View>
               ) : messageError ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

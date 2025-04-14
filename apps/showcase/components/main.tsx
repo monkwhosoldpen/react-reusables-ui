@@ -375,11 +375,10 @@ const styles = StyleSheet.create({
 
 export function MainScreen({ initialData }: MainScreenProps) {
   const { theme } = useTheme();
-  const { colorScheme, themeName, updateTheme, isDarkMode, toggleDarkMode } = useColorScheme();
+  const { colorScheme, updateTheme } = useColorScheme();
   const { design } = useDesign();
-  const { user, signOut, userInfo, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [followedChannels, setFollowedChannels] = useState<any[]>(initialData?.follows || []);
   const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>(initialData?.requests || []);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -388,12 +387,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const initializationStarted = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-
-  const handleThemeChange = (option: Option) => {
-    if (option?.value) {
-      updateTheme(option.value as ThemeName);
-    }
-  };
 
   // Initialize IndexedDB
   useEffect(() => {
@@ -478,9 +471,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
     }
   }, []);
 
-  const handleStart = useCallback(() => {
-    console.log('User:', user);
-  }, [user]);
 
   if (authLoading) {
     return (

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "React Native Reusables Showcase",
-    "slug": "react-native-reusables-showcase",
+    "slug": "showcase",
     "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -31,7 +31,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#18181B"
-      }
+      },
+      "package": "com.reactnativereusables.showcase"
     },
     "web": {
       "bundler": "metro",
@@ -50,9 +51,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": ""
+        "projectId": "00772e2a-615c-4c12-93a4-8f5a08be8402"
       }
     },
-    "owner": "*"
+    "owner": "monkwhosoldpen"
   }
 }
