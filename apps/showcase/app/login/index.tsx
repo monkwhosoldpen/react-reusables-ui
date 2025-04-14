@@ -49,91 +49,12 @@ import { ChevronDown } from '~/lib/icons/ChevronDown';
 import { ChevronRight } from '~/lib/icons/ChevronRight';
 import { Info } from '~/lib/icons/Info';
 import { cn } from '~/lib/utils';
-import { useAuth } from '~/lib/contexts/AuthContext';
+import LoginModal from './login';
 
 export default function ExampleScreen() {
-  const { user } = useAuth();
-
   return (
     <View className='flex-1 p-6 justify-center gap-6'>
-      <Card className='w-full max-w-lg mx-auto'>
-        <CardHeader>
-          <View className='flex-row gap-3'>
-            <CardTitle className='pt-1'>Team Members</CardTitle>
-            <Tooltip delayDuration={150}>
-              <TooltipTrigger className='web:focus:outline-none'>
-                <Info size={Platform.OS == 'web' ? 14 : 16} className='text-foreground' />
-              </TooltipTrigger>
-              <TooltipContent side='bottom' insets={contentInsets} className='gap-1 py-3 px-5'>
-                <Text className='native:text-lg font-bold'>Things to try:</Text>
-                <Text className='native:text-lg text-muted-foreground'>
-                  · {Platform.OS === 'web' ? 'Hover' : 'Press'} the team member's name
-                </Text>
-                <Text className='native:text-lg text-muted-foreground'>
-                  · {Platform.OS === 'web' ? 'Right click' : 'Press and hold'} the avatar
-                </Text>
-              </TooltipContent>
-            </Tooltip>
-          </View>
-          <CardDescription>Invite your team members to collaborate.</CardDescription>
-        </CardHeader>
-        <CardContent className='gap-8'>
-          <View className='flex-row gap-3'>
-            <View className='flex-1 flex-row gap-3'>
-              <TeamMemberAvatar
-                initials='ZN'
-                name='Zach Nugent'
-                uri='https://github.com/mrzachnugent.png'
-              />
-              <View className='flex-1'>
-                <TeamMemberHoverCard name='Zach Nugent' />
-                <Text numberOfLines={1} className='text-muted-foreground'>
-                  zachnugent@example.com
-                </Text>
-              </View>
-            </View>
-            <RoleDropdownSelect defaultValue='Billing' />
-          </View>
-          <View className='flex-row gap-3'>
-            <View className='flex-1 flex-row gap-3'>
-              <TeamMemberAvatar initials='JD' name='Jane Doe' uri='invalid link' />
-              <View className='flex-1'>
-                <TeamMemberHoverCard name='Jane Doe' />
-                <Text numberOfLines={1} className='text-muted-foreground'>
-                  jane@example.com
-                </Text>
-              </View>
-            </View>
-            <RoleDropdownSelect defaultValue='Owner' />
-          </View>
-        </CardContent>
-      </Card>
-      <View className='items-center'>
-        <Link href='/elonmusk' asChild>
-          <Button variant='link' className='flex-row'>
-            <Text>Go To Public Profile (Elon Musk)</Text>
-            <ChevronRight className='text-foreground' size={18} />
-          </Button>
-        </Link>
-
-        {!user && (
-          <Link href='/login' asChild>
-            <Button variant='link' className='flex-row'>
-              <Text>Go To Login</Text>
-              <ChevronRight className='text-foreground' size={18} />
-            </Button>
-          </Link>
-        )}
-
-        {user && (
-          <Link href='/explore' asChild>
-            <Button variant='link' className='flex-row'>
-              <Text>Explore</Text>
-              <ChevronRight className='text-foreground' size={18} />
-            </Button>
-          </Link>
-        )}
-      </View>
+      <LoginModal/>
     </View>
   );
 }
