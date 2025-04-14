@@ -21,20 +21,18 @@ export function Providers({ children }: ProvidersProps) {
           <ColorSchemeProvider>
             <DesignProvider>
               <ThemeProvider>
-                <RealtimeProvider>
+                {/* <RealtimeProvider> */}
                   <>
                     <FeedInteractionProvider>
                       <>
                         <NotificationProvider>
-                          <FeedInteractionProvider>
                             {children}
-                          </FeedInteractionProvider>
                         </NotificationProvider>
                       </>
                       <Toaster position="top-right" closeButton richColors />
                     </FeedInteractionProvider>
                   </>
-                </RealtimeProvider>
+                {/* </RealtimeProvider> */}
               </ThemeProvider>
             </DesignProvider>
           </ColorSchemeProvider>
