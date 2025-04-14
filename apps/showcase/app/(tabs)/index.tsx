@@ -106,9 +106,9 @@ export default function ExampleScreen() {
         </CardContent>
       </Card>
       <View className='items-center'>
-        <Link href='/form' asChild>
+        <Link href='/elonmusk' asChild>
           <Button variant='link' className='flex-row'>
-            <Text>Go To Form</Text>
+            <Text>Go To Public Profile (Elon Musk)</Text>
             <ChevronRight className='text-foreground' size={18} />
           </Button>
         </Link>

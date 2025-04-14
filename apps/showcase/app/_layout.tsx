@@ -59,7 +59,7 @@ export default function RootLayout() {
   }
 
   return (
-    <Providers>
+    <>
       <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
         <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
         <GestureHandlerRootView style={{ flex: 1 }}>
@@ -94,7 +94,7 @@ export default function RootLayout() {
         </GestureHandlerRootView>
         <ToastProvider />
       </ThemeProvider>
-    </Providers>
+    </>
   );
 }
 
