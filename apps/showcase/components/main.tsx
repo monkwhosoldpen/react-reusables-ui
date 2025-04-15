@@ -479,13 +479,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
           styles.loginCard,
           {
             backgroundColor: colorScheme.colors.card,
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 3,
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.1)',
           }
         ]}>
           <Text style={[styles.loginTitle, { color: colorScheme.colors.text }]}>
@@ -506,13 +500,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
           styles.loginCard,
           {
             backgroundColor: colorScheme.colors.card,
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 3,
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.1)',
           }
         ]}>
           <Text style={[styles.loginTitle, { color: colorScheme.colors.text }]}>
@@ -526,13 +514,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
               styles.loginButton,
               {
                 backgroundColor: colorScheme.colors.primary,
-                shadowOffset: {
-                  width: 0,
-                  height: 2,
-                },
-                shadowOpacity: 0.2,
-                shadowRadius: 4,
-                elevation: 2,
+                boxShadow: '0 1px 1px rgba(0, 0, 0, 0.1)',
               }
             ]}
             onPress={() => router.push('/login')}
@@ -558,13 +540,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
           styles.loginCard,
           {
             backgroundColor: colorScheme.colors.card,
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 3,
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.1)',
           }
         ]}>
           <Text style={[styles.loginTitle, { color: colorScheme.colors.text }]}>

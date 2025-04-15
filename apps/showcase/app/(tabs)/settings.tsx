@@ -6,19 +6,18 @@ import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { Switch } from '~/components/ui/switch';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type Option } from '~/components/ui/select';
 import { Button } from '~/components/ui/button';
-import { supabase } from '~/lib/supabase';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '~/lib/contexts/AuthContext';
 
 export default function SettingsScreen() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { colorScheme, themeName, updateTheme, isDarkMode, toggleDarkMode } = useColorScheme();
   const { design, updateDesign } = useDesign();
   const insets = useSafeAreaInsets();
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
   };
 
   const handleSignIn = () => {
@@ -92,7 +91,6 @@ export default function SettingsScreen() {
             <Button 
               variant="destructive" 
               onPress={handleSignOut}
-              className="w-full"
               style={{ borderRadius: Number(design.radius.md) }}
             >
               <Text className="font-medium">Sign Out</Text>
@@ -109,7 +107,6 @@ export default function SettingsScreen() {
                 backgroundColor: colorScheme.colors.primary,
                 borderRadius: Number(design.radius.md)
               }}
-              className="w-full"
             >
               <Text className="font-medium text-white">Sign In</Text>
             </Button>
@@ -133,7 +130,7 @@ export default function SettingsScreen() {
                 Use dark theme
               </Text>
             </View>
-            <Switch value={isDarkMode} onValueChange={toggleDarkMode} />
+            <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
           </View>
 
           <View style={styles.settingRow}>

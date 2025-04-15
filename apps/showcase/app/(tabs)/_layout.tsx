@@ -41,6 +41,18 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
+        name='[username]'
+        options={{
+          title: 'Channel',
+          tabBarIcon({ color, size }) {
+            return <Settings color={color} size={size} />;
+          },
+          headerShown: false,
+          headerRight: () => <ThemeToggle />,
+        }}
+      />
+
+      <Tabs.Screen
         name='supermenu'
         options={{
           title: 'Supermenu',

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,9 @@ export function ChannelContent({ username }: ChannelContentProps) {
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+  const isTablet = width >= 768 && width < 1024;
 
   // Fetch messages only when channel exists
   const {
@@ -85,15 +88,17 @@ export function ChannelContent({ username }: ChannelContentProps) {
   };
 
   // Debug logs
-  console.log('Channel:', channel);
-  console.log('Messages:', messages);
-  console.log('Loading Messages:', loadingMessages);
-  console.log('Message Error:', messageError);
+  useEffect(() => {
+    console.log('Channel:', channel);
+    console.log('Messages:', messages);
+    console.log('Loading Messages:', loadingMessages);
+    console.log('Message Error:', messageError);
+  }, [channel, messages, loadingMessages, messageError]);
 
   if (loading) {
     return (
       <View className="flex items-center justify-center h-screen" style={{ backgroundColor: colorScheme.colors.background }}>
-        Loading...
+        <Text style={textStyle}>Loading channel...</Text>
       </View>
     );
   }
@@ -118,59 +123,120 @@ export function ChannelContent({ username }: ChannelContentProps) {
 
   return (
     <View className="flex-1" style={{ backgroundColor: colorScheme.colors.background }}>
-      {/* Header Section */}
-      <View style={{ zIndex: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colorScheme.colors.border }}>
+      {/* Header Section - Always at top */}
+      <View style={{ 
+        zIndex: 10, 
+        borderBottomWidth: StyleSheet.hairlineWidth, 
+        borderBottomColor: colorScheme.colors.border,
+        backgroundColor: colorScheme.colors.background,
+        boxShadow: `0 1px 1px ${colorScheme.colors.border}10`,
+      }}>
         <ChannelHeader username={username} channelDetails={channel} />
       </View>
 
       {/* Main Content Area */}
       <View className="flex-1 flex-row relative">
-        {/* Sidebar */}
+        {/* Sidebar - Responsive positioning */}
         <View style={{ 
-          position: 'absolute', 
-          left: 0, 
-          top: 0, 
-          bottom: 0, 
+          position: isMobile ? 'absolute' : 'relative',
+          left: 0,
+          top: 0,
+          bottom: 0,
           zIndex: 5,
-          width: 240,
+          width: isMobile ? 60 : isTablet ? 200 : 240,
           borderRightWidth: StyleSheet.hairlineWidth,
-          borderRightColor: colorScheme.colors.border
+          borderRightColor: colorScheme.colors.border,
+          backgroundColor: colorScheme.colors.background,
+          boxShadow: `1px 0 1px ${colorScheme.colors.border}10`,
         }}>
-          <ChannelSidebar username={username} channelDetails={channel} selectedChannel={username} />
+          <ChannelSidebar 
+            username={username} 
+            channelDetails={channel} 
+            selectedChannel={username}
+            isCompact={isMobile}
+          />
         </View>
 
-        {/* Content Area */}
+        {/* Content Area - Responsive margin */}
         <View style={{ 
           flex: 1, 
-          marginLeft: 240,
+          marginLeft: isMobile ? 60 : isTablet ? 200 : 240,
           height: '100%'
         }}>
           {/* Access Control Bar */}
           <View 
             style={[{
-              padding: Number(design.spacing.padding.card),
+              padding: isMobile ? 8 : Number(design.spacing.padding.card),
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
               backgroundColor: colorScheme.colors.card,
               borderBottomWidth: StyleSheet.hairlineWidth,
-              borderBottomColor: colorScheme.colors.border
+              borderBottomColor: colorScheme.colors.border,
+              boxShadow: `0 1px 1px ${colorScheme.colors.border}05`,
             }]}
           >
-            <View className="flex-row items-center">
-              <Text style={[labelStyle, { marginRight: Number(design.spacing.padding.card) }]}>
-                Access Status:
-              </Text>
-              <Text style={textStyle} className="font-medium">
-                {currentAccessStatus || 'Loading...'}
-              </Text>
+            <View className="flex-row items-center" style={{ 
+              flex: 1,
+              gap: isMobile ? 8 : 12,
+              marginRight: isMobile ? 8 : 16,
+              flexWrap: 'wrap',
+            }}>
+              <View style={{
+                padding: isMobile ? 4 : 6,
+                backgroundColor: colorScheme.colors.background,
+                borderRadius: 4,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: colorScheme.colors.border,
+                minWidth: isMobile ? 60 : 80,
+                alignItems: 'center',
+              }}>
+                <Text style={[labelStyle, { 
+                  fontSize: isMobile ? 10 : Number(design.spacing.fontSize.sm),
+                  opacity: 0.7,
+                }]}>
+                  {loadingMessages ? 'Loading...' : currentAccessStatus}
+                </Text>
+              </View>
+              {!isMobile && (
+                <View style={{ 
+                  flexDirection: 'row', 
+                  alignItems: 'center',
+                  gap: 8,
+                  flexShrink: 1,
+                }}>
+                  <Text style={[labelStyle, { 
+                    fontSize: Number(design.spacing.fontSize.sm),
+                    opacity: 0.7,
+                  }]}>
+                    Channel Status:
+                  </Text>
+                  <View style={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    backgroundColor: channel?.is_public ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                    borderRadius: 4,
+                    minWidth: 60,
+                    alignItems: 'center',
+                  }}>
+                    <Text style={[textStyle, { 
+                      fontSize: Number(design.spacing.fontSize.sm),
+                      color: channel?.is_public ? '#22c55e' : '#ef4444',
+                    }]}>
+                      {channel?.is_public ? 'Public' : 'Private'}
+                    </Text>
+                  </View>
+                </View>
+              )}
             </View>
-            <JoinButton
-              username={username}
-              channelDetails={channel}
-              buttonText="Join Channel"
-              size="sm"
-            />
+            <View style={{ flexShrink: 0 }}>
+              <JoinButton
+                username={username}
+                channelDetails={channel}
+                buttonText={isMobile ? "Join" : "Join Channel"}
+                size="sm"
+              />
+            </View>
           </View>
 
           {/* Messages Section */}
@@ -183,12 +249,12 @@ export function ChannelContent({ username }: ChannelContentProps) {
               }}
             >
               {loadingMessages ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                  Loading...
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 32 }}>
+                  <Text style={[textStyle, { opacity: 0.7 }]}>Loading messages...</Text>
                 </View>
               ) : messageError ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={textStyle} className="text-red-500">{messageError}</Text>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 32 }}>
+                  <Text style={[textStyle, { color: '#ef4444' }]}>{messageError}</Text>
                 </View>
               ) : (
                 <View style={{ gap: Number(design.spacing.padding.card) }}>
@@ -200,7 +266,8 @@ export function ChannelContent({ username }: ChannelContentProps) {
                         backgroundColor: colorScheme.colors.card,
                         borderRadius: Number(design.radius.md),
                         borderWidth: StyleSheet.hairlineWidth,
-                        borderColor: colorScheme.colors.border
+                        borderColor: colorScheme.colors.border,
+                        boxShadow: `0 1px 1px ${colorScheme.colors.border}05`,
                       }]}
                     >
                       <View className="flex-row items-center mb-2">
@@ -218,7 +285,7 @@ export function ChannelContent({ username }: ChannelContentProps) {
                   ))}
                   {(!messages || messages.length === 0) && (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 32 }}>
-                      <Text style={labelStyle}>No messages yet</Text>
+                      <Text style={[labelStyle, { opacity: 0.7 }]}>No messages yet</Text>
                     </View>
                   )}
                 </View>

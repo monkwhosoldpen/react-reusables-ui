@@ -13,39 +13,40 @@ interface ChannelSidebarProps {
   username: string
   channelDetails: Channel
   selectedChannel: string
+  isCompact?: boolean
 }
 
 export function ChannelSidebar({
   username,
   channelDetails,
-  selectedChannel
+  selectedChannel,
+  isCompact = false
 }: ChannelSidebarProps) {
   const { colorScheme } = useColorScheme()
   const { design } = useDesign()
   const { width } = useWindowDimensions()
-  const isMobile = width < 768
 
   const sidebarStyle = {
     ...styles.sidebar,
     backgroundColor: colorScheme.colors.background,
     borderRightColor: colorScheme.colors.border,
-    width: isMobile ? 72 : 320,
+    width: isCompact ? 72 : 320,
   }
 
   const channelItemStyle = {
     ...styles.channelItem,
     backgroundColor: colorScheme.colors.card,
     borderColor: colorScheme.colors.border,
-    padding: isMobile ? 8 : 16,
-    flexDirection: isMobile ? 'column' : 'row',
+    padding: isCompact ? 8 : 16,
+    flexDirection: isCompact ? 'column' : 'row',
     alignItems: 'center',
-    gap: isMobile ? 4 : 12,
+    gap: isCompact ? 4 : 12,
   }
 
   const textStyle = {
     color: colorScheme.colors.text,
-    fontSize: isMobile ? 10 : Number(design.spacing.fontSize.base),
-    textAlign: isMobile ? 'center' as const : 'left' as const,
+    fontSize: isCompact ? 10 : Number(design.spacing.fontSize.base),
+    textAlign: isCompact ? 'center' as const : 'left' as const,
   }
 
   const mutedTextStyle = {
@@ -54,7 +55,7 @@ export function ChannelSidebar({
     opacity: 0.7,
   }
 
-  if (isMobile) {
+  if (isCompact) {
     return (
       <View style={sidebarStyle}>
         <ScrollView style={styles.mobileScrollView}>
@@ -134,7 +135,7 @@ export function ChannelSidebar({
                   <Text style={textStyle} className="font-medium" numberOfLines={1}>
                     @{related.username}
                   </Text>
-                  {!isMobile && related.is_public && (
+                  {!isCompact && related.is_public && (
                     <Text style={mutedTextStyle} className="mt-1">
                       Public Channel
                     </Text>
@@ -166,47 +167,51 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    padding: 12,
   },
   channelList: {
-    gap: 8,
+    gap: 6,
   },
   channelItem: {
-    padding: 16,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 6,
     borderWidth: StyleSheet.hairlineWidth,
   },
   selectedChannel: {
     borderColor: '#3b82f6',
-    borderWidth: 2,
+    borderWidth: 1,
+    backgroundColor: 'rgba(59, 130, 246, 0.05)',
   },
   mobileScrollView: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   mobileItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    gap: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    gap: 3,
+    borderRadius: 4,
   },
   selectedMobileItem: {
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    backgroundColor: 'rgba(59, 130, 246, 0.05)',
   },
   mobileLabel: {
     marginTop: 2,
+    fontSize: 9,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(150, 150, 150, 0.2)',
-    marginVertical: 8,
+    backgroundColor: 'rgba(150, 150, 150, 0.1)',
+    marginVertical: 6,
   },
   mobilePlusButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255, 255, 255, 0.01)',
   },
   channelInfo: {
     flex: 1,
