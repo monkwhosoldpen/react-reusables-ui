@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { toast } from 'sonner';
 import { FollowButton } from '@/components/common/FollowButton';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -18,32 +18,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 16,
-  },
-  header: {
+    flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  headerText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    paddingTop: 16,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
+    padding: 24,
   },
   loadingText: {
     marginTop: 8,
     fontSize: 14,
+    opacity: 0.6,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    padding: 24,
   },
   errorText: {
     fontSize: 16,
@@ -54,32 +48,57 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 16,
+    opacity: 0.6,
   },
   channelList: {
-    paddingHorizontal: 16,
+    flex: 1,
   },
   channelItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: '500',
   },
   channelInfo: {
     flex: 1,
+    marginRight: 16,
   },
-  username: {
-    fontSize: 15,
-    fontWeight: '500',
-    marginBottom: 2,
+  channelName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
   },
-  handle: {
+  channelDescription: {
     fontSize: 14,
+    opacity: 0.6,
+    flex: 1,
+    flexWrap: 'nowrap',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '500',
   },
   showMore: {
     paddingVertical: 16,
@@ -87,8 +106,8 @@ const styles = StyleSheet.create({
   },
   showMoreText: {
     fontSize: 14,
-    color: '#1DA1F2',
-  }
+    fontWeight: '600',
+  },
 });
 
 export default function ExplorePage() {
@@ -98,6 +117,7 @@ export default function ExplorePage() {
   const [error, setError] = React.useState<string | null>(null);
   const { theme } = useTheme();
   const { colorScheme } = useColorScheme();
+  const router = useRouter();
 
   React.useEffect(() => {
     const fetchChannels = async () => {
@@ -150,58 +170,71 @@ export default function ExplorePage() {
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <ActivityIndicator size="large" color={colorScheme.colors.primary} />
             <Text style={[styles.loadingText, { color: colorScheme.colors.text }]}>
-              Loading suggestions...
+              Loading channels...
             </Text>
           </View>
-        ) : channels.length === 0 ? (
-          <View style={styles.loadingContainer}>
-            <Text style={[styles.headerText, { color: colorScheme.colors.text }]}>
-              No suggestions found
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={[styles.errorText, { color: colorScheme.colors.text }]}>
+              {error}
             </Text>
+            <Text style={[styles.errorSubText, { color: colorScheme.colors.text }]}>
+              There was a problem loading the channels.
+            </Text>
+            <Button onPress={() => window.location.reload()}>
+              Try Again
+            </Button>
           </View>
-        ) : (
+        ) : channels.length > 0 ? (
           <View style={styles.channelList}>
             {channels.map((channel, index) => (
-              <View 
+              <TouchableOpacity
                 key={index}
-                style={[styles.channelItem, { borderBottomColor: colorScheme.colors.border }]}
+                style={[styles.channelItem, { 
+                  backgroundColor: colorScheme.colors.card,
+                  borderColor: colorScheme.colors.border 
+                }]}
+                onPress={() => router.push(`/${channel.username}`)}
               >
-                <img
-                  src={`https://placehold.co/100x100/emerald/white?text=${channel.username.substring(0, 2).toUpperCase()}`}
-                  alt={channel.username}
-                  className="w-12 h-12 rounded-full"
-                  style={styles.avatar}
-                />
-                
-                <View style={styles.channelInfo}>
-                  <Link href={`/${channel.username}`}>
-                    <Text style={[styles.username, { color: colorScheme.colors.text }]}>
-                      {channel.username}
-                    </Text>
-                    <Text style={[styles.handle, { color: colorScheme.colors.text }]}>
-                      @{channel.username}
-                    </Text>
-                  </Link>
+                <View style={[styles.avatar, { backgroundColor: colorScheme.colors.background }]}>
+                  <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
+                    {channel.username?.[0]?.toUpperCase() || '#'}
+                  </Text>
                 </View>
-
-                <FollowButton 
-                  username={channel.username} 
-                  size="sm"
-                  className="ml-2"
-                  initialFollowing={channel.isFollowing}
+                <View style={styles.channelInfo}>
+                  <Text style={[styles.channelName, { color: colorScheme.colors.text }]} numberOfLines={1}>
+                    {channel.username}
+                  </Text>
+                  <Text style={[styles.channelDescription, { color: colorScheme.colors.text }]} numberOfLines={1}>
+                    {channel.stateName || 'No description available'}
+                  </Text>
+                </View>
+                <FollowButton
+                  username={channel.username}
+                  initialFollowing={false}
                 />
-              </View>
+              </TouchableOpacity>
             ))}
 
             <View style={styles.showMore}>
-              <Text style={styles.showMoreText}>Show more</Text>
+              <Text style={[styles.showMoreText, { color: colorScheme.colors.primary }]}>
+                Show more
+              </Text>
             </View>
+          </View>
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
+              No channels found
+            </Text>
           </View>
         )}
       </ScrollView>

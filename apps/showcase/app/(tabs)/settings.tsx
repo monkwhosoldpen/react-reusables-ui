@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useColorScheme, type ThemeName } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
@@ -10,6 +10,8 @@ import { Button } from '~/components/ui/button';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '~/lib/contexts/AuthContext';
+import LanguageChanger from '@/components/common/LanguageChanger';
+import { config } from '~/lib/config';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -70,79 +72,86 @@ export default function SettingsScreen() {
   return (
     <ScrollView 
       style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
-      contentContainerStyle={{
-        paddingBottom: insets.bottom + Number(design.spacing.padding.card),
-        paddingTop: Number(design.spacing.padding.card)
-      }}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
     >
       {/* Account Section */}
-      <View style={sectionStyle}>
-        <Text style={titleStyle} className="font-medium uppercase">
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
           Account
         </Text>
         
-        {user ? (
-          <View style={{ gap: Number(design.spacing.gap) }}>
-            <View style={cardStyle}>
-              <Text style={labelStyle} className="mb-1">
-                Signed in as
-              </Text>
-              <Text style={textStyle} className="font-medium">
-                {user.email || 'Guest'}
-              </Text>
+        <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
+          {user ? (
+            <>
+              <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+                <View>
+                  <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
+                    Signed in as
+                  </Text>
+                  <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
+                    {user.email || 'Guest'}
+                  </Text>
+                </View>
+              </View>
+              
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colorScheme.colors.notification }]}
+                onPress={handleSignOut}
+              >
+                <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
+                  Sign Out
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+              <View>
+                <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
+                  Not signed in
+                </Text>
+                <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
+                  Sign in to sync your preferences
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colorScheme.colors.primary }]}
+                onPress={handleSignIn}
+              >
+                <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
+                  Sign In
+                </Text>
+              </TouchableOpacity>
             </View>
-            
-            <Button 
-              variant="destructive" 
-              onPress={handleSignOut}
-              style={{ borderRadius: Number(design.radius.md) }}
-            >
-              <Text className="font-medium">Sign Out</Text>
-            </Button>
-          </View>
-        ) : (
-          <View>
-            <Text style={labelStyle} className="mb-4">
-              Sign in to sync your preferences and access all features
-            </Text>
-            <Button 
-              onPress={handleSignIn}
-              style={{ 
-                backgroundColor: colorScheme.colors.primary,
-                borderRadius: Number(design.radius.md)
-              }}
-            >
-              <Text className="font-medium text-white">Sign In</Text>
-            </Button>
-          </View>
-        )}
+          )}
+        </View>
       </View>
 
       {/* Appearance Section */}
-      <View style={sectionStyle}>
-        <Text style={titleStyle} className="font-medium uppercase">
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
           Appearance
         </Text>
         
-        <View style={cardStyle} className="overflow-hidden">
+        <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
           <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
             <View>
-              <Text style={textStyle} className="font-medium">
+              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
                 Dark Mode
               </Text>
-              <Text style={labelStyle} className="mt-1">
+              <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
                 Use dark theme
               </Text>
             </View>
             <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
           </View>
 
-          <View style={styles.settingRow}>
+          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
             <View>
-              <Text style={textStyle} className="font-medium">
+              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
                 Theme
               </Text>
-              <Text style={labelStyle} className="mt-1">
+              <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
                 Choose your preferred style
               </Text>
             </View>
@@ -167,51 +176,94 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      {/* Language Section */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
+          Language
+        </Text>
+        
+        <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
+          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+            <View>
+              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
+                App Language
+              </Text>
+              <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
+                Choose your preferred language
+              </Text>
+            </View>
+            <LanguageChanger variant="settings" />
+          </View>
+        </View>
+      </View>
+
       {/* Theme Info Section */}
-      <View style={sectionStyle}>
-        <Text style={titleStyle} className="font-medium uppercase">
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
           Current Theme
         </Text>
         
-        <View style={[cardStyle, { gap: Number(design.spacing.gap) }]}>
-          <View className="flex-row justify-between items-center">
-            <Text style={labelStyle}>
+        <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
+          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
               Theme
             </Text>
-            <Text style={textStyle} className="font-medium capitalize">
+            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
               {themeName}
             </Text>
           </View>
           
-          <View className="flex-row justify-between items-center">
-            <Text style={labelStyle}>
+          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
               Mode
             </Text>
-            <Text style={textStyle} className="font-medium capitalize">
+            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
               {colorScheme.name}
             </Text>
           </View>
           
-          <View className="flex-row justify-between items-center">
-            <Text style={labelStyle}>
+          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
               Primary Color
             </Text>
-            <View className="flex-row items-center gap-2">
+            <View style={styles.themePreview}>
               <View 
-                style={{ 
-                  backgroundColor: colorScheme.colors.primary,
-                  width: Number(design.spacing.iconSize),
-                  height: Number(design.spacing.iconSize),
-                  borderRadius: Number(design.radius.sm)
-                }}
+                style={[
+                  styles.themeColor,
+                  { backgroundColor: colorScheme.colors.primary }
+                ]} 
               />
-              <Text style={textStyle} className="font-medium">
+              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
                 {colorScheme.colors.primary}
               </Text>
             </View>
           </View>
         </View>
       </View>
+
+      {/* Dashboard Link */}
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={[styles.card, { 
+            backgroundColor: colorScheme.colors.card,
+            paddingVertical: 16,
+            paddingHorizontal: 16,
+          }]}
+          onPress={() => Linking.openURL('https://showcase.fixd.ai/dashboard')}
+        >
+          <View style={{ gap: 4 }}>
+            <Text style={[styles.settingLabel, { color: colorScheme.colors.primary }]}>
+              Dashboard
+            </Text>
+            <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
+              Open dashboard in new tab
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Bottom Padding */}
+      <View style={{ height: 48 }} />
     </ScrollView>
   );
 }
@@ -220,15 +272,66 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
   section: {
-    marginHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    opacity: 0.6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  card: {
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   settingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  settingRowLast: {
+    borderBottomWidth: 0,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  settingDescription: {
+    fontSize: 14,
+    opacity: 0.6,
+    marginTop: 2,
+  },
+  button: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 4,
+    minWidth: 80,
+  },
+  buttonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  themePreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  themeColor: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  }
 });

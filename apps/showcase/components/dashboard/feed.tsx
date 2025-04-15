@@ -5,6 +5,7 @@ import { Button } from '~/components/ui/button';
 import { useFeedForm } from '~/lib/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { useMockFeedItems } from '~/lib/hooks/useMockFeedItems';
+import { createClient } from '@supabase/supabase-js';
 import {
   FormDataType,
   MediaLayout,
@@ -21,12 +22,16 @@ import {
   FillRequirement
 } from '~/lib/enhanced-chat/types/superfeed';
 import { useRouter } from 'expo-router';
-import { supabase } from '~/lib/supabase';
-import { generateMockFeedItem } from '~/lib/enhanced-chat/utils/mockData';
-import { useRealtime } from '~/lib/providers/RealtimeProvider';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { mockTenant } from './mocktenant';
+
+// Initialize Supabase client with tenant's credentials
+const supabase = createClient(
+  mockTenant.tenant_supabase_url,
+  mockTenant.tenant_supabase_anon_key
+);
 
 const DEFAULT_VISIBILITY: Visibility = {
   stats: true,
@@ -416,7 +421,8 @@ export default function FeedScreen() {
   const [contentType, setContentType] = React.useState<'small' | 'long'>('small');
   const leftScrollRef = React.useRef<ScrollView>(null);
   const feedListRef = React.useRef<ScrollView>(null);
-  const { feedItems, isLoading: realtimeLoading, refreshFeed } = useRealtime();
+  const [feedItems, setFeedItems] = React.useState<FormDataType[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const insets = useSafeAreaInsets();
@@ -427,25 +433,72 @@ export default function FeedScreen() {
     createOrUpdateSuperFeedItem,
     isSubmitting,
     latestItem,
-    fetchLatestItem,
-    isLoading
+    fetchLatestItem
   } = useFeedForm({
-    user: { email: 'elonmusk' }
+    user: { email: mockTenant.username }
   });
 
-  // Set initial form data when component mounts
+  // Fetch initial feed items
   React.useEffect(() => {
-    const mockData = generateMockData('all');
-    handleFormDataChange({
-      ...mockData,
-      type: 'all',
-      interactive_content: {
-        poll: DEFAULT_POLL,
-        quiz: DEFAULT_QUIZ,
-        survey: DEFAULT_SURVEY
-      }
-    });
+    fetchFeedItems();
   }, []);
+
+  // Set up realtime subscription
+  React.useEffect(() => {
+    const channel = supabase
+      .channel('superfeed_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'superfeed',
+          filter: `channel_username=eq.${mockTenant.username}`
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setFeedItems(prev => [payload.new as FormDataType, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setFeedItems(prev => 
+              prev.map(item => 
+                item.id === payload.new.id ? payload.new as FormDataType : item
+              )
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setFeedItems(prev => 
+              prev.filter(item => item.id !== payload.old.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchFeedItems = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('superfeed')
+        .select('*')
+        .eq('channel_username', mockTenant.username)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFeedItems(data || []);
+    } catch (error) {
+      console.error('Error fetching feed items:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshFeed = () => {
+    fetchFeedItems();
+  };
 
   const handleSubmit = async () => {
     try {
@@ -1004,13 +1057,14 @@ Innovation = f(ambition × execution)
           quiz,
           survey
         },
-        channel_username: 'elonmusk'
+        channel_username: mockTenant.username
       });
 
       // Submit to database
       await handleSubmit();
 
     } catch (error) {
+      console.error('Error creating rich mock:', error);
     }
   };
 
@@ -1324,7 +1378,7 @@ Innovation = f(ambition × execution)
           ref={feedListRef}
           refreshControl={
             <RefreshControl 
-              refreshing={realtimeLoading} 
+              refreshing={isLoading} 
               onRefresh={refreshFeed}
               colors={[colorScheme.colors.primary]}
               tintColor={colorScheme.colors.primary}
@@ -1354,13 +1408,13 @@ Innovation = f(ambition × execution)
             </View>
           ))}
 
-          {feedItems.length === 0 && !realtimeLoading && (
+          {feedItems.length === 0 && !isLoading && (
             <View style={emptyStateStyle}>
               <Text style={emptyStateTextStyle}>No feed items found</Text>
             </View>
           )}
 
-          {realtimeLoading && (
+          {isLoading && (
             <View style={loadingStateStyle}>
               <Text style={{ color: colorScheme.colors.text }}>Loading feed items...</Text>
             </View>

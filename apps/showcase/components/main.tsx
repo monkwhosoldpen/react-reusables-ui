@@ -31,234 +31,120 @@ interface MainScreenProps {
   };
 }
 
-const styles = StyleSheet.create({
+interface Styles {
+  container: ViewStyle;
+  contentContainer: ViewStyle;
+  header: ViewStyle;
+  headerText: TextStyle;
+  list: ViewStyle;
+  item: ViewStyle;
+  itemSelected: ViewStyle;
+  avatar: ViewStyle;
+  avatarText: TextStyle;
+  itemContent: ViewStyle;
+  itemTitle: TextStyle;
+  itemSubtitle: TextStyle;
+  fab: ViewStyle;
+  emptyState: ViewStyle;
+  emptyStateText: TextStyle;
+  loginContainer: ViewStyle;
+  loginCard: ViewStyle;
+  loginTitle: TextStyle;
+  loginDescription: TextStyle;
+  loginButton: ViewStyle;
+  loginButtonText: TextStyle;
+  loginIcon: ViewStyle;
+  sectionHeader: ViewStyle;
+  sectionHeaderText: TextStyle;
+  card: ViewStyle;
+  sectionTitle: TextStyle;
+  settingDescription: TextStyle;
+  button: ViewStyle;
+  buttonText: TextStyle;
+}
+
+const styles = StyleSheet.create<Styles>({
   container: {
     flex: 1,
     backgroundColor: Constants.manifest.splash.backgroundColor,
   },
-  splitContainer: {
+  contentContainer: {
     flex: 1,
+    paddingHorizontal: 16,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  list: {
+    flex: 1,
+  },
+  item: {
     flexDirection: 'row',
-  },
-  leftSection: {
-    width: '35%',
-    maxWidth: 420,
-    borderRightWidth: StyleSheet.hairlineWidth,
-  },
-  rightSection: {
-    flex: 1,
-    backgroundColor: '#f0f0f0',
     alignItems: 'center',
-    justifyContent: 'center',
+    padding: 12,
+    marginBottom: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
-  chatList: {
-    flex: 1,
-  },
-  chatItem: {
-    flexDirection: 'row',
-    padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-  },
-  chatItemSelected: {
+  itemSelected: {
     backgroundColor: 'rgba(0,0,0,0.05)',
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#e0e0e0',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 12,
   },
   avatarText: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '500',
   },
-  chatContent: {
+  itemContent: {
     flex: 1,
+    marginRight: 12,
   },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  chatName: {
+  itemTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
+    marginBottom: 2,
   },
-  timestamp: {
-    fontSize: 12,
-    color: '#666',
-  },
-  lastMessage: {
+  itemSubtitle: {
     fontSize: 14,
-    color: '#666',
-    marginRight: 40,
+    opacity: 0.6,
   },
   fab: {
     position: 'absolute',
     right: 16,
     bottom: 16,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#0084ff',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  videoContainer: {
+  emptyState: {
     flex: 1,
-    overflow: 'hidden',
-  },
-  video: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  errorContainer: {
-    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 24,
   },
-  errorText: {
-    color: 'white',
+  emptyStateText: {
     fontSize: 16,
     textAlign: 'center',
-    padding: 20,
-  },
-  mainContainer: {
-    flex: 1,
-    backgroundColor: Constants.manifest.splash.backgroundColor,
-  },
-  contentContainer: {
-    padding: 8,
-    width: '100%',
-    maxWidth: "100%",
-    marginHorizontal: 'auto',
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    color: '#FFFFFF',
-  },
-  startButton: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 40,
-    paddingVertical: 15,
-    borderRadius: 25,
-    marginTop: 20,
-  },
-  startButtonText: {
-    color: '#000000',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  followSection: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  followText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  card: {
-    marginTop: 20,
-    padding: 16,
-    borderRadius: 8,
-    width: '100%',
-  },
-  section: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  sectionHeader: {
-    padding: 16,
-    paddingBottom: 8,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-  },
-  sectionHeaderText: {
-    fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  noMessageSelected: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  trendsSection: {
-    padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  trendsHeader: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  trendsList: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingBottom: 8,
-    overflow: 'scroll',
-  },
-  trendItem: {
-    alignItems: 'center',
-    width: 72,
-  },
-  trendAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginBottom: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  trendLabel: {
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  showMoreText: {
-    color: '#1DA1F2',
-    fontSize: 14,
-    marginTop: 8,
-  },
-  languageChanger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    padding: 12,
-  },
-  label: {
-    marginRight: 8,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  settingDescription: {
-    fontSize: 14,
-    opacity: 0.7,
-    marginTop: 4,
+    opacity: 0.6,
   },
   loginContainer: {
     flex: 1,
@@ -302,150 +188,46 @@ const styles = StyleSheet.create({
   loginIcon: {
     marginRight: 8,
   },
-  chatItemStyle: {
-    flexDirection: 'row',
-    padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
-  },
-  chatItemSelectedStyle: {
-    backgroundColor: 'rgba(0,0,0,0.1)',
-  },
-  avatarStyle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  avatarTextStyle: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: 'rgba(0,0,0,0.8)',
-  },
-  chatNameStyle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'rgba(0,0,0,0.8)',
-  },
-  timestampStyle: {
-    fontSize: 12,
-    color: 'rgba(0,0,0,0.5)',
-  },
-  lastMessageStyle: {
-    fontSize: 14,
-    color: 'rgba(0,0,0,0.8)',
-    marginRight: 40,
-  },
-  fabStyle: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#0084ff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  followedListStyle: {
-    marginTop: 16,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 8,
-    overflow: 'hidden',
-    boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-  },
-  followedItemStyle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-  },
-  followedItemLastStyle: {
-    borderBottomWidth: 0,
-  },
-  followedAvatarStyle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  followedAvatarTextStyle: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: 'rgba(0,0,0,0.8)',
-  },
-  followedNameStyle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'rgba(0,0,0,0.8)',
-    flex: 1,
-  },
-  followedTypeStyle: {
-    fontSize: 12,
-    color: 'rgba(0,0,0,0.5)',
-  },
-  followedEmptyStyle: {
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  followedEmptyTextStyle: {
-    fontSize: 14,
-    color: 'rgba(0,0,0,0.5)',
-    textAlign: 'center',
-  },
-  trendsSectionStyle: {
-    padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  trendsHeaderStyle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: 'rgba(0,0,0,0.8)',
-  },
-  trendsListStyle: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingBottom: 8,
-    overflow: 'scroll',
-  },
-  trendItemStyle: {
-    alignItems: 'center',
-    width: 72,
-  },
-  trendAvatarStyle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginBottom: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  trendLabelStyle: {
-    fontSize: 12,
-    textAlign: 'center',
-    color: 'rgba(0,0,0,0.8)',
-  },
-  showMoreTextStyle: {
-    color: '#1DA1F2',
-    fontSize: 14,
+  sectionHeader: {
+    paddingVertical: 12,
+    paddingHorizontal: 0,
     marginTop: 8,
+  },
+  sectionHeaderText: {
+    fontSize: 14,
     fontWeight: '600',
+    opacity: 0.6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  card: {
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 24,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  settingDescription: {
+    fontSize: 16,
+    opacity: 0.6,
+    marginBottom: 16,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
 
@@ -555,16 +337,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
   }, []);
 
   // Apply design system tokens
-  const sectionStyle: ViewStyle = {
-    ...styles.section,
-    backgroundColor: colorScheme.colors.card,
-    padding: Number(design.spacing.padding.card),
-    borderRadius: Number(design.radius.lg),
-    marginBottom: Number(design.spacing.margin.section),
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colorScheme.colors.border,
-  };
-
   const titleStyle: TextStyle = {
     color: colorScheme.colors.text,
     fontSize: Number(design.spacing.fontSize.lg),
@@ -655,14 +427,16 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   if (authLoading) {
     return (
-      <View style={styles.loginContainer}>
-        <View style={styles.loginCard}>
-          <Text style={styles.loginTitle}>
-            Loading...
-          </Text>
-          <Text style={styles.loginDescription}>
-            Please wait while we initialize the app.
-          </Text>
+      <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+        <View style={[styles.contentContainer, { paddingTop: insets.top }]}>
+          <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
+              Loading...
+            </Text>
+            <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
+              Please wait while we initialize the app.
+            </Text>
+          </View>
         </View>
       </View>
     );
@@ -670,27 +444,29 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   if (!user) {
     return (
-      <View style={styles.loginContainer}>
-        <View style={styles.loginCard}>
-          <Text style={styles.loginTitle}>
-            Welcome to NChat
-          </Text>
-          <Text style={styles.loginDescription}>
-            Sign in to access your channels, follow users, and manage your tenant requests.
-          </Text>
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => router.push('/login')}
-          >
-            <LogIn
-              size={Number(design.spacing.iconSize)}
-              color={colorScheme.colors.background}
-              style={styles.loginIcon}
-            />
-            <Text style={styles.loginButtonText}>
-              Sign In
+      <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+        <View style={[styles.contentContainer, { paddingTop: insets.top }]}>
+          <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
+              Welcome to NChat
             </Text>
-          </TouchableOpacity>
+            <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
+              Sign in to access your channels, follow users, and manage your tenant requests.
+            </Text>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: colorScheme.colors.primary }]}
+              onPress={() => router.push('/login')}
+            >
+              <LogIn
+                size={Number(design.spacing.iconSize)}
+                color={colorScheme.colors.background}
+                style={styles.loginIcon}
+              />
+              <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
+                Sign In
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -698,133 +474,150 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   if (isLoading) {
     return (
-      <View style={styles.loginContainer}>
-        <View style={styles.loginCard}>
-          <Text style={styles.loginTitle}>
-            Loading...
-          </Text>
-          <Text style={styles.loginDescription}>
-            Please wait while we load your data.
-          </Text>
+      <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+        <View style={[styles.contentContainer, { paddingTop: insets.top }]}>
+          <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
+              Loading...
+            </Text>
+            <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
+              Please wait while we load your data.
+            </Text>
+          </View>
         </View>
       </View>
     );
   }
 
-  const renderChatList = () => (
-    <ScrollView style={styles.chatList}>
-      {/* Followed Channels Section */}
-      <View style={sectionStyle}>
-        <Text style={titleStyle} className="font-medium uppercase">
-          Followed Channels
-        </Text>
-        <View style={followedListStyle}>
-          {followedChannels.length > 0 ? (
-            followedChannels.map((channel, index) => (
+  const renderChatList = () => {
+    if (tenantRequests.length === 0 && followedChannels.length === 0) {
+      return (
+        <View style={[styles.emptyState, { backgroundColor: colorScheme.colors.background }]}>
+          <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
+            No channels or requests yet. Start by following some channels!
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView 
+        style={styles.list}
+        showsVerticalScrollIndicator={false}
+      >
+        {tenantRequests.length > 0 ? (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
+                Private Channels
+              </Text>
+            </View>
+            {tenantRequests.map((request, index) => (
+              <TouchableOpacity
+                key={request.id || index}
+                style={[
+                  styles.item,
+                  selectedItem?.id === request.id && styles.itemSelected,
+                  { backgroundColor: colorScheme.colors.card }
+                ]}
+                onPress={() => {
+                  setSelectedItem(request);
+                  router.push(`/${request.username}` as any);
+                }}
+              >
+                <View style={[styles.avatar, { backgroundColor: colorScheme.colors.background }]}>
+                  <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
+                    {request.username?.[0]?.toUpperCase() || '#'}
+                  </Text>
+                </View>
+                <View style={styles.itemContent}>
+                  <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
+                    {request.username || 'Unknown'}
+                  </Text>
+                  <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
+                    {request.status || 'NA'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </>
+        ) : (
+          <View style={[styles.emptyState, { backgroundColor: colorScheme.colors.background }]}>
+            <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
+              No private channels yet
+            </Text>
+          </View>
+        )}
+
+        {followedChannels.length > 0 ? (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
+                Public Channels
+              </Text>
+            </View>
+            {followedChannels.map((channel, index) => (
               <TouchableOpacity
                 key={channel.id || index}
                 style={[
-                  followedItemStyle,
-                  index === followedChannels.length - 1 && { borderBottomWidth: 0 }
+                  styles.item,
+                  selectedItem?.id === channel.id && styles.itemSelected,
+                  { backgroundColor: colorScheme.colors.card }
                 ]}
                 onPress={() => {
                   setSelectedItem(channel);
                   router.push(`/${channel.username}` as any);
                 }}
               >
-                <View style={avatarStyle}>
-                  <Text style={avatarTextStyle}>
+                <View style={[styles.avatar, { backgroundColor: colorScheme.colors.background }]}>
+                  <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
                     {channel.username?.[0]?.toUpperCase() || '#'}
                   </Text>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={listItemTextStyle}>
-                    {channel.username || 'Unknown Channel'}
+                <View style={styles.itemContent}>
+                  <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
+                    {channel.username || 'Unknown'}
                   </Text>
-                  <Text style={listItemSecondaryTextStyle}>
+                  <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
                     {channel.type || 'Channel'}
                   </Text>
                 </View>
-                <View style={{ marginLeft: Number(design.spacing.margin.card) }}>
+                <View style={{ marginLeft: 8 }}>
                   <FollowButton
                     username={channel.username}
                     initialFollowing={true}
                   />
                 </View>
               </TouchableOpacity>
-            ))
-          ) : (
-            <View style={[styles.followedEmptyStyle, { padding: Number(design.spacing.padding.card) }]}>
-              <Text style={listItemSecondaryTextStyle}>
-                No channels followed yet. Start following to see them here!
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
-
-      {/* Tenant Requests Section */}
-      <View style={sectionStyle}>
-        <Text style={titleStyle} className="font-medium uppercase">
-          Tenant Requests
-        </Text>
-        {tenantRequests.map((request, index) => (
-          <TouchableOpacity
-            key={request.id || index}
-            style={[
-              listItemStyle,
-              selectedItem?.id === request.id && { backgroundColor: colorScheme.colors.primary + '10' }
-            ]}
-            onPress={() => {
-              setSelectedItem(request);
-              router.push(`/${request.username}` as any);
-            }}
-          >
-            <View style={avatarStyle}>
-              <Text style={avatarTextStyle}>
-                {request.username?.[0]?.toUpperCase() || '#'}
-              </Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={listItemTextStyle}>
-                {request.username || 'Unknown Request'}
-              </Text>
-              <Text style={listItemSecondaryTextStyle}>
-                {request.type || 'Request'}
-              </Text>
-            </View>
-            <View style={{ marginLeft: Number(design.spacing.margin.card) }}>
-              <FollowButton
-                username={request.username}
-                initialFollowing={false}
-              />
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </ScrollView>
-  );
+            ))}
+          </>
+        ) : (
+          <View style={[styles.emptyState, { backgroundColor: colorScheme.colors.background }]}>
+            <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
+              No public channels yet. Start by following some channels!
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    );
+  };
 
   return (
-    <ScrollView 
-      style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
-      contentContainerStyle={{
-        paddingBottom: insets.bottom + Number(design.spacing.padding.card),
-        paddingTop: Number(design.spacing.padding.card)
-      }}
-    >
-      {renderChatList()}
+    <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+      <View style={styles.contentContainer}>
+        {renderChatList()}
+      </View>
 
       <TouchableOpacity
-        style={[styles.fabStyle, { backgroundColor: colorScheme.colors.primary }]}
-        onPress={() => router.push('/new-chat')}
+        style={[styles.fab, { backgroundColor: colorScheme.colors.primary }]}
+        onPress={() => router.push('/explore')}
       >
         <Text style={{ 
           color: colorScheme.colors.background, 
-          fontSize: Number(design.spacing.fontSize.xl),
-          fontWeight: '600' as const,
+          fontSize: 24,
+          fontWeight: '600',
         }}>+</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }

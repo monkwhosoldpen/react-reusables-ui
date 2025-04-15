@@ -41,7 +41,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name='index'
         options={{
-          title: 'Demo',
+          title: 'Channels',
           tabBarIcon({ color, size }) {
             return <LayoutPanelLeft color={color} size={size} />;
           },

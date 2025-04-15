@@ -17,6 +17,7 @@ import { JoinButton } from '~/components/common/JoinButton';
 import { Loader2 } from 'lucide-react';
 import { useLocalSearchParams } from 'expo-router';
 import { ColorScheme, DesignConfig } from '~/lib/providers/theme/types';
+import { CommonHeader } from '~/components/CommonHeader';
 
 const createStyles = (
   isMobile: boolean, 
@@ -30,17 +31,11 @@ const createStyles = (
     backgroundColor: colorScheme.colors.background,
   },
   header: {
-    paddingHorizontal: Number(design.spacing.padding.card),
-    paddingVertical: Number(design.spacing.padding.item),
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colorScheme.colors.border,
     backgroundColor: colorScheme.colors.card,
-    shadowColor: colorScheme.colors.border,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    zIndex: Number(design.zIndex.sticky),
   },
   headerContent: {
     width: '100%',
@@ -52,44 +47,33 @@ const createStyles = (
     flexDirection: 'row',
   },
   sidebar: {
-    width: isMobile ? Number(design.spacing.avatarSize) * 1.5 : isTablet ? 200 : 240,
+    width: isMobile ? 60 : isTablet ? 200 : 240,
     borderRightWidth: StyleSheet.hairlineWidth,
     borderRightColor: colorScheme.colors.border,
     backgroundColor: colorScheme.colors.card,
-    shadowColor: colorScheme.colors.border,
-    shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    zIndex: Number(design.zIndex.dropdown),
   },
   mainContent: {
     flex: 1,
-    marginLeft: isMobile ? Number(design.spacing.avatarSize) * 1.5 : isTablet ? 200 : 240,
+    marginLeft: isMobile ? 60 : isTablet ? 200 : 240,
   },
   accessBar: {
-    padding: Number(design.spacing.padding.card),
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colorScheme.colors.border,
     backgroundColor: colorScheme.colors.card,
-    shadowColor: colorScheme.colors.border,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
   },
   accessInfo: {
     flex: 1,
-    gap: Number(design.spacing.gap),
-    marginRight: Number(design.spacing.margin.card),
+    gap: 8,
+    marginRight: 16,
     flexWrap: 'wrap',
   },
   statusBadge: {
-    padding: Number(design.spacing.padding.item) / 2,
-    borderRadius: Number(design.radius.md),
+    padding: 6,
+    borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colorScheme.colors.border,
     minWidth: 80,
@@ -97,9 +81,9 @@ const createStyles = (
     backgroundColor: colorScheme.colors.background,
   },
   statusText: {
-    fontSize: Number(design.spacing.fontSize.sm),
+    fontSize: 14,
     color: colorScheme.colors.text,
-    opacity: Number(design.opacity.medium),
+    opacity: 0.6,
   },
   channelStatusContainer: {
     flexDirection: 'row',
@@ -107,98 +91,93 @@ const createStyles = (
     gap: 8,
   },
   channelStatusLabel: {
-    fontSize: Number(design.spacing.fontSize.sm),
+    fontSize: 14,
     color: colorScheme.colors.text,
-    opacity: Number(design.opacity.medium),
+    opacity: 0.6,
   },
   channelStatusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: Number(design.radius.sm),
+    borderRadius: 4,
     backgroundColor: colorScheme.colors.background,
   },
   channelStatusText: {
-    fontSize: Number(design.spacing.fontSize.sm),
+    fontSize: 14,
     color: colorScheme.colors.text,
   },
   messageList: {
-    padding: Number(design.spacing.padding.card),
+    padding: 16,
   },
   messageItem: {
-    padding: Number(design.spacing.padding.card),
-    marginBottom: Number(design.spacing.margin.card),
-    borderRadius: Number(design.radius.lg),
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 12,
     backgroundColor: colorScheme.colors.card,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colorScheme.colors.border,
-    shadowColor: colorScheme.colors.border,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
   },
   messageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Number(design.spacing.margin.item),
+    marginBottom: 8,
   },
   messageUsername: {
     color: colorScheme.colors.text,
     fontWeight: '600',
-    fontSize: Number(design.spacing.fontSize.base),
+    fontSize: 16,
   },
   messageTime: {
-    fontSize: Number(design.spacing.fontSize.sm),
+    fontSize: 14,
     color: colorScheme.colors.text,
-    opacity: Number(design.opacity.medium),
-    marginLeft: Number(design.spacing.margin.item),
+    opacity: 0.6,
+    marginLeft: 8,
   },
   messageContent: {
-    fontSize: Number(design.spacing.fontSize.base),
+    fontSize: 16,
     color: colorScheme.colors.text,
-    lineHeight: Number(design.spacing.lineHeight.relaxed),
+    lineHeight: 1.4,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Number(design.spacing.padding.section),
+    padding: 24,
   },
   loadingText: {
-    marginTop: Number(design.spacing.margin.item),
-    fontSize: Number(design.spacing.fontSize.base),
+    marginTop: 8,
+    fontSize: 16,
     color: colorScheme.colors.text,
-    opacity: Number(design.opacity.medium),
+    opacity: 0.6,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Number(design.spacing.padding.section),
+    padding: 24,
   },
   errorText: {
-    fontSize: Number(design.spacing.fontSize.lg),
+    fontSize: 18,
     color: colorScheme.colors.text,
     textAlign: 'center',
-    marginBottom: Number(design.spacing.margin.item),
+    marginBottom: 8,
   },
   errorSubText: {
-    fontSize: Number(design.spacing.fontSize.base),
+    fontSize: 16,
     color: colorScheme.colors.text,
-    opacity: Number(design.opacity.medium),
+    opacity: 0.6,
     textAlign: 'center',
-    marginBottom: Number(design.spacing.margin.section),
+    marginBottom: 24,
   },
   noMessagesContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Number(design.spacing.padding.section),
+    padding: 24,
   },
   noMessagesText: {
-    fontSize: Number(design.spacing.fontSize.lg),
+    fontSize: 18,
     color: colorScheme.colors.text,
-    fontWeight: 'bold',
+    fontWeight: '600',
     textAlign: 'center',
   },
 });
@@ -307,13 +286,10 @@ export default function ChannelPage() {
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      {/* Header Section */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <ChannelHeader username={usernameStr} channelDetails={channel} />
-        </View>
-      </View>
-
+      <CommonHeader 
+        title={usernameStr} 
+        showBackButton={true}
+      />
       {/* Main Content Area */}
       <View style={styles.contentContainer}>
         {/* Sidebar */}

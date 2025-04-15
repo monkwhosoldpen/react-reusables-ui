@@ -9,8 +9,9 @@ import AIDashboard from '~/components/dashboard/ai-dashboard';
 import { BarChart, Home, Users as UsersIcon, Cpu, Newspaper } from 'lucide-react-native';
 import ChatScreen from '~/components/dashboard/chat';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import FeedScreen from '~/components/dashboard/feed';
 
-type Tab = 'overview' | 'users' | 'tenant-requests' | 'ai-dashboard' | 'chat';
+type Tab = 'overview' | 'users' | 'tenant-requests' | 'ai-dashboard' | 'chat' | 'feed';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -19,6 +20,7 @@ const tabs: { id: Tab; label: string; icon: React.ComponentType<any> }[] = [
   { id: 'tenant-requests', label: 'Tenant Requests', icon: UsersIcon },
   { id: 'chat', label: 'Chat', icon: UsersIcon },
   { id: 'ai-dashboard', label: 'AI Dashboard', icon: Cpu },
+  { id: 'feed', label: 'Feed', icon: Newspaper },
 ];
 
 export default function DashboardScreen() {
@@ -27,17 +29,6 @@ export default function DashboardScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      <View style={styles.header}>
-        <View style={styles.logo}>
-          <BarChart size={24} color={colorScheme.colors.primary} />
-          <Text 
-            style={[styles.logoText, { color: colorScheme.colors.text }]}
-            className="font-bold"
-          >
-            Dashboard
-          </Text>
-        </View>
-      </View>
 
       <Tab.Navigator
         screenOptions={{
@@ -82,6 +73,8 @@ export default function DashboardScreen() {
                   return <ChatScreen />;
                 case 'tenant-requests':
                   return <TenantRequests />;
+                case 'feed':
+                  return <FeedScreen />;
                 default:
                   return <Overview />;
               }

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '~/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+import { mockTenant } from '~/components/dashboard/mocktenant';
 import { 
   FormDataType, 
   FeedItemType, 
@@ -8,6 +9,12 @@ import {
   InteractiveContent, 
   FillRequirement 
 } from '~/lib/enhanced-chat/types/superfeed';
+
+// Initialize Supabase client with tenant's credentials
+const supabase = createClient(
+  mockTenant.tenant_supabase_url,
+  mockTenant.tenant_supabase_anon_key
+);
 
 interface UseFeedFormProps {
   user: { email: string };
@@ -228,9 +235,12 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       setIsSubmitting(true);
       setError(null);
 
-      // Validate required fields
-      if (!data.type || !data.content) {
-        throw new Error('Type and content are required fields');
+      // Ensure required fields are set
+      if (!data.type) {
+        data.type = 'all'; // Set default type if not provided
+      }
+      if (!data.content) {
+        data.content = ''; // Set empty content if not provided
       }
 
       // Prepare the data for submission
