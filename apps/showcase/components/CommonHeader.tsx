@@ -63,16 +63,20 @@ export function CommonHeader({
             <ChevronLeft size={24} color={colorScheme.colors.text} />
           </TouchableOpacity>
         )}
-        <Link href="/" asChild>
-          <TouchableOpacity style={styles.logoContainer}>
-            <Image
-              source={{ uri: logoUrl }}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={titleStyle}>{title}</Text>
-          </TouchableOpacity>
-        </Link>
+        {!showBackButton ? (
+          <Link href="/" asChild>
+            <TouchableOpacity style={styles.logoContainer}>
+              <Image
+                source={{ uri: logoUrl }}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+              <Text style={titleStyle}>{title}</Text>
+            </TouchableOpacity>
+          </Link>
+        ) : (
+          <Text style={titleStyle}>{title}</Text>
+        )}
       </View>
     </View>
   );
@@ -106,11 +110,13 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     marginRight: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   title: {
     fontWeight: 'bold',
   },
   backButton: {
-    marginRight: 16,
+    marginRight: 8,
   },
 }); 

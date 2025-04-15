@@ -25,7 +25,7 @@ import { useRouter } from 'expo-router';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { mockTenant } from './mocktenant';
+import { mockTenant } from '../../components/dashboard/mocktenant';
 
 // Initialize Supabase client with tenant's credentials
 const supabase = createClient(

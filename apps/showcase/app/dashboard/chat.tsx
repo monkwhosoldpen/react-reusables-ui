@@ -4,7 +4,7 @@ import { Text } from '~/components/ui/text';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { Card } from '~/components/ui/card';
-import { mockTenant } from './mocktenant';
+import { mockTenant } from '../../components/dashboard/mocktenant';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { ChannelMessage } from '~/lib/types/channel.types';

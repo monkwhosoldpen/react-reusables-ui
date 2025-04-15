@@ -23,6 +23,8 @@ import LanguageChanger from '@/components/common/LanguageChanger';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Switch } from '~/components/ui/switch';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type Option } from '~/components/ui/select';
+import { FlashList } from '@shopify/flash-list';
+import { cn } from '~/lib/utils';
 
 interface MainScreenProps {
   initialData?: {
@@ -425,6 +427,65 @@ export function MainScreen({ initialData }: MainScreenProps) {
     fontWeight: '600' as const,
   };
 
+  const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
+    const isPrivateChannel = tenantRequests.some(request => request.id === item.id);
+    const isFirstPrivateChannel = isPrivateChannel && index === 0;
+    const isFirstPublicChannel = !isPrivateChannel && index === tenantRequests.length;
+
+    return (
+      <>
+        {isFirstPrivateChannel && (
+          <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
+            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
+              Private Channels
+            </Text>
+          </View>
+        )}
+        {isFirstPublicChannel && (
+          <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
+            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
+              Public Channels
+            </Text>
+          </View>
+        )}
+        <TouchableOpacity
+          key={item.id || index}
+          style={[
+            styles.item,
+            selectedItem?.id === item.id && styles.itemSelected,
+            { backgroundColor: colorScheme.colors.card }
+          ]}
+          onPress={() => {
+            setSelectedItem(item);
+            router.push(`/${item.username}` as any);
+          }}
+        >
+          <View style={[styles.avatar, { backgroundColor: colorScheme.colors.background }]}>
+            <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
+              {item.username?.[0]?.toUpperCase() || '#'}
+            </Text>
+          </View>
+          <View style={styles.itemContent}>
+            <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
+              {item.username || 'Unknown'}
+            </Text>
+            <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
+              {isPrivateChannel ? (item.status || 'NA') : (item.type || 'Channel')}
+            </Text>
+          </View>
+          {!isPrivateChannel && (
+            <View style={{ marginLeft: 8 }}>
+              <FollowButton
+                username={item.username}
+                initialFollowing={true}
+              />
+            </View>
+          )}
+        </TouchableOpacity>
+      </>
+    );
+  }, [selectedItem, colorScheme, router, tenantRequests]);
+
   if (authLoading) {
     return (
       <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
@@ -489,123 +550,26 @@ export function MainScreen({ initialData }: MainScreenProps) {
     );
   }
 
-  const renderChatList = () => {
-    if (tenantRequests.length === 0 && followedChannels.length === 0) {
-      return (
-        <View style={[styles.emptyState, { backgroundColor: colorScheme.colors.background }]}>
-          <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
-            No channels or requests yet. Start by following some channels!
-          </Text>
-        </View>
-      );
-    }
-
-    return (
-      <ScrollView 
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-      >
-        {tenantRequests.length > 0 ? (
-          <>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
-                Private Channels
-              </Text>
-            </View>
-            {tenantRequests.map((request, index) => (
-              <TouchableOpacity
-                key={request.id || index}
-                style={[
-                  styles.item,
-                  selectedItem?.id === request.id && styles.itemSelected,
-                  { backgroundColor: colorScheme.colors.card }
-                ]}
-                onPress={() => {
-                  setSelectedItem(request);
-                  router.push(`/${request.username}` as any);
-                }}
-              >
-                <View style={[styles.avatar, { backgroundColor: colorScheme.colors.background }]}>
-                  <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
-                    {request.username?.[0]?.toUpperCase() || '#'}
-                  </Text>
-                </View>
-                <View style={styles.itemContent}>
-                  <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
-                    {request.username || 'Unknown'}
-                  </Text>
-                  <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
-                    {request.status || 'NA'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </>
-        ) : (
-          <View style={[styles.emptyState, { backgroundColor: colorScheme.colors.background }]}>
-            <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
-              No private channels yet
-            </Text>
-          </View>
-        )}
-
-        {followedChannels.length > 0 ? (
-          <>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
-                Public Channels
-              </Text>
-            </View>
-            {followedChannels.map((channel, index) => (
-              <TouchableOpacity
-                key={channel.id || index}
-                style={[
-                  styles.item,
-                  selectedItem?.id === channel.id && styles.itemSelected,
-                  { backgroundColor: colorScheme.colors.card }
-                ]}
-                onPress={() => {
-                  setSelectedItem(channel);
-                  router.push(`/${channel.username}` as any);
-                }}
-              >
-                <View style={[styles.avatar, { backgroundColor: colorScheme.colors.background }]}>
-                  <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
-                    {channel.username?.[0]?.toUpperCase() || '#'}
-                  </Text>
-                </View>
-                <View style={styles.itemContent}>
-                  <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
-                    {channel.username || 'Unknown'}
-                  </Text>
-                  <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
-                    {channel.type || 'Channel'}
-                  </Text>
-                </View>
-                <View style={{ marginLeft: 8 }}>
-                  <FollowButton
-                    username={channel.username}
-                    initialFollowing={true}
-                  />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </>
-        ) : (
-          <View style={[styles.emptyState, { backgroundColor: colorScheme.colors.background }]}>
-            <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
-              No public channels yet. Start by following some channels!
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-    );
-  };
+  const data = [...tenantRequests, ...followedChannels];
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      <View style={styles.contentContainer}>
-        {renderChatList()}
+      <View style={[styles.contentContainer, { paddingTop: insets.top }]}>
+        {data.length === 0 ? (
+          <View style={[styles.emptyState, { backgroundColor: colorScheme.colors.background }]}>
+            <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
+              No channels or requests yet. Start by following some channels!
+            </Text>
+          </View>
+        ) : (
+          <FlashList
+            data={data}
+            estimatedItemSize={72}
+            renderItem={renderItem}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
 
       <TouchableOpacity

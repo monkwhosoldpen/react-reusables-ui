@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useColorScheme, type ThemeName } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
@@ -12,6 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '~/lib/contexts/AuthContext';
 import LanguageChanger from '@/components/common/LanguageChanger';
 import { config } from '~/lib/config';
+import { FlashList } from '@shopify/flash-list';
+import { cn } from '~/lib/utils';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -31,7 +33,6 @@ export default function SettingsScreen() {
     if (option?.value) {
       const newTheme = option.value as ThemeName;
       updateTheme(newTheme);
-      // Only update design if the theme exists in the design system
       if (newTheme !== 'redblack') {
         updateDesign(newTheme as DesignType);
       }
@@ -44,18 +45,31 @@ export default function SettingsScreen() {
     backgroundColor: colorScheme.colors.card,
     padding: Number(design.spacing.padding.card),
     borderRadius: Number(design.radius.lg),
+    marginBottom: Number(design.spacing.margin.card),
+    shadowColor: colorScheme.colors.border,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   };
 
   const cardStyle = {
     backgroundColor: colorScheme.colors.background,
     padding: Number(design.spacing.padding.item),
     borderRadius: Number(design.radius.md),
+    marginTop: Number(design.spacing.margin.item),
   };
 
   const titleStyle = {
     color: colorScheme.colors.primary,
     fontSize: Number(design.spacing.fontSize.sm),
-    marginBottom: Number(design.spacing.margin.card),
+    fontWeight: '600',
+    marginBottom: Number(design.spacing.margin.item),
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   };
 
   const textStyle = {
@@ -69,71 +83,57 @@ export default function SettingsScreen() {
     opacity: 0.7,
   };
 
-  return (
-    <ScrollView 
-      style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Account Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
-          Account
-        </Text>
-        
-        <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
-          {user ? (
-            <>
-              <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-                <View>
-                  <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-                    Signed in as
-                  </Text>
-                  <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-                    {user.email || 'Guest'}
-                  </Text>
-                </View>
-              </View>
-              
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: colorScheme.colors.notification }]}
-                onPress={handleSignOut}
-              >
-                <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
-                  Sign Out
-                </Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-              <View>
-                <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-                  Not signed in
-                </Text>
-                <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-                  Sign in to sync your preferences
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: colorScheme.colors.primary }]}
-                onPress={handleSignIn}
-              >
-                <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
-                  Sign In
-                </Text>
-              </TouchableOpacity>
+  const settingsData = [
+    {
+      id: 'account',
+      title: 'Account',
+      content: user ? (
+        <>
+          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+            <View>
+              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
+                Signed in as
+              </Text>
+              <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
+                {user.email || 'Guest'}
+              </Text>
             </View>
-          )}
+          </View>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colorScheme.colors.notification }]}
+            onPress={handleSignOut}
+          >
+            <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
+              Sign Out
+            </Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+          <View>
+            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
+              Not signed in
+            </Text>
+            <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
+              Sign in to sync your preferences
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colorScheme.colors.primary }]}
+            onPress={handleSignIn}
+          >
+            <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
+              Sign In
+            </Text>
+          </TouchableOpacity>
         </View>
-      </View>
-
-      {/* Appearance Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
-          Appearance
-        </Text>
-        
-        <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
+      ),
+    },
+    {
+      id: 'appearance',
+      title: 'Appearance',
+      content: (
+        <>
           <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
             <View>
               <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
@@ -145,7 +145,6 @@ export default function SettingsScreen() {
             </View>
             <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
           </View>
-
           <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
             <View>
               <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
@@ -173,98 +172,72 @@ export default function SettingsScreen() {
               </SelectContent>
             </Select>
           </View>
-        </View>
-      </View>
-
-      {/* Language Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
-          Language
-        </Text>
-        
-        <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
-          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-            <View>
-              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-                App Language
-              </Text>
-              <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-                Choose your preferred language
-              </Text>
-            </View>
-            <LanguageChanger variant="settings" />
-          </View>
-        </View>
-      </View>
-
-      {/* Theme Info Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
-          Current Theme
-        </Text>
-        
-        <View style={[styles.card, { backgroundColor: colorScheme.colors.card }]}>
-          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+        </>
+      ),
+    },
+    {
+      id: 'language',
+      title: 'Language',
+      content: (
+        <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
+          <View>
             <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-              Theme
-            </Text>
-            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-              {themeName}
-            </Text>
-          </View>
-          
-          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-              Mode
-            </Text>
-            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-              {colorScheme.name}
-            </Text>
-          </View>
-          
-          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-              Primary Color
-            </Text>
-            <View style={styles.themePreview}>
-              <View 
-                style={[
-                  styles.themeColor,
-                  { backgroundColor: colorScheme.colors.primary }
-                ]} 
-              />
-              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-                {colorScheme.colors.primary}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      {/* Dashboard Link */}
-      <View style={styles.section}>
-        <TouchableOpacity
-          style={[styles.card, { 
-            backgroundColor: colorScheme.colors.card,
-            paddingVertical: 16,
-            paddingHorizontal: 16,
-          }]}
-          onPress={() => Linking.openURL('https://showcase.fixd.ai/dashboard')}
-        >
-          <View style={{ gap: 4 }}>
-            <Text style={[styles.settingLabel, { color: colorScheme.colors.primary }]}>
-              Dashboard
+              App Language
             </Text>
             <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-              Open dashboard in new tab
+              Choose your preferred language
             </Text>
           </View>
+          <LanguageChanger variant="settings" />
+        </View>
+      ),
+    },
+    {
+      id: 'dashboard',
+      title: 'Dashboard',
+      content: (
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: colorScheme.colors.primary }]}
+          onPress={() => router.push('/dashboard')}
+        >
+          <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
+            Open Dashboard
+          </Text>
         </TouchableOpacity>
-      </View>
+      ),
+    },
+  ];
 
-      {/* Bottom Padding */}
-      <View style={{ height: 48 }} />
-    </ScrollView>
+  return (
+    <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+      <FlashList
+        data={settingsData}
+        estimatedItemSize={100}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: insets.top + 16,
+          paddingBottom: 16,
+        }}
+        renderItem={({ item, index }) => (
+          <View 
+            style={[
+              styles.section,
+              { 
+                backgroundColor: colorScheme.colors.card,
+                marginBottom: index === settingsData.length - 1 ? 24 : 16,
+              }
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
+              {item.title}
+            </Text>
+            <View style={[styles.card, { backgroundColor: colorScheme.colors.background }]}>
+              {item.content}
+            </View>
+          </View>
+        )}
+      />
+    </View>
   );
 }
 
@@ -273,12 +246,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 16,
   },
   section: {
-    marginBottom: 24,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 14,
@@ -287,11 +260,13 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   card: {
-    backgroundColor: 'rgba(0,0,0,0.02)',
     borderRadius: 12,
     overflow: 'hidden',
+    margin: 8,
   },
   settingRow: {
     flexDirection: 'row',
@@ -299,9 +274,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  settingRowLast: {
-    borderBottomWidth: 0,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
   settingLabel: {
     fontSize: 16,
@@ -313,25 +286,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   button: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 4,
-    minWidth: 80,
+    margin: 12,
   },
   buttonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
-  themePreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  themeColor: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  }
 });

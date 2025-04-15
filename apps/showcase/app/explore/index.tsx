@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link, useRouter } from 'expo-router';
@@ -12,6 +12,9 @@ import { Channel } from '@/lib/types/channel.types';
 import { config } from '~/lib/config';
 import { useTheme } from '~/lib/providers/theme/ThemeProvider';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { FlashList } from '@shopify/flash-list';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const styles = StyleSheet.create({
   container: {
@@ -20,7 +23,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -117,7 +119,18 @@ export default function ExplorePage() {
   const [error, setError] = React.useState<string | null>(null);
   const { theme } = useTheme();
   const { colorScheme } = useColorScheme();
+  const { design } = useDesign();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   React.useEffect(() => {
     const fetchChannels = async () => {
@@ -152,6 +165,50 @@ export default function ExplorePage() {
     fetchChannels();
   }, []);
 
+  const renderItem = useCallback(({ item, index }: { item: Channel; index: number }) => (
+    <Animated.View
+      style={[
+        styles.channelItem,
+        {
+          backgroundColor: colorScheme.colors.card,
+          borderColor: colorScheme.colors.border,
+          opacity: fadeAnim,
+          transform: [
+            {
+              translateY: fadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [50, 0],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      <TouchableOpacity
+        style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+        onPress={() => router.push(`/${item.username}`)}
+      >
+        <View style={[styles.avatar, { backgroundColor: colorScheme.colors.background }]}>
+          <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
+            {item.username?.[0]?.toUpperCase() || '#'}
+          </Text>
+        </View>
+        <View style={styles.channelInfo}>
+          <Text style={[styles.channelName, { color: colorScheme.colors.text }]} numberOfLines={1}>
+            {item.username}
+          </Text>
+          <Text style={[styles.channelDescription, { color: colorScheme.colors.text }]} numberOfLines={1}>
+            {item.stateName || 'No description available'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <FollowButton
+        username={item.username}
+        initialFollowing={false}
+      />
+    </Animated.View>
+  ), [colorScheme, router, fadeAnim]);
+
   if (error) {
     return (
       <View style={[styles.errorContainer, { backgroundColor: colorScheme.colors.background }]}>
@@ -170,74 +227,32 @@ export default function ExplorePage() {
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      <ScrollView 
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colorScheme.colors.primary} />
-            <Text style={[styles.loadingText, { color: colorScheme.colors.text }]}>
-              Loading channels...
-            </Text>
-          </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={[styles.errorText, { color: colorScheme.colors.text }]}>
-              {error}
-            </Text>
-            <Text style={[styles.errorSubText, { color: colorScheme.colors.text }]}>
-              There was a problem loading the channels.
-            </Text>
-            <Button onPress={() => window.location.reload()}>
-              Try Again
-            </Button>
-          </View>
-        ) : channels.length > 0 ? (
-          <View style={styles.channelList}>
-            {channels.map((channel, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[styles.channelItem, { 
-                  backgroundColor: colorScheme.colors.card,
-                  borderColor: colorScheme.colors.border 
-                }]}
-                onPress={() => router.push(`/${channel.username}`)}
-              >
-                <View style={[styles.avatar, { backgroundColor: colorScheme.colors.background }]}>
-                  <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
-                    {channel.username?.[0]?.toUpperCase() || '#'}
-                  </Text>
-                </View>
-                <View style={styles.channelInfo}>
-                  <Text style={[styles.channelName, { color: colorScheme.colors.text }]} numberOfLines={1}>
-                    {channel.username}
-                  </Text>
-                  <Text style={[styles.channelDescription, { color: colorScheme.colors.text }]} numberOfLines={1}>
-                    {channel.stateName || 'No description available'}
-                  </Text>
-                </View>
-                <FollowButton
-                  username={channel.username}
-                  initialFollowing={false}
-                />
-              </TouchableOpacity>
-            ))}
-
-            <View style={styles.showMore}>
-              <Text style={[styles.showMoreText, { color: colorScheme.colors.primary }]}>
-                Show more
-              </Text>
-            </View>
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
-              No channels found
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+      {isLoading ? (
+        <View style={[styles.loadingContainer, { backgroundColor: colorScheme.colors.background }]}>
+          <ActivityIndicator size="large" color={colorScheme.colors.primary} />
+          <Text style={[styles.loadingText, { color: colorScheme.colors.text }]}>
+            Loading channels...
+          </Text>
+        </View>
+      ) : channels.length > 0 ? (
+        <FlashList
+          data={channels}
+          renderItem={renderItem}
+          estimatedItemSize={72}
+          contentContainerStyle={{
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 16,
+            paddingHorizontal: 16,
+          }}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <View style={[styles.emptyState, { backgroundColor: colorScheme.colors.background }]}>
+          <Text style={[styles.emptyStateText, { color: colorScheme.colors.text }]}>
+            No channels found
+          </Text>
+        </View>
+      )}
     </View>
   );
 } 

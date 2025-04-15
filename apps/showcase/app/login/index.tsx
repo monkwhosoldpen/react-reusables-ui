@@ -1,11 +1,13 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, ViewStyle } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, StyleSheet, ViewStyle, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '~/lib/contexts/AuthContext';
 import LoginCommon from '~/components/common/LoginCommon';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FlashList } from '@shopify/flash-list';
+import { cn } from '~/lib/utils';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -17,6 +19,15 @@ export default function LoginScreen() {
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   // Apply design system tokens
   const containerStyle = {
@@ -42,6 +53,7 @@ export default function LoginScreen() {
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    margin: Number(design.spacing.margin.card),
   };
 
   const titleStyle = {
@@ -108,26 +120,33 @@ export default function LoginScreen() {
     }
   };
 
+  const renderItem = useCallback(() => (
+    <Animated.View style={[sectionStyle, { opacity: fadeAnim }]}>
+      <LoginCommon
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        error={error}
+        isLoading={isLoading}
+        handleSubmit={handleSubmit}
+        handleAnonymousSignIn={handleAnonymousSignIn}
+        handleGuestSignIn={handleGuestSignIn}
+        onCancel={() => router.back()}
+      />
+    </Animated.View>
+  ), [email, password, error, isLoading, fadeAnim, sectionStyle]);
+
   return (
-    <ScrollView
-      style={containerStyle}
-      contentContainerStyle={styles.contentContainer}
-    >
-      <View style={sectionStyle}>
-        <LoginCommon
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          error={error}
-          isLoading={isLoading}
-          handleSubmit={handleSubmit}
-          handleAnonymousSignIn={handleAnonymousSignIn}
-          handleGuestSignIn={handleGuestSignIn}
-          onCancel={() => router.back()}
-        />
-      </View>
-    </ScrollView>
+    <View style={containerStyle}>
+      <FlashList
+        data={[1]}
+        renderItem={renderItem}
+        estimatedItemSize={400}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
   );
 }
 

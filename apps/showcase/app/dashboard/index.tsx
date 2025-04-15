@@ -1,87 +1,39 @@
-import React, { useState } from 'react';
+import { useScrollToTop } from '@react-navigation/native';
+import * as React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text } from '~/components/ui/text';
-import { useTheme } from '~/lib/providers/theme/ThemeProvider';
+import OverviewScreen from '~/components/dashboard/overview';
+import { Input } from '~/components/ui/input';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
-import Overview from '~/components/dashboard/overview';
-import TenantRequests from '~/components/dashboard/tenant-requests';
-import AIDashboard from '~/components/dashboard/ai-dashboard';
-import { BarChart, Home, Users as UsersIcon, Cpu, Newspaper } from 'lucide-react-native';
-import ChatScreen from '~/components/dashboard/chat';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import FeedScreen from '~/components/dashboard/feed';
-
-type Tab = 'overview' | 'users' | 'tenant-requests' | 'ai-dashboard' | 'chat' | 'feed';
-
-const Tab = createMaterialTopTabNavigator();
-
-const tabs: { id: Tab; label: string; icon: React.ComponentType<any> }[] = [
-  { id: 'overview', label: 'Overview', icon: Home },
-  { id: 'tenant-requests', label: 'Tenant Requests', icon: UsersIcon },
-  { id: 'chat', label: 'Chat', icon: UsersIcon },
-  { id: 'ai-dashboard', label: 'AI Dashboard', icon: Cpu },
-  { id: 'feed', label: 'Feed', icon: Newspaper },
-];
+import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 
 export default function DashboardScreen() {
-  const { theme } = useTheme();
+  const [search, setSearch] = React.useState('');
+  const ref = React.useRef(null);
   const { colorScheme } = useColorScheme();
+  const { design } = useDesign();
+  useScrollToTop(ref);
+
+  // Apply design system tokens
+  const containerStyle = {
+    padding: Number(design.spacing.padding.card),
+  };
+
+  const searchContainerStyle = {
+    paddingVertical: Number(design.spacing.padding.card),
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-
-      <Tab.Navigator
-        screenOptions={{
-          tabBarActiveTintColor: colorScheme.colors.primary,
-          tabBarInactiveTintColor: colorScheme.colors.text,
-          tabBarLabelStyle: {
-            fontSize: 14,
-            textTransform: 'capitalize',
-            fontWeight: '500',
-          },
-          tabBarIndicatorStyle: {
-            backgroundColor: colorScheme.colors.primary,
-          },
-          tabBarScrollEnabled: true,
-          tabBarItemStyle: { 
-            width: 'auto', 
-            minWidth: 100,
-            padding: 8,
-          },
-          tabBarStyle: {
-            backgroundColor: colorScheme.colors.card,
-            borderBottomWidth: StyleSheet.hairlineWidth,
-            borderBottomColor: colorScheme.colors.border,
-          },
-        }}
-      >
-        {tabs.map((tab) => (
-          <Tab.Screen
-            key={tab.id}
-            name={tab.id}
-            options={{
-              title: tab.label,
-            }}
-          >
-            {() => {
-              switch (tab.id) {
-                case 'overview':
-                  return <Overview />;
-                case 'ai-dashboard':
-                  return <AIDashboard />;
-                case 'chat':
-                  return <ChatScreen />;
-                case 'tenant-requests':
-                  return <TenantRequests />;
-                case 'feed':
-                  return <FeedScreen />;
-                default:
-                  return <Overview />;
-              }
-            }}
-          </Tab.Screen>
-        ))}
-      </Tab.Navigator>
+      <View style={[styles.searchContainer, searchContainerStyle]}>
+        <Input
+          placeholder='Search UI...'
+          clearButtonMode='always'
+          value={search}
+          onChangeText={setSearch}
+          style={styles.input}
+        />
+      </View>
+      <OverviewScreen />
     </View>
   );
 }
@@ -90,18 +42,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+  searchContainer: {
+    width: '100%',
   },
-  logo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  input: {
+    width: '100%',
   },
-  logoText: {
-    fontSize: 20,
-  },
-}); 
+});
+
+
