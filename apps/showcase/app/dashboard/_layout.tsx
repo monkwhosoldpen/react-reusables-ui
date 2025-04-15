@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import React from "react";
 import { CommonHeader } from "~/components/CommonHeader";
 
-export default function DashboardLayout() {
+export default function ExploreLayout() {
   const hasMounted = React.useRef(false);
 
   return (

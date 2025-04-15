@@ -390,48 +390,58 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
       console.log('Completing onboarding for channel:', { 
         channelUsername, 
         channelDetails,
-        user: user?.id
+        user: user?.id,
+        isTenantChannel: channelDetails.is_owner_db,
+        apiEndpoint: `${config.api.endpoints.channels.base}/${channelDetails.username}/request-access`
       });
       
-      // Only proceed with API call if this is a tenant channel
-      if (channelDetails.is_owner_db) {
-        const userId = user?.id || 'guest-id';
-        
-        // Use the Vercel API endpoint instead of direct Supabase call
-        const response = await fetch(`${config.api.endpoints.channels.base}/${channelDetails.username}/request-access`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            username: channelUsername,
-            config: {
-              channel: channelUsername,
-              user_id: userId,
-              timestamp: new Date().toISOString(),
-              onboarding_completed: true
-            }
-          }),
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Error requesting tenant channel access:', errorData);
-          return false;
-        } else {
-          const data = await response.json();
-          console.log('Successfully requested tenant channel access:', data);
-          
-          // No need to refresh user info since we're using the passed user state
-          return true;
-        }
-      }
+      const userId = user?.id || 'guest-id';
+      const endpoint = `${config.api.endpoints.channels.base}/${channelDetails.username}/request-access`;
       
-      // If not a tenant channel, just return success
-      return true;
+      console.log('Making API request to:', endpoint);
+      console.log('Request payload:', {
+        user_id: userId,
+        username: channelUsername,
+        config: {
+          channel: channelUsername,
+          user_id: userId,
+          timestamp: new Date().toISOString(),
+          onboarding_completed: true
+        }
+      });
+      
+      // Use the Vercel API endpoint instead of direct Supabase call
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          username: channelUsername,
+          config: {
+            channel: channelUsername,
+            user_id: userId,
+            timestamp: new Date().toISOString(),
+            onboarding_completed: true
+          }
+        }),
+      });
+      
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error requesting channel access:', errorData);
+        return false;
+      } else {
+        const data = await response.json();
+        console.log('Successfully requested channel access:', data);
+        return true;
+      }
     } catch (error) {
-      console.error('Error during tenant installation:', error);
+      console.error('Error during channel onboarding:', error);
       return false;
     }
   };

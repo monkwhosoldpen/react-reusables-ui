@@ -393,45 +393,37 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
         user: user?.id
       });
       
-      // Only proceed with API call if this is a tenant channel
-      if (channelDetails.is_owner_db) {
-        const userId = user?.id || 'guest-id';
-        
-        // Use the Vercel API endpoint instead of direct Supabase call
-        const response = await fetch(`${config.api.endpoints.channels.base}/${channelDetails.username}/request-access`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            username: channelUsername,
-            config: {
-              channel: channelUsername,
-              user_id: userId,
-              timestamp: new Date().toISOString(),
-              onboarding_completed: true
-            }
-          }),
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Error requesting tenant channel access:', errorData);
-          return false;
-        } else {
-          const data = await response.json();
-          console.log('Successfully requested tenant channel access:', data);
-          
-          // No need to refresh user info since we're using the passed user state
-          return true;
-        }
-      }
+      const userId = user?.id || 'guest-id';
       
-      // If not a tenant channel, just return success
-      return true;
+      // Use the Vercel API endpoint instead of direct Supabase call
+      const response = await fetch(`${config.api.endpoints.channels.base}/${channelDetails.username}/request-access`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          username: channelUsername,
+          config: {
+            channel: channelUsername,
+            user_id: userId,
+            timestamp: new Date().toISOString(),
+            onboarding_completed: true
+          }
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error requesting channel access:', errorData);
+        return false;
+      } else {
+        const data = await response.json();
+        console.log('Successfully requested channel access:', data);
+        return true;
+      }
     } catch (error) {
-      console.error('Error during tenant installation:', error);
+      console.error('Error during channel onboarding:', error);
       return false;
     }
   };

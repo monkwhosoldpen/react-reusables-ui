@@ -195,6 +195,17 @@ export function JoinButton({
     }
   }
 
+  const handleComplete = async () => {
+    console.log('Channel details before completing onboarding:', channelDetails);
+    console.log('Is tenant channel:', channelDetails?.is_owner_db);
+    const success = await completeChannelOnboarding(username, channelDetails);
+    if (success) {
+      console.log('Channel onboarding completed successfully');
+      setHasJoined(true);
+      setShowDialog(false);
+    }
+  };
+
   const dialogStyles = StyleSheet.create({
     dialogContent: {
       position: 'fixed',

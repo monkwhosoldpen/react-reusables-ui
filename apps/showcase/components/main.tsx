@@ -177,82 +177,61 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '100%',
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
+  section: {
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
-  settingsItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
-    borderBottomWidth: 1,
-  },
-  settingsItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  settingsItemText: {
-    flex: 1,
-  },
-  settingsItemTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  settingsItemDescription: {
-    fontSize: 12,
-    opacity: 0.7,
-  },
-  channelsList: {
-    gap: 8,
-  },
-  channelItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  channelInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  username: {
-    fontWeight: '500',
-  },
-  userType: {
-    fontSize: 12,
-    opacity: 0.7,
-  },
-  tenantRequestsTable: {
-    gap: 8,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-  },
-  tableHeaderText: {
-    flex: 1,
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-    borderTopWidth: 1,
-  },
-  tableCell: {
-    flex: 1,
-    fontSize: 12,
-  },
-  noRequests: {
-    textAlign: 'center',
+  sectionHeader: {
     padding: 16,
+    paddingBottom: 8,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  sectionHeaderText: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  noMessageSelected: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  trendsSection: {
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  trendsHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  trendsList: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingBottom: 8,
+    overflow: 'scroll',
+  },
+  trendItem: {
+    alignItems: 'center',
+    width: 72,
+  },
+  trendAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginBottom: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  trendLabel: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  showMoreText: {
+    color: '#1DA1F2',
+    fontSize: 14,
+    marginTop: 8,
   },
   languageChanger: {
     flexDirection: 'row',
@@ -323,41 +302,133 @@ const styles = StyleSheet.create({
   loginIcon: {
     marginRight: 8,
   },
-  sectionHeader: {
+  chatItemStyle: {
+    flexDirection: 'row',
     padding: 16,
-    paddingBottom: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+    alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.05)',
   },
-  sectionHeaderText: {
-    fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  chatItemSelectedStyle: {
+    backgroundColor: 'rgba(0,0,0,0.1)',
   },
-  noMessageSelected: {
+  avatarStyle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  avatarTextStyle: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: 'rgba(0,0,0,0.8)',
+  },
+  chatNameStyle: {
     fontSize: 16,
-    color: '#666',
+    fontWeight: '600',
+    color: 'rgba(0,0,0,0.8)',
+  },
+  timestampStyle: {
+    fontSize: 12,
+    color: 'rgba(0,0,0,0.5)',
+  },
+  lastMessageStyle: {
+    fontSize: 14,
+    color: 'rgba(0,0,0,0.8)',
+    marginRight: 40,
+  },
+  fabStyle: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#0084ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  followedListStyle: {
+    marginTop: 16,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 8,
+    overflow: 'hidden',
+    boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
+  },
+  followedItemStyle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  followedItemLastStyle: {
+    borderBottomWidth: 0,
+  },
+  followedAvatarStyle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  followedAvatarTextStyle: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: 'rgba(0,0,0,0.8)',
+  },
+  followedNameStyle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgba(0,0,0,0.8)',
+    flex: 1,
+  },
+  followedTypeStyle: {
+    fontSize: 12,
+    color: 'rgba(0,0,0,0.5)',
+  },
+  followedEmptyStyle: {
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  followedEmptyTextStyle: {
+    fontSize: 14,
+    color: 'rgba(0,0,0,0.5)',
     textAlign: 'center',
   },
-  trendsSection: {
+  trendsSectionStyle: {
     padding: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  trendsHeader: {
-    fontSize: 20,
+  trendsHeaderStyle: {
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 12,
+    color: 'rgba(0,0,0,0.8)',
   },
-  trendsList: {
+  trendsListStyle: {
     flexDirection: 'row',
     gap: 12,
     paddingBottom: 8,
     overflow: 'scroll',
   },
-  trendItem: {
+  trendItemStyle: {
     alignItems: 'center',
     width: 72,
   },
-  trendAvatar: {
+  trendAvatarStyle: {
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -365,14 +436,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  trendLabel: {
+  trendLabelStyle: {
     fontSize: 12,
     textAlign: 'center',
+    color: 'rgba(0,0,0,0.8)',
   },
-  showMoreText: {
+  showMoreTextStyle: {
     color: '#1DA1F2',
     fontSize: 14,
     marginTop: 8,
+    fontWeight: '600',
   },
 });
 
@@ -397,265 +470,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const initializationStarted = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-
-  // Apply design system tokens
-  const containerStyle: ViewStyle = {
-    flex: 1,
-    backgroundColor: colorScheme.colors.background,
-  };
-
-  const loginContainerStyle: ViewStyle = {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Number(design.spacing.padding.card),
-    backgroundColor: colorScheme.colors.background,
-    minHeight: '100%',
-  };
-
-  const loginCardStyle: ViewStyle = {
-    width: '100%',
-    maxWidth: isLargeScreen ? 480 : 400,
-    minWidth: isSmallScreen ? 280 : 320,
-    padding: Number(design.spacing.padding.card) * (isLargeScreen ? 2 : 1.5),
-    borderRadius: Number(design.radius.lg),
-    alignItems: 'center',
-    gap: Number(design.spacing.gap),
-    backgroundColor: colorScheme.colors.card,
-    boxShadow: design.shadow.lg,
-    marginHorizontal: design.name === 'whatsapp' ? 0 : Number(design.spacing.margin.card),
-  };
-
-  const loginTitleStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize['2xl']),
-    fontWeight: '700',
-    marginBottom: Number(design.spacing.margin.text),
-    textAlign: 'center',
-    color: colorScheme.colors.text,
-    letterSpacing: -0.5,
-  };
-
-  const loginDescriptionStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.base),
-    textAlign: 'center',
-    marginBottom: Number(design.spacing.margin.card),
-    opacity: Number(design.opacity.medium),
-    color: colorScheme.colors.text,
-    lineHeight: Number(design.spacing.lineHeight.relaxed),
-  };
-
-  const loginButtonStyle: ViewStyle = {
-    width: '100%',
-    paddingVertical: Number(design.spacing.padding.button),
-    borderRadius: Number(design.radius.md),
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: Number(design.spacing.gap),
-    backgroundColor: colorScheme.colors.primary,
-    boxShadow: design.shadow.md,
-  };
-
-  const loginButtonTextStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.base),
-    fontWeight: '600',
-    color: colorScheme.colors.background,
-    letterSpacing: 0.25,
-  };
-
-  const loginIconStyle: ViewStyle = {
-    marginRight: Number(design.spacing.margin.text),
-  };
-
-  const sectionHeaderStyle: ViewStyle = {
-    padding: Number(design.spacing.padding.card),
-    paddingBottom: Number(design.spacing.padding.item),
-    backgroundColor: colorScheme.colors.border + '20',
-    marginTop: Number(design.spacing.margin.section),
-  };
-
-  const sectionHeaderTextStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.sm),
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    color: colorScheme.colors.text,
-    letterSpacing: 1,
-  };
-
-  const chatItemStyle: ViewStyle = {
-    flexDirection: 'row',
-    padding: Number(design.spacing.padding.item),
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colorScheme.colors.border,
-    alignItems: 'center',
-    backgroundColor: colorScheme.colors.card,
-  };
-
-  const chatItemSelectedStyle: ViewStyle = {
-    backgroundColor: colorScheme.colors.border + '20',
-  };
-
-  const avatarStyle: ViewStyle = {
-    width: Number(design.spacing.avatarSize),
-    height: Number(design.spacing.avatarSize),
-    borderRadius: Number(design.radius.full),
-    backgroundColor: colorScheme.colors.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Number(design.spacing.margin.card),
-  };
-
-  const avatarTextStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.lg),
-    fontWeight: '600',
-    color: colorScheme.colors.primary,
-  };
-
-  const chatNameStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.base),
-    fontWeight: '600',
-    color: colorScheme.colors.text,
-  };
-
-  const timestampStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.sm),
-    color: colorScheme.colors.text,
-    opacity: Number(design.opacity.subtle),
-  };
-
-  const lastMessageStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.sm),
-    color: colorScheme.colors.text,
-    opacity: Number(design.opacity.medium),
-    marginRight: Number(design.spacing.margin.card),
-  };
-
-  const fabStyle: ViewStyle = {
-    position: 'absolute',
-    right: Number(design.spacing.margin.card),
-    bottom: Number(design.spacing.margin.card) + insets.bottom,
-    width: Number(design.spacing.buttonHeight),
-    height: Number(design.spacing.buttonHeight),
-    borderRadius: Number(design.radius.full),
-    backgroundColor: colorScheme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    boxShadow: design.shadow.lg,
-  };
-
-  const followedListStyle: ViewStyle = {
-    marginTop: Number(design.spacing.margin.section),
-    backgroundColor: colorScheme.colors.card,
-    borderRadius: Number(design.radius.lg),
-    overflow: 'hidden',
-    boxShadow: design.shadow.sm,
-    marginHorizontal: design.name === 'whatsapp' ? 0 : Number(design.spacing.margin.card),
-  };
-
-  const followedItemStyle: ViewStyle = {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Number(design.spacing.padding.item),
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colorScheme.colors.border,
-  };
-
-  const followedItemLastStyle: ViewStyle = {
-    borderBottomWidth: 0,
-  };
-
-  const followedAvatarStyle: ViewStyle = {
-    width: Number(design.spacing.avatarSize),
-    height: Number(design.spacing.avatarSize),
-    borderRadius: Number(design.radius.full),
-    backgroundColor: colorScheme.colors.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Number(design.spacing.margin.card),
-  };
-
-  const followedAvatarTextStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.lg),
-    fontWeight: '600',
-    color: colorScheme.colors.primary,
-  };
-
-  const followedNameStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.base),
-    fontWeight: '600',
-    color: colorScheme.colors.text,
-    flex: 1,
-  };
-
-  const followedTypeStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.sm),
-    color: colorScheme.colors.text,
-    opacity: Number(design.opacity.subtle),
-  };
-
-  const followedEmptyStyle: ViewStyle = {
-    padding: Number(design.spacing.padding.section),
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
-  const followedEmptyTextStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.base),
-    color: colorScheme.colors.text,
-    opacity: Number(design.opacity.medium),
-    textAlign: 'center',
-  };
-
-  const trendsSectionStyle: ViewStyle = {
-    padding: Number(design.spacing.padding.card),
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colorScheme.colors.border,
-    backgroundColor: colorScheme.colors.card,
-    marginHorizontal: design.name === 'whatsapp' ? 0 : Number(design.spacing.margin.card),
-  };
-
-  const trendsHeaderStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.lg),
-    fontWeight: 'bold',
-    marginBottom: Number(design.spacing.margin.card),
-    color: colorScheme.colors.text,
-  };
-
-  const trendsListStyle: ViewStyle = {
-    flexDirection: 'row',
-    gap: Number(design.spacing.gap),
-    paddingBottom: Number(design.spacing.padding.item),
-    overflow: 'scroll',
-  };
-
-  const trendItemStyle: ViewStyle = {
-    alignItems: 'center',
-    width: 72,
-  };
-
-  const trendAvatarStyle: ViewStyle = {
-    width: Number(design.spacing.avatarSize),
-    height: Number(design.spacing.avatarSize),
-    borderRadius: Number(design.radius.full),
-    marginBottom: Number(design.spacing.margin.text),
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colorScheme.colors.primary + '20',
-  };
-
-  const trendLabelStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.sm),
-    textAlign: 'center',
-    color: colorScheme.colors.text,
-    opacity: Number(design.opacity.medium),
-  };
-
-  const showMoreTextStyle: TextStyle = {
-    color: colorScheme.colors.primary,
-    fontSize: Number(design.spacing.fontSize.sm),
-    marginTop: Number(design.spacing.margin.text),
-    fontWeight: '600',
-  };
 
   // Initialize IndexedDB
   useEffect(() => {
@@ -740,15 +554,113 @@ export function MainScreen({ initialData }: MainScreenProps) {
     }
   }, []);
 
+  // Apply design system tokens
+  const sectionStyle: ViewStyle = {
+    ...styles.section,
+    backgroundColor: colorScheme.colors.card,
+    padding: Number(design.spacing.padding.card),
+    borderRadius: Number(design.radius.lg),
+    marginBottom: Number(design.spacing.margin.section),
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colorScheme.colors.border,
+  };
+
+  const titleStyle: TextStyle = {
+    color: colorScheme.colors.text,
+    fontSize: Number(design.spacing.fontSize.lg),
+    fontWeight: '600' as const,
+    marginBottom: Number(design.spacing.margin.card),
+    opacity: 1,
+  };
+
+  const textStyle = {
+    color: colorScheme.colors.text,
+    fontSize: Number(design.spacing.fontSize.base),
+  };
+
+  const labelStyle = {
+    color: colorScheme.colors.text,
+    fontSize: Number(design.spacing.fontSize.sm),
+    opacity: 0.7,
+  };
+
+  const listItemStyle: ViewStyle = {
+    backgroundColor: colorScheme.colors.card,
+    borderBottomColor: colorScheme.colors.border,
+    padding: Number(design.spacing.padding.item),
+    borderRadius: Number(design.radius.md),
+    marginBottom: Number(design.spacing.margin.item),
+  };
+
+  const avatarStyle: ViewStyle = {
+    width: Number(design.spacing.avatarSize),
+    height: Number(design.spacing.avatarSize),
+    borderRadius: Number(design.radius.full),
+    backgroundColor: colorScheme.colors.primary + '20',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    marginRight: Number(design.spacing.margin.item),
+  };
+
+  const avatarTextStyle: TextStyle = {
+    fontSize: Number(design.spacing.fontSize.lg),
+    fontWeight: '500' as const,
+    color: colorScheme.colors.primary,
+  };
+
+  const listItemTextStyle: TextStyle = {
+    color: colorScheme.colors.text,
+    fontSize: Number(design.spacing.fontSize.base),
+    fontWeight: '500' as const,
+    opacity: 1,
+  };
+
+  const listItemSecondaryTextStyle: TextStyle = {
+    color: colorScheme.colors.text,
+    fontSize: Number(design.spacing.fontSize.sm),
+    opacity: 0.8,
+  };
+
+  const followedListStyle: ViewStyle = {
+    marginTop: Number(design.spacing.margin.card),
+    backgroundColor: colorScheme.colors.card,
+    borderRadius: Number(design.radius.md),
+    overflow: 'hidden' as const,
+    boxShadow: design.shadow.sm,
+  };
+
+  const followedItemStyle: ViewStyle = {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    padding: Number(design.spacing.padding.item),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colorScheme.colors.border,
+    gap: Number(design.spacing.gap),
+  };
+
+  const trendsSectionStyle: ViewStyle = {
+    padding: Number(design.spacing.padding.card),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colorScheme.colors.border,
+    backgroundColor: colorScheme.colors.card,
+    borderRadius: Number(design.radius.md),
+  };
+
+  const showMoreTextStyle: TextStyle = {
+    color: colorScheme.colors.primary,
+    fontSize: Number(design.spacing.fontSize.base),
+    marginTop: Number(design.spacing.margin.text),
+    fontWeight: '600' as const,
+  };
 
   if (authLoading) {
     return (
-      <View style={loginContainerStyle}>
-        <View style={loginCardStyle}>
-          <Text style={loginTitleStyle}>
+      <View style={styles.loginContainer}>
+        <View style={styles.loginCard}>
+          <Text style={styles.loginTitle}>
             Loading...
           </Text>
-          <Text style={loginDescriptionStyle}>
+          <Text style={styles.loginDescription}>
             Please wait while we initialize the app.
           </Text>
         </View>
@@ -758,24 +670,24 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   if (!user) {
     return (
-      <View style={loginContainerStyle}>
-        <View style={loginCardStyle}>
-          <Text style={loginTitleStyle}>
+      <View style={styles.loginContainer}>
+        <View style={styles.loginCard}>
+          <Text style={styles.loginTitle}>
             Welcome to NChat
           </Text>
-          <Text style={loginDescriptionStyle}>
+          <Text style={styles.loginDescription}>
             Sign in to access your channels, follow users, and manage your tenant requests.
           </Text>
           <TouchableOpacity
-            style={loginButtonStyle}
+            style={styles.loginButton}
             onPress={() => router.push('/login')}
           >
             <LogIn
               size={Number(design.spacing.iconSize)}
               color={colorScheme.colors.background}
-              style={loginIconStyle}
+              style={styles.loginIcon}
             />
-            <Text style={loginButtonTextStyle}>
+            <Text style={styles.loginButtonText}>
               Sign In
             </Text>
           </TouchableOpacity>
@@ -786,12 +698,12 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   if (isLoading) {
     return (
-      <View style={loginContainerStyle}>
-        <View style={loginCardStyle}>
-          <Text style={loginTitleStyle}>
+      <View style={styles.loginContainer}>
+        <View style={styles.loginCard}>
+          <Text style={styles.loginTitle}>
             Loading...
           </Text>
-          <Text style={loginDescriptionStyle}>
+          <Text style={styles.loginDescription}>
             Please wait while we load your data.
           </Text>
         </View>
@@ -802,132 +714,117 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const renderChatList = () => (
     <ScrollView style={styles.chatList}>
       {/* Followed Channels Section */}
-      <View style={sectionHeaderStyle}>
-        <Text style={sectionHeaderTextStyle}>
+      <View style={sectionStyle}>
+        <Text style={titleStyle} className="font-medium uppercase">
           Followed Channels
         </Text>
-      </View>
-      <View style={followedListStyle}>
-        {followedChannels.length > 0 ? (
-          followedChannels.map((channel, index) => (
-            <TouchableOpacity
-              key={channel.id || index}
-              style={[
-                followedItemStyle,
-                index === followedChannels.length - 1 && followedItemLastStyle
-              ]}
-              onPress={() => {
-                setSelectedItem(channel);
-                router.push(`/${channel.username}` as any);
-              }}
-            >
-              <View style={followedAvatarStyle}>
-                <Text style={followedAvatarTextStyle}>
-                  {channel.username?.[0]?.toUpperCase() || '#'}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={followedNameStyle}>
-                  {channel.username || 'Unknown Channel'}
-                </Text>
-                <Text style={followedTypeStyle}>
-                  {channel.type || 'Channel'}
-                </Text>
-              </View>
-              <View style={{ marginLeft: Number(design.spacing.margin.card) }}>
-                <FollowButton
-                  username={channel.username}
-                  initialFollowing={true}
-                />
-              </View>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <View style={followedEmptyStyle}>
-            <Text style={followedEmptyTextStyle}>
-              No channels followed yet. Start following to see them here!
-            </Text>
-          </View>
-        )}
+        <View style={followedListStyle}>
+          {followedChannels.length > 0 ? (
+            followedChannels.map((channel, index) => (
+              <TouchableOpacity
+                key={channel.id || index}
+                style={[
+                  followedItemStyle,
+                  index === followedChannels.length - 1 && { borderBottomWidth: 0 }
+                ]}
+                onPress={() => {
+                  setSelectedItem(channel);
+                  router.push(`/${channel.username}` as any);
+                }}
+              >
+                <View style={avatarStyle}>
+                  <Text style={avatarTextStyle}>
+                    {channel.username?.[0]?.toUpperCase() || '#'}
+                  </Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={listItemTextStyle}>
+                    {channel.username || 'Unknown Channel'}
+                  </Text>
+                  <Text style={listItemSecondaryTextStyle}>
+                    {channel.type || 'Channel'}
+                  </Text>
+                </View>
+                <View style={{ marginLeft: Number(design.spacing.margin.card) }}>
+                  <FollowButton
+                    username={channel.username}
+                    initialFollowing={true}
+                  />
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={[styles.followedEmptyStyle, { padding: Number(design.spacing.padding.card) }]}>
+              <Text style={listItemSecondaryTextStyle}>
+                No channels followed yet. Start following to see them here!
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Tenant Requests Section */}
-      <View style={sectionHeaderStyle}>
-        <Text style={sectionHeaderTextStyle}>
+      <View style={sectionStyle}>
+        <Text style={titleStyle} className="font-medium uppercase">
           Tenant Requests
         </Text>
-      </View>
-      {tenantRequests.map((request, index) => (
-        <TouchableOpacity
-          key={request.id || index}
-          style={[
-            chatItemStyle,
-            selectedItem?.id === request.id && chatItemSelectedStyle
-          ]}
-          onPress={() => {
-            setSelectedItem(request);
-            router.push(`/${request.username}` as any);
-          }}
-        >
-          <View style={avatarStyle}>
-            <Text style={avatarTextStyle}>
-              {request.username?.[0]?.toUpperCase() || '#'}
-            </Text>
-          </View>
-          <View style={styles.chatContent}>
-            <View style={styles.chatHeader}>
-              <Text style={chatNameStyle}>
-                {request.username || 'Unknown Request'}
-              </Text>
-              <Text style={timestampStyle}>
-                {request.created_at ? new Date(request.created_at).toLocaleDateString() : ''}
+        {tenantRequests.map((request, index) => (
+          <TouchableOpacity
+            key={request.id || index}
+            style={[
+              listItemStyle,
+              selectedItem?.id === request.id && { backgroundColor: colorScheme.colors.primary + '10' }
+            ]}
+            onPress={() => {
+              setSelectedItem(request);
+              router.push(`/${request.username}` as any);
+            }}
+          >
+            <View style={avatarStyle}>
+              <Text style={avatarTextStyle}>
+                {request.username?.[0]?.toUpperCase() || '#'}
               </Text>
             </View>
-            <Text
-              style={lastMessageStyle}
-              numberOfLines={1}
-            >
-              {`${request.type} - ${request.status}`}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      ))}
-
-      <View style={trendsSectionStyle}>
-        <TouchableOpacity onPress={() => router.push('/explore')}>
-          <Text style={showMoreTextStyle}>
-            Explore
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={trendsSectionStyle}>
-        <TouchableOpacity onPress={() => router.push('/dashboard')}>
-          <Text style={showMoreTextStyle}>
-            Dashboard
-          </Text>
-        </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Text style={listItemTextStyle}>
+                {request.username || 'Unknown Request'}
+              </Text>
+              <Text style={listItemSecondaryTextStyle}>
+                {request.type || 'Request'}
+              </Text>
+            </View>
+            <View style={{ marginLeft: Number(design.spacing.margin.card) }}>
+              <FollowButton
+                username={request.username}
+                initialFollowing={false}
+              />
+            </View>
+          </TouchableOpacity>
+        ))}
       </View>
     </ScrollView>
   );
 
   return (
-    <View style={containerStyle}>
-      <>
-        {renderChatList()}
+    <ScrollView 
+      style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
+      contentContainerStyle={{
+        paddingBottom: insets.bottom + Number(design.spacing.padding.card),
+        paddingTop: Number(design.spacing.padding.card)
+      }}
+    >
+      {renderChatList()}
 
-        <TouchableOpacity
-          style={fabStyle}
-          onPress={() => router.push('/new-chat')}
-        >
-          <Text style={{ 
-            color: colorScheme.colors.background, 
-            fontSize: Number(design.spacing.fontSize.xl),
-            fontWeight: '600',
-          }}>+</Text>
-        </TouchableOpacity>
-      </>
-    </View>
+      <TouchableOpacity
+        style={[styles.fabStyle, { backgroundColor: colorScheme.colors.primary }]}
+        onPress={() => router.push('/new-chat')}
+      >
+        <Text style={{ 
+          color: colorScheme.colors.background, 
+          fontSize: Number(design.spacing.fontSize.xl),
+          fontWeight: '600' as const,
+        }}>+</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
-
