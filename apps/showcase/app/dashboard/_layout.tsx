@@ -1,68 +1,31 @@
-import type {
-  MaterialTopTabNavigationEventMap,
-  MaterialTopTabNavigationOptions,
-} from '@react-navigation/material-top-tabs';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import {
-  useTheme,
-  type ParamListBase,
-  type TabNavigationState,
-} from '@react-navigation/native';
-import { withLayoutContext } from 'expo-router';
+import { Stack } from "expo-router";
+import React from "react";
+import { CommonHeader } from "~/components/CommonHeader";
 
-const { Navigator } = createMaterialTopTabNavigator();
+export default function DashboardLayout() {
+  const hasMounted = React.useRef(false);
 
-const MaterialTopTabs = withLayoutContext<
-  MaterialTopTabNavigationOptions,
-  typeof Navigator,
-  TabNavigationState<ParamListBase>,
-  MaterialTopTabNavigationEventMap
->(Navigator);
-
-export default function MaterialTopTabsLayout() {
-  const { colors } = useTheme();
   return (
-    <MaterialTopTabs
-      initialRouteName='index'
-      screenOptions={{
-        tabBarActiveTintColor: colors.text,
-        tabBarInactiveTintColor: 'grey',
-        tabBarLabelStyle: {
-          fontSize: 14,
-          textTransform: 'capitalize',
-          fontWeight: 'bold',
-        },
-        tabBarIndicatorStyle: {
-          backgroundColor: colors.text,
-        },
-        tabBarScrollEnabled: true,
-        tabBarItemStyle: { width: 'auto', minWidth: 100 },
-      }}
-    >
-      <MaterialTopTabs.Screen
-        name='index'
-        options={{
-          title: 'Blue',
+    <>
+      <Stack
+        initialRouteName='index'
+        screenOptions={{
+          header: ({ navigation, route, options }) => (
+            <CommonHeader
+              title="Dashboard"
+              showBackButton={navigation.canGoBack()}
+              onBackPress={() => navigation.goBack()}
+            />
+          ),
         }}
-      />
-      <MaterialTopTabs.Screen
-        name='red'
-        options={{
-          title: 'Red',
-        }}
-      />
-      <MaterialTopTabs.Screen
-        name='green'
-        options={{
-          title: 'Green',
-        }}
-      />
-      <MaterialTopTabs.Screen
-        name='purple'
-        options={{
-          title: 'Purple',
-        }}
-      />
-    </MaterialTopTabs>
+      >
+        <Stack.Screen
+          name='index'
+          options={{
+            headerShown: true,
+          }}
+        />
+      </Stack>
+    </>
   );
 }

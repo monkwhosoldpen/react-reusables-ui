@@ -83,7 +83,7 @@ export default function RootLayout() {
                   }}
                 />
 
-                <Stack.Screen
+                {/* <Stack.Screen
                   name='login'
                   options={{
                     headerShown: false,
@@ -109,7 +109,7 @@ export default function RootLayout() {
                   options={{
                     headerShown: true,
                   }}
-                />
+                /> */}
 
                 <Stack.Screen
                   name='modal'

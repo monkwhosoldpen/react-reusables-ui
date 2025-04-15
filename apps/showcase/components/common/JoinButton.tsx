@@ -204,49 +204,63 @@ export function JoinButton({
       bottom: 0,
       justifyContent: 'center',
       alignItems: 'center',
-      zIndex: 1000
+      zIndex: Number(design.zIndex.modal),
+      backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)',
     },
     dialogView: {
       width: '100%',
       maxWidth: 400,
       maxHeight: '90%',
-      overflow: 'scroll' as const
+      overflow: 'scroll' as const,
+      backgroundColor: colorScheme.colors.card,
+      padding: Number(design.spacing.padding.card),
+      borderRadius: Number(design.radius.lg),
+      gap: Number(design.spacing.gap),
+      borderColor: colorScheme.colors.border,
+      borderWidth: StyleSheet.hairlineWidth,
     },
     onboardingContent: {
       alignItems: 'center',
       gap: Number(design.spacing.gap) * 2,
-      padding: Number(design.spacing.padding.card)
+      padding: Number(design.spacing.padding.card),
     },
     onboardingTitle: {
       fontSize: Number(design.spacing.fontSize.lg),
       fontWeight: '600',
       color: colorScheme.colors.text,
-      textAlign: 'center'
+      textAlign: 'center',
     },
     onboardingDescription: {
       fontSize: Number(design.spacing.fontSize.base),
       color: colorScheme.colors.text,
       textAlign: 'center',
-      opacity: 0.8
+      opacity: Number(design.opacity.medium),
     },
     buttonContainer: {
       flexDirection: 'row',
       justifyContent: 'center',
-      gap: Number(design.spacing.gap)
-    }
-  })
+      gap: Number(design.spacing.gap),
+    },
+    button: {
+      backgroundColor: colorScheme.colors.primary,
+      borderRadius: Number(design.radius.md),
+      paddingHorizontal: Number(design.spacing.padding.item),
+      paddingVertical: Number(design.spacing.padding.item) / 2,
+    },
+    buttonText: {
+      color: colorScheme.colors.background,
+      fontSize: Number(design.spacing.fontSize.sm),
+      fontWeight: '500',
+    },
+    buttonIcon: {
+      color: colorScheme.colors.background,
+    },
+  });
 
   const renderDialogContent = () => {
     if (showLogin) {
       return (
-        <View style={[dialogStyles.dialogView, {
-          backgroundColor: colorScheme.colors.card,
-          padding: Number(design.spacing.padding.card),
-          borderRadius: Number(design.radius.lg),
-          gap: Number(design.spacing.gap),
-          borderColor: colorScheme.colors.border,
-          borderWidth: StyleSheet.hairlineWidth,
-        }]}>
+        <View style={dialogStyles.dialogView}>
           <DialogHeader>
             <DialogTitle>Sign in to join channels</DialogTitle>
           </DialogHeader>
@@ -269,14 +283,7 @@ export function JoinButton({
     // If user is logged in and on first step, show user details
     if (user && currentStep === 0) {
       return (
-        <View style={[dialogStyles.dialogView, {
-          backgroundColor: colorScheme.colors.card,
-          padding: Number(design.spacing.padding.card),
-          borderRadius: Number(design.radius.lg),
-          gap: Number(design.spacing.gap),
-          borderColor: colorScheme.colors.border,
-          borderWidth: StyleSheet.hairlineWidth,
-        }]}>
+        <View style={dialogStyles.dialogView}>
           <View style={dialogStyles.onboardingContent}>
             <Text style={dialogStyles.onboardingTitle}>
               Welcome back, {user.email}
@@ -289,21 +296,10 @@ export function JoinButton({
                 onPress={handleNextStep}
                 variant="default"
                 size="default"
-                style={{
-                  backgroundColor: colorScheme.colors.primary,
-                  borderRadius: Number(design.radius.md),
-                  paddingHorizontal: Number(design.spacing.padding.item),
-                  paddingVertical: Number(design.spacing.padding.item) / 2,
-                }}
+                style={dialogStyles.button}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Number(design.spacing.gap) }}>
-                  <Text style={{ 
-                    color: colorScheme.colors.background,
-                    fontSize: Number(design.spacing.fontSize.sm),
-                    fontWeight: '500'
-                  }}>
-                    Continue
-                  </Text>
+                <View style={dialogStyles.buttonContainer}>
+                  <Text style={dialogStyles.buttonText}>Continue</Text>
                   <ArrowRight size={Number(design.spacing.iconSize)} color={colorScheme.colors.background} />
                 </View>
               </Button>
@@ -315,14 +311,7 @@ export function JoinButton({
 
     // Show regular onboarding steps
     return (
-      <View style={[dialogStyles.dialogView, {
-        backgroundColor: colorScheme.colors.card,
-        padding: Number(design.spacing.padding.card),
-        borderRadius: Number(design.radius.lg),
-        gap: Number(design.spacing.gap),
-        borderColor: colorScheme.colors.border,
-        borderWidth: StyleSheet.hairlineWidth,
-      }]}>
+      <View style={dialogStyles.dialogView}>
         <View style={dialogStyles.onboardingContent}>
           <Text style={dialogStyles.onboardingTitle}>
             {onboardingSteps[currentStep].title}
@@ -335,19 +324,10 @@ export function JoinButton({
               onPress={handleNextStep}
               variant="default"
               size="default"
-              style={{
-                backgroundColor: colorScheme.colors.primary,
-                borderRadius: Number(design.radius.md),
-                paddingHorizontal: Number(design.spacing.padding.item),
-                paddingVertical: Number(design.spacing.padding.item) / 2,
-              }}
+              style={dialogStyles.button}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: Number(design.spacing.gap) }}>
-                <Text style={{ 
-                  color: colorScheme.colors.background,
-                  fontSize: Number(design.spacing.fontSize.sm),
-                  fontWeight: '500'
-                }}>
+              <View style={dialogStyles.buttonContainer}>
+                <Text style={dialogStyles.buttonText}>
                   {currentStep === onboardingSteps.length - 1 ? 'Finish' : 'Next'}
                 </Text>
                 {currentStep === onboardingSteps.length - 1 ? (
@@ -368,12 +348,6 @@ export function JoinButton({
       <Button 
         onPress={handleClick}
         variant={hasJoined ? "default" : "outline"}
-        className={cn(
-          "gap-2 font-medium",
-          hasJoined && "bg-primary hover:bg-primary/90 text-white",
-          !hasJoined && "text-primary border-primary/20 hover:bg-primary/10",
-          className
-        )}
         style={{
           borderRadius: Number(design.radius.md),
           paddingHorizontal: Number(design.spacing.padding.item),
@@ -416,9 +390,7 @@ export function JoinButton({
       </Button>
       
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent style={[dialogStyles.dialogContent, {
-          backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)',
-        }]}>
+        <DialogContent style={dialogStyles.dialogContent}>
           {renderDialogContent()}
         </DialogContent>
       </Dialog>

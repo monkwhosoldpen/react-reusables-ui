@@ -16,100 +16,120 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { JoinButton } from '~/components/common/JoinButton';
 import { Loader2 } from 'lucide-react';
 import { useLocalSearchParams } from 'expo-router';
+import { ColorScheme, DesignConfig } from '~/lib/providers/theme/types';
 
 // Optimized styles with responsive design
-const createStyles = (isMobile: boolean, isTablet: boolean) => 
+const createStyles = (isMobile: boolean, isTablet: boolean, design: DesignConfig, colorScheme: ColorScheme) => 
   StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: colorScheme.colors.background,
     },
     header: {
-      paddingHorizontal: isMobile ? 12 : 16,
-      paddingVertical: 12,
+      paddingHorizontal: isMobile ? Number(design.spacing.padding.item) : Number(design.spacing.padding.card),
+      paddingVertical: Number(design.spacing.padding.item),
       borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colorScheme.colors.border,
+      backgroundColor: colorScheme.colors.background,
     },
     loadingContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingVertical: 40,
+      paddingVertical: Number(design.spacing.padding.section),
     },
     loadingText: {
-      marginTop: 8,
-      fontSize: 14,
+      marginTop: Number(design.spacing.margin.item),
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
     },
     errorContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: 16,
+      padding: Number(design.spacing.padding.section),
     },
     errorText: {
-      fontSize: 16,
+      fontSize: Number(design.spacing.fontSize.lg),
       textAlign: 'center',
-      marginBottom: 8,
+      marginBottom: Number(design.spacing.margin.item),
+      color: colorScheme.colors.text,
     },
     errorSubText: {
-      fontSize: 14,
+      fontSize: Number(design.spacing.fontSize.base),
       textAlign: 'center',
-      marginBottom: 16,
+      marginBottom: Number(design.spacing.margin.section),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
     },
     contentContainer: {
       flex: 1,
       flexDirection: 'row',
     },
     sidebar: {
-      width: isMobile ? 60 : isTablet ? 200 : 240,
+      width: isMobile ? Number(design.spacing.avatarSize) * 1.5 : isTablet ? 200 : 240,
       borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: colorScheme.colors.border,
+      backgroundColor: colorScheme.colors.background,
     },
     mainContent: {
       flex: 1,
-      marginLeft: isMobile ? 60 : isTablet ? 200 : 240,
+      marginLeft: isMobile ? Number(design.spacing.avatarSize) * 1.5 : isTablet ? 200 : 240,
     },
     accessBar: {
-      padding: isMobile ? 8 : 16,
+      padding: isMobile ? Number(design.spacing.padding.item) : Number(design.spacing.padding.card),
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colorScheme.colors.border,
+      backgroundColor: colorScheme.colors.card,
     },
     accessInfo: {
       flex: 1,
-      gap: isMobile ? 8 : 12,
-      marginRight: isMobile ? 8 : 16,
+      gap: isMobile ? Number(design.spacing.gap) : Number(design.spacing.gap) * 1.5,
+      marginRight: isMobile ? Number(design.spacing.margin.item) : Number(design.spacing.margin.card),
       flexWrap: 'wrap',
     },
     statusBadge: {
-      padding: isMobile ? 4 : 6,
-      borderRadius: 4,
+      padding: isMobile ? Number(design.spacing.padding.item) / 2 : Number(design.spacing.padding.item),
+      borderRadius: Number(design.radius.md),
       borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colorScheme.colors.border,
       minWidth: isMobile ? 60 : 80,
       alignItems: 'center',
+      backgroundColor: colorScheme.colors.background,
     },
     messageList: {
-      padding: isMobile ? 8 : 16,
+      padding: isMobile ? Number(design.spacing.padding.item) : Number(design.spacing.padding.card),
     },
     messageItem: {
-      padding: isMobile ? 10 : 16,
-      marginBottom: isMobile ? 8 : 16,
-      borderRadius: 8,
+      padding: isMobile ? Number(design.spacing.padding.item) : Number(design.spacing.padding.card),
+      marginBottom: isMobile ? Number(design.spacing.margin.item) : Number(design.spacing.margin.card),
+      borderRadius: Number(design.radius.lg),
+      backgroundColor: colorScheme.colors.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colorScheme.colors.border,
     },
     messageHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 4,
+      marginBottom: Number(design.spacing.margin.item),
     },
     messageContent: {
-      fontSize: isMobile ? 14 : 15,
+      fontSize: isMobile ? Number(design.spacing.fontSize.base) : Number(design.spacing.fontSize.lg),
+      color: colorScheme.colors.text,
     },
     messageTime: {
-      fontSize: isMobile ? 10 : 12,
-      opacity: 0.7,
-      marginLeft: 8,
+      fontSize: isMobile ? Number(design.spacing.fontSize.sm) : Number(design.spacing.fontSize.base),
+      opacity: Number(design.opacity.medium),
+      marginLeft: Number(design.spacing.margin.item),
+      color: colorScheme.colors.text,
     },
     toolbar: {
       width: '100%',
-      maxWidth: 1200, // Maximum width for larger screens
+      maxWidth: 1200,
       alignSelf: 'center',
     },
   });
@@ -130,7 +150,7 @@ export default function ChannelPage() {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
-  const styles = useMemo(() => createStyles(isMobile, isTablet), [isMobile, isTablet]);
+  const styles = useMemo(() => createStyles(isMobile, isTablet, design, colorScheme), [isMobile, isTablet, design, colorScheme]);
 
   // Fetch channel data only once
   useEffect(() => {

@@ -100,6 +100,81 @@ export const draculaDarkModeColors: ColorSchemeConfig = {
   },
 };
 
+// Spotify Theme Colors
+export const spotifyLightModeColors: ColorSchemeConfig = {
+  name: 'light',
+  colors: {
+    primary: '#1DB954',
+    background: '#FFFFFF',
+    card: '#F8F8F8',
+    text: '#191414',
+    border: '#E5E5E5',
+    notification: '#1DB954',
+  },
+};
+
+export const spotifyDarkModeColors: ColorSchemeConfig = {
+  name: 'dark',
+  colors: {
+    primary: '#1DB954',
+    background: '#121212',
+    card: '#181818',
+    text: '#FFFFFF',
+    border: '#282828',
+    notification: '#1DB954',
+  },
+};
+
+// Studio Ghibli Theme Colors
+export const ghiblistudioLightModeColors: ColorSchemeConfig = {
+  name: 'light',
+  colors: {
+    primary: '#7B8B6F', // Soft forest green
+    background: '#F5F5F0', // Creamy white
+    card: '#FFFFFF',
+    text: '#2C3E50', // Deep blue-gray
+    border: '#E0D8C0', // Warm beige
+    notification: '#E6A8A8', // Soft pink
+  },
+};
+
+export const ghiblistudioDarkModeColors: ColorSchemeConfig = {
+  name: 'dark',
+  colors: {
+    primary: '#9DBF8E', // Muted sage green
+    background: '#1A1A1A', // Deep charcoal
+    card: '#2D2D2D',
+    text: '#E0D8C0', // Warm beige
+    border: '#3D3D3D',
+    notification: '#E6A8A8', // Soft pink
+  },
+};
+
+// Red-Black Theme Colors
+export const redblackLightModeColors: ColorSchemeConfig = {
+  name: 'light',
+  colors: {
+    primary: '#FF0000', // Bright red
+    background: '#FFFFFF',
+    card: '#F5F5F5',
+    text: '#000000',
+    border: '#E0E0E0',
+    notification: '#FF0000', // Bright red
+  },
+};
+
+export const redblackDarkModeColors: ColorSchemeConfig = {
+  name: 'dark',
+  colors: {
+    primary: '#FF0000', // Bright red
+    background: '#000000',
+    card: '#1A1A1A',
+    text: '#FFFFFF',
+    border: '#333333',
+    notification: '#FF0000', // Bright red
+  },
+};
+
 // Theme Configurations
 export const themes = {
   whatsapp: {
@@ -117,5 +192,9 @@ export const themes = {
   dracula: {
     light: draculaLightModeColors,
     dark: draculaDarkModeColors,
+  },
+  spotify: {
+    light: spotifyLightModeColors,
+    dark: spotifyDarkModeColors,
   },
 } as const;

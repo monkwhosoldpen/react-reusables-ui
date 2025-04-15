@@ -1,4 +1,4 @@
-export type DesignType = 'whatsapp' | 'twitter' | 'facebook' | 'dracula';
+export type DesignType = 'whatsapp' | 'twitter' | 'facebook' | 'dracula' | 'spotify' | 'ghiblistudio' | 'redblack';
 
 export interface DesignConfig {
   name: DesignType;
@@ -8,12 +8,15 @@ export interface DesignConfig {
       text: string;
       card: string;
       formGroup: string;
+      section: string;
+      item: string;
     };
     padding: {
       item: string;
       card: string;
       input: string;
       button: string;
+      section: string;
     };
     fontSize: {
       xs: string;
@@ -21,6 +24,8 @@ export interface DesignConfig {
       base: string;
       lg: string;
       xl: string;
+      '2xl': string;
+      '3xl': string;
     };
     lineHeight: {
       normal: string;
@@ -30,12 +35,14 @@ export interface DesignConfig {
     iconSize: string;
     inputHeight: string;
     buttonHeight: string;
+    avatarSize: string;
   };
   radius: {
     none: string;
     sm: string;
     md: string;
     lg: string;
+    xl: string;
     full: string;
   };
   shadow: {
@@ -43,6 +50,21 @@ export interface DesignConfig {
     sm: string;
     md: string;
     lg: string;
+    xl: string;
+  };
+  opacity: {
+    disabled: string;
+    subtle: string;
+    medium: string;
+    strong: string;
+  };
+  zIndex: {
+    base: string;
+    dropdown: string;
+    sticky: string;
+    overlay: string;
+    modal: string;
+    toast: string;
   };
 }
 

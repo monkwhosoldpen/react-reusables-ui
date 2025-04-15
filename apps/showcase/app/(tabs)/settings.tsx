@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useColorScheme, type ThemeName } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { type DesignType } from '~/lib/providers/theme/types';
 import { Switch } from '~/components/ui/switch';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type Option } from '~/components/ui/select';
 import { Button } from '~/components/ui/button';
@@ -28,7 +29,10 @@ export default function SettingsScreen() {
     if (option?.value) {
       const newTheme = option.value as ThemeName;
       updateTheme(newTheme);
-      updateDesign(newTheme);
+      // Only update design if the theme exists in the design system
+      if (newTheme !== 'redblack') {
+        updateDesign(newTheme as DesignType);
+      }
     }
   };
 
@@ -154,6 +158,9 @@ export default function SettingsScreen() {
                 <SelectItem value="dracula" label="Dracula" />
                 <SelectItem value="twitter" label="Twitter" />
                 <SelectItem value="facebook" label="Facebook" />
+                <SelectItem value="spotify" label="Spotify" />
+                <SelectItem value="ghiblistudio" label="Studio Ghibli" />
+                <SelectItem value="redblack" label="Red-Black" />
               </SelectContent>
             </Select>
           </View>
