@@ -31,6 +31,12 @@ const createStyles = (isMobile: boolean, isTablet: boolean, design: DesignConfig
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colorScheme.colors.border,
       backgroundColor: colorScheme.colors.background,
+      shadowColor: colorScheme.colors.border,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+      zIndex: Number(design.zIndex.sticky),
     },
     loadingContainer: {
       flex: 1,
@@ -66,12 +72,19 @@ const createStyles = (isMobile: boolean, isTablet: boolean, design: DesignConfig
     contentContainer: {
       flex: 1,
       flexDirection: 'row',
+      position: 'relative',
     },
     sidebar: {
       width: isMobile ? Number(design.spacing.avatarSize) * 1.5 : isTablet ? 200 : 240,
       borderRightWidth: StyleSheet.hairlineWidth,
       borderRightColor: colorScheme.colors.border,
       backgroundColor: colorScheme.colors.background,
+      shadowColor: colorScheme.colors.border,
+      shadowOffset: { width: 2, height: 0 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+      zIndex: Number(design.zIndex.dropdown),
     },
     mainContent: {
       flex: 1,
@@ -85,6 +98,11 @@ const createStyles = (isMobile: boolean, isTablet: boolean, design: DesignConfig
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colorScheme.colors.border,
       backgroundColor: colorScheme.colors.card,
+      shadowColor: colorScheme.colors.border,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 1,
     },
     accessInfo: {
       flex: 1,
@@ -100,6 +118,11 @@ const createStyles = (isMobile: boolean, isTablet: boolean, design: DesignConfig
       minWidth: isMobile ? 60 : 80,
       alignItems: 'center',
       backgroundColor: colorScheme.colors.background,
+      shadowColor: colorScheme.colors.border,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 1,
     },
     messageList: {
       padding: isMobile ? Number(design.spacing.padding.item) : Number(design.spacing.padding.card),
@@ -111,6 +134,11 @@ const createStyles = (isMobile: boolean, isTablet: boolean, design: DesignConfig
       backgroundColor: colorScheme.colors.card,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colorScheme.colors.border,
+      shadowColor: colorScheme.colors.border,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 1,
     },
     messageHeader: {
       flexDirection: 'row',
@@ -120,6 +148,7 @@ const createStyles = (isMobile: boolean, isTablet: boolean, design: DesignConfig
     messageContent: {
       fontSize: isMobile ? Number(design.spacing.fontSize.base) : Number(design.spacing.fontSize.lg),
       color: colorScheme.colors.text,
+      lineHeight: Number(design.spacing.lineHeight.relaxed),
     },
     messageTime: {
       fontSize: isMobile ? Number(design.spacing.fontSize.sm) : Number(design.spacing.fontSize.base),

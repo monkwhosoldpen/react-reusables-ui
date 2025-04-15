@@ -16,6 +16,60 @@ interface ChannelSidebarProps {
   isCompact?: boolean
 }
 
+const styles = StyleSheet.create({
+  sidebar: {
+    height: '100%',
+    borderRightWidth: StyleSheet.hairlineWidth,
+  },
+  mobileScrollView: {
+    flex: 1,
+  },
+  mobileItem: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  selectedMobileItem: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  mobileLabel: {
+    maxWidth: 60,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 8,
+  },
+  mobilePlusButton: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  channelItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  selectedChannelItem: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  channelIcon: {
+    marginRight: 12,
+  },
+  channelInfo: {
+    flex: 1,
+  },
+  channelName: {
+    fontWeight: '600',
+  },
+  channelStatus: {
+    opacity: 0.7,
+  },
+});
+
 export function ChannelSidebar({
   username,
   channelDetails,
@@ -73,7 +127,7 @@ export function ChannelSidebar({
           </Link>
 
           {channelDetails.related_channels && channelDetails.related_channels.length > 0 && (
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: colorScheme.colors.border }]} />
           )}
 
           {/* Related Channels */}
@@ -100,120 +154,56 @@ export function ChannelSidebar({
 
   return (
     <View style={sidebarStyle}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.channelList}>
-          {/* Main Channel */}
-          <Link href={`/${username}`}>
+      <ScrollView style={styles.mobileScrollView}>
+        {/* Main Channel */}
+        <Link href={`/${username}`}>
+          <View style={[
+            styles.channelItem,
+            selectedChannel === username && styles.selectedChannelItem
+          ]}>
+            <View style={styles.channelIcon}>
+              <Users size={24} color={colorScheme.colors.text} />
+            </View>
+            <View style={styles.channelInfo}>
+              <Text style={[textStyle, styles.channelName]}>
+                @{username}
+              </Text>
+              <Text style={[mutedTextStyle, styles.channelStatus]}>
+                {channelDetails.is_public ? 'Public Channel' : 'Private Channel'}
+              </Text>
+            </View>
+          </View>
+        </Link>
+
+        {channelDetails.related_channels && channelDetails.related_channels.length > 0 && (
+          <View style={[styles.divider, { backgroundColor: colorScheme.colors.border }]} />
+        )}
+
+        {/* Related Channels */}
+        {channelDetails.related_channels?.map((related) => (
+          <Link href={`/${related.username}`} key={related.username}>
             <View style={[
-              channelItemStyle,
-              selectedChannel === username && styles.selectedChannel
+              styles.channelItem,
+              selectedChannel === related.username && styles.selectedChannelItem
             ]}>
-              <Users size={20} color={colorScheme.colors.text} />
+              <View style={styles.channelIcon}>
+                <Users size={24} color={colorScheme.colors.text} />
+              </View>
               <View style={styles.channelInfo}>
-                <Text style={textStyle} className="font-medium" numberOfLines={1}>
-                  @{username}
+                <Text style={[textStyle, styles.channelName]}>
+                  @{related.username}
                 </Text>
-                <Text style={mutedTextStyle} className="mt-1">
-                  Main Channel
+                <Text style={[mutedTextStyle, styles.channelStatus]}>
+                  {related.is_public ? 'Public Channel' : 'Private Channel'}
                 </Text>
               </View>
             </View>
           </Link>
-
-          {/* Related Channels */}
-          {channelDetails.related_channels?.map((related) => (
-            <Link href={`/${related.username}`} key={related.username}>
-              <View style={[
-                channelItemStyle,
-                selectedChannel === related.username && styles.selectedChannel
-              ]}>
-                <Users size={20} color={colorScheme.colors.text} />
-                <View style={styles.channelInfo}>
-                  <Text style={textStyle} className="font-medium" numberOfLines={1}>
-                    @{related.username}
-                  </Text>
-                  {!isCompact && related.is_public && (
-                    <Text style={mutedTextStyle} className="mt-1">
-                      Public Channel
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </Link>
-          ))}
-
-          {(!channelDetails.related_channels || channelDetails.related_channels.length === 0) && (
-            <Text style={mutedTextStyle}>
-              No related channels.
-            </Text>
-          )}
-        </View>
+        ))}
       </ScrollView>
+      <View style={[styles.mobilePlusButton, { borderTopColor: colorScheme.colors.border }]}>
+        <Plus size={24} color={colorScheme.colors.text} />
+      </View>
     </View>
   )
-}
-
-const styles = StyleSheet.create({
-  sidebar: {
-    width: 320,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'column',
-    backgroundColor: 'background',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 12,
-  },
-  channelList: {
-    gap: 6,
-  },
-  channelItem: {
-    padding: 12,
-    borderRadius: 6,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  selectedChannel: {
-    borderColor: '#3b82f6',
-    borderWidth: 1,
-    backgroundColor: 'rgba(59, 130, 246, 0.05)',
-  },
-  mobileScrollView: {
-    flex: 1,
-    paddingVertical: 6,
-  },
-  mobileItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    gap: 3,
-    borderRadius: 4,
-  },
-  selectedMobileItem: {
-    backgroundColor: 'rgba(59, 130, 246, 0.05)',
-  },
-  mobileLabel: {
-    marginTop: 2,
-    fontSize: 9,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(150, 150, 150, 0.1)',
-    marginVertical: 6,
-  },
-  mobilePlusButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255, 255, 255, 0.01)',
-  },
-  channelInfo: {
-    flex: 1,
-  }
-}) 
+} 

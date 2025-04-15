@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/contexts/AuthContext"
 import { toast } from "sonner"
 import { UserPlus, ArrowRight, Check, Loader2 } from 'lucide-react-native'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import LoginCommon from './LoginCommon'
 import { View, Text, StyleSheet } from 'react-native'
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
@@ -17,9 +17,8 @@ import { Channel } from '@/lib/types/channel.types'
 interface JoinButtonProps {
   username: string;
   buttonText?: string;
-  size?: 'sm' | 'md' | 'lg' | 'default';
+  size?: 'sm' | 'lg' | 'default' | 'icon';
   channelDetails?: Channel;
-  className?: string;
   showIcon?: boolean;
   onJoin?: () => void;
   onRequestAccess?: () => void;
@@ -28,11 +27,56 @@ interface JoinButtonProps {
   isLoading?: boolean;
 }
 
+const styles = StyleSheet.create({
+  buttonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  buttonText: {
+    fontWeight: '600',
+  },
+  dialogView: {
+    padding: 16,
+    borderRadius: 8,
+    gap: 16,
+  },
+  dialogHeader: {
+    marginBottom: 16,
+  },
+  dialogTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  dialogDescription: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  dialogFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 16,
+  },
+  onboardingStep: {
+    marginBottom: 16,
+  },
+  stepTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  stepDescription: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+});
+
 export function JoinButton({
   username,
   channelDetails,
   buttonText = 'Join',
-  className,
   size = 'default',
   showIcon = true,
   onJoin,
@@ -195,75 +239,25 @@ export function JoinButton({
     }
   }
 
-  const dialogStyles = StyleSheet.create({
-    dialogContent: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: Number(design.zIndex.modal),
-      backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)',
-    },
-    dialogView: {
-      width: '100%',
-      maxWidth: 400,
-      maxHeight: '90%',
-      overflow: 'scroll' as const,
-      backgroundColor: colorScheme.colors.card,
-      padding: Number(design.spacing.padding.card),
-      borderRadius: Number(design.radius.lg),
-      gap: Number(design.spacing.gap),
-      borderColor: colorScheme.colors.border,
-      borderWidth: StyleSheet.hairlineWidth,
-    },
-    onboardingContent: {
-      alignItems: 'center',
-      gap: Number(design.spacing.gap) * 2,
-      padding: Number(design.spacing.padding.card),
-    },
-    onboardingTitle: {
-      fontSize: Number(design.spacing.fontSize.lg),
-      fontWeight: '600',
-      color: colorScheme.colors.text,
-      textAlign: 'center',
-    },
-    onboardingDescription: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      textAlign: 'center',
-      opacity: Number(design.opacity.medium),
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      gap: Number(design.spacing.gap),
-    },
-    button: {
-      backgroundColor: colorScheme.colors.primary,
-      borderRadius: Number(design.radius.md),
-      paddingHorizontal: Number(design.spacing.padding.item),
-      paddingVertical: Number(design.spacing.padding.item) / 2,
-    },
-    buttonText: {
-      color: colorScheme.colors.background,
-      fontSize: Number(design.spacing.fontSize.sm),
-      fontWeight: '500',
-    },
-    buttonIcon: {
-      color: colorScheme.colors.background,
-    },
-  });
-
   const renderDialogContent = () => {
     if (showLogin) {
       return (
-        <View style={dialogStyles.dialogView}>
-          <DialogHeader>
-            <DialogTitle>Sign in to join channels</DialogTitle>
-          </DialogHeader>
+        <View style={[styles.dialogView, {
+          backgroundColor: colorScheme.colors.card,
+          padding: Number(design.spacing.padding.card),
+          borderRadius: Number(design.radius.lg),
+          gap: Number(design.spacing.gap),
+          borderColor: colorScheme.colors.border,
+          borderWidth: StyleSheet.hairlineWidth,
+        }]}>
+          <View style={styles.dialogHeader}>
+            <Text style={[styles.dialogTitle, { color: colorScheme.colors.text }]}>
+              Sign in to join channels
+            </Text>
+            <Text style={[styles.dialogDescription, { color: colorScheme.colors.text }]}>
+              Please sign in to join this channel and start connecting with others.
+            </Text>
+          </View>
           <LoginCommon
             email={email}
             setEmail={setEmail}
@@ -280,117 +274,76 @@ export function JoinButton({
       )
     }
 
-    // If user is logged in and on first step, show user details
-    if (user && currentStep === 0) {
-      return (
-        <View style={dialogStyles.dialogView}>
-          <View style={dialogStyles.onboardingContent}>
-            <Text style={dialogStyles.onboardingTitle}>
-              Welcome back, {user.email}
-            </Text>
-            <Text style={dialogStyles.onboardingDescription}>
-              You're already signed in. Ready to join @{username}?
-            </Text>
-            <View style={dialogStyles.buttonContainer}>
-              <Button
-                onPress={handleNextStep}
-                variant="default"
-                size="default"
-                style={dialogStyles.button}
-              >
-                <View style={dialogStyles.buttonContainer}>
-                  <Text style={dialogStyles.buttonText}>Continue</Text>
-                  <ArrowRight size={Number(design.spacing.iconSize)} color={colorScheme.colors.background} />
-                </View>
-              </Button>
-            </View>
-          </View>
-        </View>
-      )
-    }
-
-    // Show regular onboarding steps
     return (
-      <View style={dialogStyles.dialogView}>
-        <View style={dialogStyles.onboardingContent}>
-          <Text style={dialogStyles.onboardingTitle}>
+      <View style={[styles.dialogView, {
+        backgroundColor: colorScheme.colors.card,
+        padding: Number(design.spacing.padding.card),
+        borderRadius: Number(design.radius.lg),
+        gap: Number(design.spacing.gap),
+        borderColor: colorScheme.colors.border,
+        borderWidth: StyleSheet.hairlineWidth,
+      }]}>
+        <View style={styles.dialogHeader}>
+          <Text style={[styles.dialogTitle, { color: colorScheme.colors.text }]}>
             {onboardingSteps[currentStep].title}
           </Text>
-          <Text style={dialogStyles.onboardingDescription}>
+          <Text style={[styles.dialogDescription, { color: colorScheme.colors.text }]}>
             {onboardingSteps[currentStep].description}
           </Text>
-          <View style={dialogStyles.buttonContainer}>
-            <Button
-              onPress={handleNextStep}
-              variant="default"
-              size="default"
-              style={dialogStyles.button}
-            >
-              <View style={dialogStyles.buttonContainer}>
-                <Text style={dialogStyles.buttonText}>
-                  {currentStep === onboardingSteps.length - 1 ? 'Finish' : 'Next'}
-                </Text>
-                {currentStep === onboardingSteps.length - 1 ? (
-                  <Check size={Number(design.spacing.iconSize)} color={colorScheme.colors.background} />
-                ) : (
-                  <ArrowRight size={Number(design.spacing.iconSize)} color={colorScheme.colors.background} />
-                )}
-              </View>
-            </Button>
-          </View>
+        </View>
+
+        <View style={styles.dialogFooter}>
+          <Button
+            variant="outline"
+            onPress={() => setShowDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            onPress={handleNextStep}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 size={20} color={colorScheme.colors.text} />
+            ) : currentStep === onboardingSteps.length - 1 ? (
+              'Join Channel'
+            ) : (
+              'Next'
+            )}
+          </Button>
         </View>
       </View>
     )
   }
 
   return (
-    <View style={{ position: 'relative' }}>
-      <Button 
+    <View>
+      <Button
+        variant={hasJoined ? "outline" : "default"}
+        size={size}
         onPress={handleClick}
-        variant={hasJoined ? "default" : "outline"}
-        style={{
-          borderRadius: Number(design.radius.md),
-          paddingHorizontal: Number(design.spacing.padding.item),
-          paddingVertical: Number(design.spacing.padding.item) / 2,
-          backgroundColor: hasJoined ? colorScheme.colors.primary : 'transparent',
-          borderColor: hasJoined ? 'transparent' : colorScheme.colors.primary,
-        }}
-        disabled={isButtonLoading || isRequested}
+        disabled={isRequested || isButtonLoading}
         {...props}
       >
-        {isButtonLoading ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Number(design.spacing.gap) }}>
-            <Loader2 
-              size={Number(design.spacing.iconSize)}
-              color={hasJoined ? colorScheme.colors.background : colorScheme.colors.primary}
-              style={{ transform: [{ rotate: '45deg' }] }}
-            />
-            <Text style={{ 
-              color: hasJoined ? colorScheme.colors.background : colorScheme.colors.primary,
-              fontSize: Number(design.spacing.fontSize.sm)
-            }}>Loading...</Text>
-          </View>
-        ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Number(design.spacing.gap) }}>
-            {showIcon && (
-              <UserPlus 
-                size={Number(design.spacing.iconSize)}
-                color={hasJoined ? colorScheme.colors.background : colorScheme.colors.primary}
-              />
-            )}
-            <Text style={{ 
-              color: hasJoined ? colorScheme.colors.background : colorScheme.colors.primary,
-              fontSize: Number(design.spacing.fontSize.sm),
-              fontWeight: '500'
-            }}>
-              {isRequested ? `Request ${requestStatus || 'Pending'}` : (hasJoined ? 'Joined' : buttonText)}
-            </Text>
-          </View>
-        )}
+        <View style={styles.buttonContainer}>
+          {showIcon && !isButtonLoading && (
+            hasJoined ? (
+              <Check size={20} color={colorScheme.colors.text} />
+            ) : (
+              <UserPlus size={20} color={colorScheme.colors.text} />
+            )
+          )}
+          {isButtonLoading && (
+            <Loader2 size={20} color={colorScheme.colors.text} className="animate-spin" />
+          )}
+          <Text style={[styles.buttonText, { color: colorScheme.colors.text }]}>
+            {isRequested ? 'Requested' : hasJoined ? 'Joined' : buttonText}
+          </Text>
+        </View>
       </Button>
       
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent style={dialogStyles.dialogContent}>
+        <DialogContent className='sm:max-w-[425px]'>
           {renderDialogContent()}
         </DialogContent>
       </Dialog>

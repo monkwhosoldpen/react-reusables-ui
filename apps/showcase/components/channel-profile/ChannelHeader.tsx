@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, useWindowDimensions } from 'react-native'
 import { ChevronLeft, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { Text } from '~/components/ui/text'
@@ -15,19 +15,63 @@ interface ChannelHeaderProps {
   channelDetails: Channel
 }
 
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 9999,
+  },
+  usernameText: {
+    fontWeight: '600',
+  },
+  settingsButton: {
+    padding: 8,
+    borderRadius: 9999,
+  },
+});
+
 export function ChannelHeader({ username, channelDetails }: ChannelHeaderProps) {
   const { colorScheme } = useColorScheme()
   const { design } = useDesign()
+  const { width } = useWindowDimensions()
+  const isMobile = width < 768
 
   const headerStyle = {
     ...styles.header,
     backgroundColor: colorScheme.colors.background,
     borderBottomColor: colorScheme.colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   }
 
   const textStyle = {
     color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.lg),
+    fontSize: isMobile ? Number(design.spacing.fontSize.base) : Number(design.spacing.fontSize.lg),
+  }
+
+  const backButtonStyle = {
+    ...styles.backButton,
+    backgroundColor: colorScheme.colors.card,
+  }
+
+  const settingsButtonStyle = {
+    ...styles.settingsButton,
+    backgroundColor: colorScheme.colors.card,
   }
 
   return (
@@ -35,34 +79,35 @@ export function ChannelHeader({ username, channelDetails }: ChannelHeaderProps) 
       <View style={styles.leftSection}>
         <Link 
           href="/explore" 
-          className="text-muted-foreground hover:text-foreground transition-colors p-2 rounded-full hover:bg-accent/50"
+          className="text-muted-foreground hover:text-foreground"
           aria-label="Back to channels"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <View style={backButtonStyle}>
+            <ChevronLeft 
+              size={isMobile ? 20 : 24} 
+              color={colorScheme.colors.text} 
+            />
+          </View>
         </Link>
-        <Text style={textStyle} className="font-semibold">
+        <Text style={[textStyle, styles.usernameText]}>
           @{username}
         </Text>
       </View>
+
+      <View style={styles.rightSection}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Channel settings"
+        >
+          <View style={settingsButtonStyle}>
+            <Settings 
+              size={isMobile ? 20 : 24} 
+              color={colorScheme.colors.text} 
+            />
+          </View>
+        </Button>
+      </View>
     </View>
   )
-}
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 64,
-    paddingHorizontal: 24,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
-  },
-  leftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  }
-}) 
+} 
