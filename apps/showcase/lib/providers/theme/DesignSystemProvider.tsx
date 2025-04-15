@@ -9,10 +9,13 @@ const twitterDesign: DesignConfig = {
     margin: {
       text: '4',
       card: '12',
+      formGroup: '16',
     },
     padding: {
       item: '12',
       card: '16',
+      input: '12',
+      button: '12',
     },
     fontSize: {
       xs: '13',
@@ -27,6 +30,8 @@ const twitterDesign: DesignConfig = {
       loose: '1.8',
     },
     iconSize: '20',
+    inputHeight: '48',
+    buttonHeight: '48',
   },
   radius: {
     none: '0',
@@ -51,10 +56,13 @@ const facebookDesign: DesignConfig = {
     margin: {
       text: '6',
       card: '16',
+      formGroup: '20',
     },
     padding: {
       item: '12',
       card: '16',
+      input: '12',
+      button: '12',
     },
     fontSize: {
       xs: '12',
@@ -69,6 +77,8 @@ const facebookDesign: DesignConfig = {
       loose: '1.8',
     },
     iconSize: '20',
+    inputHeight: '48',
+    buttonHeight: '48',
   },
   radius: {
     none: '0',
@@ -93,10 +103,13 @@ const whatsappDesign: DesignConfig = {
     margin: {
       text: '4',
       card: '12',
+      formGroup: '16',
     },
     padding: {
       item: '12',
       card: '16',
+      input: '12',
+      button: '12',
     },
     fontSize: {
       xs: '12',
@@ -111,6 +124,8 @@ const whatsappDesign: DesignConfig = {
       loose: '1.8',
     },
     iconSize: '24',
+    inputHeight: '48',
+    buttonHeight: '48',
   },
   radius: {
     none: '0',
@@ -135,10 +150,13 @@ const draculaDesign: DesignConfig = {
     margin: {
       text: '8',
       card: '20',
+      formGroup: '24',
     },
     padding: {
       item: '16',
       card: '24',
+      input: '16',
+      button: '16',
     },
     fontSize: {
       xs: '12',
@@ -153,6 +171,8 @@ const draculaDesign: DesignConfig = {
       loose: '2',
     },
     iconSize: '24',
+    inputHeight: '52',
+    buttonHeight: '52',
   },
   radius: {
     none: '0',

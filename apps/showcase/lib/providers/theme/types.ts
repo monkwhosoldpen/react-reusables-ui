@@ -7,10 +7,13 @@ export interface DesignConfig {
     margin: {
       text: string;
       card: string;
+      formGroup: string;
     };
     padding: {
       item: string;
       card: string;
+      input: string;
+      button: string;
     };
     fontSize: {
       xs: string;
@@ -25,6 +28,8 @@ export interface DesignConfig {
       loose: string;
     };
     iconSize: string;
+    inputHeight: string;
+    buttonHeight: string;
   };
   radius: {
     none: string;

@@ -1,235 +1,148 @@
-import { Link } from 'expo-router';
-import * as React from 'react';
-import { Platform, View } from 'react-native';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '~/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '~/components/ui/context-menu';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '~/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '~/components/ui/hover-card';
-import { Text } from '~/components/ui/text';
-import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
-import { Muted } from '~/components/ui/typography';
-import { CalendarDays } from '~/lib/icons/CalendarDays';
-import { ChevronDown } from '~/lib/icons/ChevronDown';
-import { ChevronRight } from '~/lib/icons/ChevronRight';
-import { Info } from '~/lib/icons/Info';
-import { cn } from '~/lib/utils';
-import LoginModal from './login';
+import React from 'react';
+import { View, StyleSheet, ScrollView, ViewStyle } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '~/lib/contexts/AuthContext';
+import LoginCommon from '~/components/common/LoginCommon';
+import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function ExampleScreen() {
+export default function LoginScreen() {
+  const router = useRouter();
+  const { signIn, signInAnonymously, signInAsGuest, refreshUserInfo } = useAuth();
+  const { colorScheme, isDarkMode } = useColorScheme();
+  const { design } = useDesign();
+  const insets = useSafeAreaInsets();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [error, setError] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  // Apply design system tokens
+  const containerStyle = {
+    ...styles.container,
+    backgroundColor: colorScheme.colors.background,
+    paddingBottom: insets.bottom + Number(design.spacing.padding.card),
+    paddingTop: insets.top + Number(design.spacing.padding.card),
+  };
+
+  const sectionStyle: ViewStyle = {
+    ...styles.section,
+    backgroundColor: colorScheme.colors.card,
+    padding: Number(design.spacing.padding.card),
+    borderRadius: Number(design.radius.lg),
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center' as const,
+    shadowColor: colorScheme.colors.border,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  };
+
+  const titleStyle = {
+    color: colorScheme.colors.primary,
+    fontSize: Number(design.spacing.fontSize.xl),
+    fontWeight: '700',
+    marginBottom: Number(design.spacing.margin.card),
+    textAlign: 'center',
+  };
+
+  const handleSubmit = async () => {
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await signIn(email, password);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserInfo();
+      router.replace('/(tabs)');
+    } catch (err) {
+      setError('Invalid email or password');
+      console.error('Email sign in error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAnonymousSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await signInAnonymously();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserInfo();
+      router.replace('/(tabs)');
+    } catch (err) {
+      setError('Failed to sign in anonymously');
+      console.error('Anonymous sign in error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGuestSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await signInAsGuest();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserInfo();
+      router.replace('/(tabs)');
+    } catch (err) {
+      setError('Failed to sign in as guest');
+      console.error('Guest sign in error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <View className='flex-1 p-6 justify-center gap-6'>
-      <LoginModal/>
-    </View>
+    <ScrollView
+      style={containerStyle}
+      contentContainerStyle={styles.contentContainer}
+    >
+      <View style={sectionStyle}>
+        <LoginCommon
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          error={error}
+          isLoading={isLoading}
+          handleSubmit={handleSubmit}
+          handleAnonymousSignIn={handleAnonymousSignIn}
+          handleGuestSignIn={handleGuestSignIn}
+          onCancel={() => router.back()}
+        />
+      </View>
+    </ScrollView>
   );
 }
 
-const contentInsets = {
-  left: 12,
-  right: 12,
-};
-
-function RoleDropdownSelect({ defaultValue }: { defaultValue: string }) {
-  const [value, setValue] = React.useState(defaultValue);
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant='outline'
-          size={Platform.OS === 'web' ? 'sm' : 'default'}
-          className='flex-row gap-2 native:pr-3'
-        >
-          <Text>{value}</Text>
-          <ChevronDown size={18} className='text-foreground' />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align='end' insets={contentInsets} className='w-64 native:w-72'>
-        <DropdownMenuLabel>Select new role</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup className='gap-1'>
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('Viewer');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'Viewer' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>Viewer</Text>
-            <Muted>Can view and comment.</Muted>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('Billing');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'Billing' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>Billing</Text>
-            <Muted>Can view, comment, and manage billing.</Muted>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('Owner');
-            }}
-            className={cn('flex-col items-start gap-1', value === 'Owner' ? 'bg-secondary/70' : '')}
-          >
-            <Text>Owner</Text>
-            <Muted>Admin-level access to all resources</Muted>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function TeamMemberHoverCard({ name }: { name: string }) {
-  return (
-    <HoverCard openDelay={0} closeDelay={0}>
-      <HoverCardTrigger className='group web:focus:outline-none'>
-        <Text numberOfLines={1} className='group-active:underline web:group-hover:underline'>
-          {name}
-        </Text>
-      </HoverCardTrigger>
-      <HoverCardContent insets={contentInsets} className='w-80 native:w-96'>
-        <View className='flex flex-row justify-between gap-4'>
-          <Avatar alt='Vercel avatar'>
-            <AvatarImage source={{ uri: 'https://github.com/vercel.png' }} />
-            <AvatarFallback>
-              <Text>VC</Text>
-            </AvatarFallback>
-          </Avatar>
-          <View className='gap-1 flex-1'>
-            <Text className='text-sm native:text-base font-semibold'>{name}</Text>
-            <Text className='text-sm native:text-base'>
-              Wishes they were part of the triangle company.
-            </Text>
-            <View className='flex flex-row items-center pt-2 gap-2'>
-              <CalendarDays size={14} className='text-foreground opacity-70' />
-              <Text className='text-xs native:text-sm text-muted-foreground'>
-                Fingers crossed since December 2021
-              </Text>
-            </View>
-          </View>
-        </View>
-      </HoverCardContent>
-    </HoverCard>
-  );
-}
-
-function TeamMemberAvatar({
-  name,
-  initials,
-  uri,
-}: {
-  name: string;
-  initials: string;
-  uri: string;
-}) {
-  const [isDialogOpen, setDialogOpen] = React.useState(false);
-  const [isAlertDialogOpen, setAlertDialogOpen] = React.useState(false);
-  return (
-    <ContextMenu relativeTo='trigger'>
-      <ContextMenuTrigger tabIndex={-1} className='web:cursor-default web:focus:outline-none'>
-        <Avatar alt={`${name}'s avatar`}>
-          <AvatarImage source={{ uri }} />
-          <AvatarFallback>
-            <Text>{initials}</Text>
-          </AvatarFallback>
-        </Avatar>
-      </ContextMenuTrigger>
-
-      <ContextMenuContent align='start' insets={contentInsets} className='w-64 native:w-72'>
-        <ContextMenuItem>
-          <Text>View</Text>
-        </ContextMenuItem>
-
-        <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <ContextMenuItem closeOnPress={false}>
-              <Text className='font-semibold'>Edit</Text>
-            </ContextMenuItem>
-          </DialogTrigger>
-          <DialogContent className='sm:max-w-[425px] native:w-[385px]'>
-            <DialogHeader>
-              <DialogTitle>Edit profile</DialogTitle>
-              <DialogDescription>
-                Make changes to the profile here. Click save when you're done.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button>
-                  <Text>OK</Text>
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        <AlertDialog open={isAlertDialogOpen} onOpenChange={setAlertDialogOpen}>
-          <AlertDialogTrigger asChild>
-            <ContextMenuItem closeOnPress={false}>
-              <Text className='text-destructive font-semibold'>Delete</Text>
-            </ContextMenuItem>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your account and remove
-                your data from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>
-                <Text>Cancel</Text>
-              </AlertDialogCancel>
-              <AlertDialogAction>
-                <Text>Continue</Text>
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </ContextMenuContent>
-    </ContextMenu>
-  );
-}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  section: {
+    marginBottom: 16,
+    borderWidth: 0,
+  },
+}); 

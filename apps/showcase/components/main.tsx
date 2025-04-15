@@ -645,7 +645,13 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
       <View style={[styles.trendsSection, { borderBottomColor: colorScheme.colors.border }]}>
         <TouchableOpacity onPress={() => router.push('/explore')}>
-          <Text style={styles.showMoreText}>Show more</Text>
+          <Text style={styles.showMoreText}>Explore</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={[styles.trendsSection, { borderBottomColor: colorScheme.colors.border }]}>
+        <TouchableOpacity onPress={() => router.push('/dashboard')}>
+          <Text style={styles.showMoreText}>Dashboard</Text>
         </TouchableOpacity>
       </View>
 

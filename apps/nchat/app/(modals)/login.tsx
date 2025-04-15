@@ -117,7 +117,6 @@ export default function LoginModal() {
           handleAnonymousSignIn={handleAnonymousSignIn}
           handleGuestSignIn={handleGuestSignIn}
           onCancel={() => router.dismiss()}
-          isDarkMode={isDarkMode}
         />
       </View>
     </ScrollView>

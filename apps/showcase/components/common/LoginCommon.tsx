@@ -75,6 +75,8 @@ export default function LoginCommon({
       padding: Number(design.spacing.padding.card) * 1.5,
       width: '100%',
       maxWidth: 400,
+      minWidth: 280,
+      marginHorizontal: 'auto',
       ...Platform.select({
         ios: {
           shadowColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)',
@@ -90,40 +92,49 @@ export default function LoginCommon({
     scrollContent: {
       flexGrow: 1,
       justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: Number(design.spacing.padding.card),
+      width: '100%',
     },
     header: {
       alignItems: 'center',
-      marginBottom: Number(design.spacing.padding.card) * 1.5,
+      marginBottom: Number(design.spacing.padding.card) * 2,
+      width: '100%',
+      paddingHorizontal: Number(design.spacing.padding.card),
     },
     title: {
       fontSize: Number(design.spacing.fontSize.xl),
-      fontWeight: '700' as const,
+      fontWeight: '700',
       color: colorScheme.colors.primary,
       marginBottom: Number(design.spacing.padding.item),
-      textAlign: 'center' as const,
+      textAlign: 'center',
     },
     subtitle: {
       fontSize: Number(design.spacing.fontSize.base),
       color: colorScheme.colors.text,
       opacity: isDarkMode ? 0.8 : 0.7,
-      textAlign: 'center' as const,
-      lineHeight: Number(design.spacing.fontSize.base) * 1.5,
+      textAlign: 'center',
+      width: '100%',
     },
     formGroup: {
-      marginBottom: Number(design.spacing.padding.card),
+      marginBottom: Number(design.spacing.margin.formGroup),
+      width: '100%',
+      paddingHorizontal: Number(design.spacing.padding.card),
     },
     label: {
       fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '600' as const,
+      fontWeight: '600',
       color: colorScheme.colors.text,
-      marginBottom: Number(design.spacing.padding.item) / 2,
+      marginBottom: Number(design.spacing.margin.text),
     },
     input: {
       backgroundColor: colorScheme.colors.background,
       borderColor: colorScheme.colors.border,
       borderRadius: Number(design.radius.md),
-      padding: Number(design.spacing.padding.item),
+      padding: Number(design.spacing.padding.input),
       color: colorScheme.colors.text,
+      width: '100%',
+      height: Number(design.spacing.inputHeight),
       ...Platform.select({
         ios: {
           shadowColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
@@ -139,13 +150,15 @@ export default function LoginCommon({
     error: {
       color: colorScheme.colors.notification,
       fontSize: Number(design.spacing.fontSize.base),
-      marginTop: Number(design.spacing.padding.item) / 2,
-      textAlign: 'center' as const,
+      marginTop: Number(design.spacing.margin.text),
+      textAlign: 'center',
+      width: '100%',
     },
     divider: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
+      flexDirection: 'row',
+      alignItems: 'center',
       marginVertical: Number(design.spacing.padding.card),
+      width: '100%',
     },
     dividerLine: {
       flex: 1,
@@ -157,12 +170,14 @@ export default function LoginCommon({
       color: colorScheme.colors.text,
       opacity: isDarkMode ? 0.6 : 0.5,
       fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '500' as const,
+      fontWeight: '500',
     },
     button: {
       marginBottom: Number(design.spacing.padding.item),
       borderRadius: Number(design.radius.md),
-      overflow: 'hidden' as const,
+      overflow: 'hidden',
+      height: Number(design.spacing.buttonHeight),
+      width: '100%',
       ...Platform.select({
         ios: {
           shadowColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.1)',
@@ -176,131 +191,130 @@ export default function LoginCommon({
       }),
     },
     buttonContent: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-      paddingVertical: Number(design.spacing.padding.item),
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: Number(design.spacing.padding.button),
+      width: '100%',
     },
     buttonText: {
       fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '600' as const,
+      fontWeight: '600',
     },
   });
 
   return (
-    <Card style={styles.container}>
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.subtitle}>Sign in to continue</Text>
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Email</Text>
+        <Input
+          placeholder="m@example.com"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          style={styles.input}
+          editable={!isEmailLoading}
+          placeholderTextColor={isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'}
+        />
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Password</Text>
+        <Input
+          placeholder="Enter your password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.input}
+          editable={!isEmailLoading}
+          placeholderTextColor={isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'}
+        />
+      </View>
+
+      {error ? (
+        <Text style={styles.error}>{error}</Text>
+      ) : null}
+
+      <Button
+        onPress={handleEmailSubmit}
+        disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
+        style={[styles.button, { backgroundColor: colorScheme.colors.primary }]}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome back</Text>
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Email</Text>
-          <Input
-            placeholder="m@example.com"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            style={styles.input}
-            editable={!isEmailLoading}
-            placeholderTextColor={isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Password</Text>
-          <Input
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            style={styles.input}
-            editable={!isEmailLoading}
-            placeholderTextColor={isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'}
-          />
-        </View>
-
-        {error ? (
-          <Text style={styles.error}>{error}</Text>
-        ) : null}
-
-        <Button 
-          onPress={handleEmailSubmit}
-          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
-          style={styles.button}
-        >
-          <View style={styles.buttonContent}>
-            {isEmailLoading ? (
-              <>
-                <ActivityIndicator size="small" color={colorScheme.colors.text} />
-                <Text style={[styles.buttonText, { color: colorScheme.colors.text, marginLeft: 8 }]}>
-                  Signing in...
-                </Text>
-              </>
-            ) : (
-              <Text style={[styles.buttonText, { color: colorScheme.colors.text }]}>
-                Sign in with Email
+        <View style={styles.buttonContent}>
+          {isEmailLoading ? (
+            <>
+              <ActivityIndicator size="small" color={colorScheme.colors.background} />
+              <Text style={[styles.buttonText, { color: colorScheme.colors.background, marginLeft: 8 }]}>
+                Signing in...
               </Text>
-            )}
-          </View>
-        </Button>
-
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
-          <View style={styles.dividerLine} />
+            </>
+          ) : (
+            <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
+              Sign in with Email
+            </Text>
+          )}
         </View>
+      </Button>
 
-        <Button 
-          onPress={handleAnonymousSubmit}
-          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
-          variant="outline"
-          style={styles.button}
-        >
-          <View style={styles.buttonContent}>
-            {isAnonymousLoading ? (
-              <>
-                <ActivityIndicator size="small" color={colorScheme.colors.text} />
-                <Text style={[styles.buttonText, { color: colorScheme.colors.text, marginLeft: 8 }]}>
-                  Signing in...
-                </Text>
-              </>
-            ) : (
-              <Text style={[styles.buttonText, { color: colorScheme.colors.text }]}>
-                Continue Anonymously
+      <View style={styles.divider}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>or</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <Button
+        onPress={handleAnonymousSubmit}
+        disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
+        variant="outline"
+        style={[styles.button, { borderColor: colorScheme.colors.border }]}
+      >
+        <View style={styles.buttonContent}>
+          {isAnonymousLoading ? (
+            <>
+              <ActivityIndicator size="small" color={colorScheme.colors.text} />
+              <Text style={[styles.buttonText, { color: colorScheme.colors.text, marginLeft: 8 }]}>
+                Signing in...
               </Text>
-            )}
-          </View>
-        </Button>
+            </>
+          ) : (
+            <Text style={[styles.buttonText, { color: colorScheme.colors.text }]}>
+              Continue Anonymously
+            </Text>
+          )}
+        </View>
+      </Button>
 
-        <Button 
-          onPress={handleGuestSubmit}
-          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
-          variant="outline"
-          style={styles.button}
-        >
-          <View style={styles.buttonContent}>
-            {isGuestLoading ? (
-              <>
-                <ActivityIndicator size="small" color={colorScheme.colors.text} />
-                <Text style={[styles.buttonText, { color: colorScheme.colors.text, marginLeft: 8 }]}>
-                  Signing in...
-                </Text>
-              </>
-            ) : (
-              <Text style={[styles.buttonText, { color: colorScheme.colors.text }]}>
-                Continue as Guest
+      <Button
+        onPress={handleGuestSubmit}
+        disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
+        variant="outline"
+        style={[styles.button, { borderColor: colorScheme.colors.border }]}
+      >
+        <View style={styles.buttonContent}>
+          {isGuestLoading ? (
+            <>
+              <ActivityIndicator size="small" color={colorScheme.colors.text} />
+              <Text style={[styles.buttonText, { color: colorScheme.colors.text, marginLeft: 8 }]}>
+                Signing in...
               </Text>
-            )}
-          </View>
-        </Button>
-
-      </ScrollView>
-    </Card>
+            </>
+          ) : (
+            <Text style={[styles.buttonText, { color: colorScheme.colors.text }]}>
+              Continue as Guest
+            </Text>
+          )}
+        </View>
+      </Button>
+    </ScrollView>
   );
 }

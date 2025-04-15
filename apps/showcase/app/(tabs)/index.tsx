@@ -318,17 +318,34 @@
 import { useAuth } from '@/lib/contexts/AuthContext';
 import LoginCommon from '@/components/common/LoginCommon';
 import { MainScreen } from "~/components/main";
-import { View } from 'react-native';
+import { View, ScrollView, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '~/lib/providers/theme/ThemeProvider';
 import { useState, useEffect } from 'react';
 import { indexedDB } from '@/lib/services/indexedDB';
+import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function LoginWrapper() {
   const { signIn, signInAnonymously, signInAsGuest } = useAuth();
+  const { colorScheme } = useColorScheme();
+  const { design } = useDesign();
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Apply design system tokens
+  const sectionStyle: ViewStyle = {
+    ...styles.section,
+    backgroundColor: colorScheme.colors.card,
+    padding: Number(design.spacing.padding.card),
+    borderRadius: Number(design.radius.lg),
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center' as const,
+  };
 
   const handleSubmit = async () => {
     try {
@@ -367,22 +384,48 @@ function LoginWrapper() {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}>
-      <LoginCommon
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        error={error}
-        isLoading={isLoading}
-        handleSubmit={handleSubmit}
-        handleAnonymousSignIn={handleAnonymousSignIn}
-        handleGuestSignIn={handleGuestSignIn}
-        onCancel={() => {}}
-      />
-    </View>
+    <ScrollView 
+      style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
+      contentContainerStyle={[
+        styles.contentContainer,
+        {
+          paddingBottom: insets.bottom + Number(design.spacing.padding.card),
+          paddingTop: insets.top + Number(design.spacing.padding.card),
+        }
+      ]}
+    >
+      <View style={sectionStyle}>
+        <LoginCommon
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          error={error}
+          isLoading={isLoading}
+          handleSubmit={handleSubmit}
+          handleAnonymousSignIn={handleAnonymousSignIn}
+          handleGuestSignIn={handleGuestSignIn}
+          onCancel={() => {}}
+        />
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  section: {
+    marginBottom: 16,
+  },
+});
 
 export default function Index() {
   const { user, loading } = useAuth();

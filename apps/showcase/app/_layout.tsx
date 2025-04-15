@@ -68,6 +68,7 @@ export default function RootLayout() {
               <Stack
                 initialRouteName='(tabs)'
                 screenOptions={{
+                  headerShown: false,
                   headerBackTitle: 'Back',
                   headerTitle(props) {
                     return <Text className='text-xl font-semibold'>{toOptions(props.children)}</Text>;
@@ -83,10 +84,39 @@ export default function RootLayout() {
                 />
 
                 <Stack.Screen
+                  name='login'
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+
+                <Stack.Screen
+                  name='explore'
+                  options={{
+                    headerShown: true,
+                  }}
+                />
+
+                <Stack.Screen
+                  name='[username]'
+                  options={{
+                    headerShown: true,
+                  }}
+                />
+
+                <Stack.Screen
+                  name='dashboard'
+                  options={{
+                    headerShown: true,
+                  }}
+                />
+
+                <Stack.Screen
                   name='modal'
                   options={{
                     presentation: 'modal',
                     title: 'Modal',
+                    headerShown: true,
                   }}
                 />
               </Stack>
