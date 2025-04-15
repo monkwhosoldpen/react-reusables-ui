@@ -24,6 +24,9 @@ import { useRouter } from 'expo-router';
 import { supabase } from '~/lib/supabase';
 import { generateMockFeedItem } from '~/lib/enhanced-chat/utils/mockData';
 import { useRealtime } from '~/lib/providers/RealtimeProvider';
+import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const DEFAULT_VISIBILITY: Visibility = {
   stats: true,
@@ -414,6 +417,9 @@ export default function FeedScreen() {
   const leftScrollRef = React.useRef<ScrollView>(null);
   const feedListRef = React.useRef<ScrollView>(null);
   const { feedItems, isLoading: realtimeLoading, refreshFeed } = useRealtime();
+  const { colorScheme } = useColorScheme();
+  const { design } = useDesign();
+  const insets = useSafeAreaInsets();
 
   const {
     formData,
@@ -1008,34 +1014,151 @@ Innovation = f(ambition × execution)
     }
   };
 
+  // Apply design system tokens
+  const containerStyle = {
+    flex: 1,
+    backgroundColor: colorScheme.colors.background,
+  };
+
+  const splitViewStyle = {
+    flex: 1,
+    flexDirection: 'row' as const,
+  };
+
+  const columnStyle = {
+    flex: 1,
+    padding: Number(design.spacing.padding.card),
+  };
+
+  const sectionStyle = {
+    marginBottom: Number(design.spacing.margin.section),
+    backgroundColor: colorScheme.colors.card,
+    padding: Number(design.spacing.padding.card),
+    borderRadius: Number(design.radius.lg),
+  };
+
+  const sectionTitleStyle = {
+    fontSize: Number(design.spacing.fontSize.lg),
+    fontWeight: 'bold' as const,
+    marginBottom: Number(design.spacing.margin.card),
+    color: colorScheme.colors.text,
+  };
+
+  const inputStyle = {
+    borderWidth: 1,
+    borderColor: colorScheme.colors.border,
+    borderRadius: Number(design.radius.md),
+    padding: Number(design.spacing.padding.input),
+    marginBottom: Number(design.spacing.margin.text),
+    color: colorScheme.colors.text,
+    backgroundColor: colorScheme.colors.background,
+  };
+
+  const rowStyle = {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    marginBottom: Number(design.spacing.margin.text),
+  };
+
+  const submitButtonStyle = {
+    marginTop: Number(design.spacing.margin.section),
+    backgroundColor: colorScheme.colors.primary,
+    padding: Number(design.spacing.padding.button),
+    borderRadius: Number(design.radius.md),
+  };
+
+  const previewHeaderStyle = {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    paddingVertical: Number(design.spacing.padding.item),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colorScheme.colors.border,
+  };
+
+  const feedItemContainerStyle = {
+    marginBottom: Number(design.spacing.margin.section),
+    borderWidth: 1,
+    borderColor: colorScheme.colors.border,
+    borderRadius: Number(design.radius.lg),
+    overflow: 'hidden' as const,
+    backgroundColor: colorScheme.colors.card,
+  };
+
+  const editButtonStyle = {
+    margin: Number(design.spacing.margin.item),
+    backgroundColor: colorScheme.colors.primary,
+    padding: Number(design.spacing.padding.button),
+    borderRadius: Number(design.radius.md),
+  };
+
+  const emptyStateStyle = {
+    padding: Number(design.spacing.padding.section),
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  };
+
+  const emptyStateTextStyle = {
+    fontSize: Number(design.spacing.fontSize.base),
+    color: colorScheme.colors.text,
+    opacity: Number(design.opacity.medium),
+  };
+
+  const loadingStateStyle = {
+    padding: Number(design.spacing.padding.section),
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  };
+
+  const toolbarStyle = {
+    flexDirection: 'row' as const,
+    padding: Number(design.spacing.padding.card),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colorScheme.colors.border,
+    backgroundColor: colorScheme.colors.card,
+  };
+
+  const createButtonStyle = {
+    backgroundColor: colorScheme.colors.primary,
+    padding: Number(design.spacing.padding.button),
+    borderRadius: Number(design.radius.md),
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={containerStyle}>
       {/* Toolbar */}
-      <View style={styles.toolbar}>
+      <View style={toolbarStyle}>
         <Button
           onPress={generateRealisticContent}
-          style={styles.createButton}
+          style={createButtonStyle}
         >
-          <Text>Create New</Text>
+          <Text style={{ color: colorScheme.colors.background }}>Create New</Text>
         </Button>
         <Button
           onPress={createRichMock}
-          style={[styles.createButton, { marginLeft: 8 }]}
+          style={[createButtonStyle, { marginLeft: Number(design.spacing.margin.item) }]}
         >
-          <Text>Create Rich</Text>
+          <Text style={{ color: colorScheme.colors.background }}>Create Rich</Text>
         </Button>
       </View>
 
-      <View style={styles.splitView}>
+      <View style={splitViewStyle}>
         {/* Left side - Form */}
-        <ScrollView style={styles.column} ref={leftScrollRef}>
+        <ScrollView 
+          style={columnStyle} 
+          ref={leftScrollRef}
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + Number(design.spacing.padding.card),
+          }}
+        >
           {/* Specific Content Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Content</Text>
+          <View style={sectionStyle}>
+            <Text style={sectionTitleStyle}>Content</Text>
 
             {/* Content Toggle */}
-            <View style={styles.row}>
-              <Text>Include Content</Text>
+            <View style={rowStyle}>
+              <Text style={{ color: colorScheme.colors.text }}>Include Content</Text>
               <Switch
                 value={includeContent}
                 onValueChange={setIncludeContent}
@@ -1044,22 +1167,26 @@ Innovation = f(ambition × execution)
 
             {/* Content Type Selection */}
             {includeContent && (
-              <View style={styles.radioGroup}>
+              <View style={{ marginTop: Number(design.spacing.margin.text) }}>
                 {(['small', 'long'] as const).map((type) => (
                   <Pressable
                     key={type}
-                    style={styles.radioOption}
+                    style={[rowStyle, { padding: Number(design.spacing.padding.item) }]}
                     onPress={() => setContentType(type)}
                   >
-                    <Text>{type.charAt(0).toUpperCase() + type.slice(1)} Content</Text>
-                    <View style={styles.radio}>
-                      <View
-                        style={[
-                          styles.radioInner,
-                          contentType === type && styles.radioSelected
-                        ]}
-                      />
-                    </View>
+                    <Text style={{ color: colorScheme.colors.text }}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)} Content
+                    </Text>
+                    <View style={{
+                      width: Number(design.spacing.iconSize),
+                      height: Number(design.spacing.iconSize),
+                      borderRadius: Number(design.radius.full),
+                      borderWidth: 2,
+                      borderColor: colorScheme.colors.primary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: contentType === type ? colorScheme.colors.primary : 'transparent',
+                    }} />
                   </Pressable>
                 ))}
               </View>
@@ -1069,21 +1196,22 @@ Innovation = f(ambition × execution)
             {includeContent && (
               <TextInput
                 style={[
-                  styles.input,
-                  contentType === 'long' && styles.longInput
+                  inputStyle,
+                  contentType === 'long' && { minHeight: 120 }
                 ]}
                 value={formData.content}
                 onChangeText={(text) => handleFormDataChange({ content: text })}
                 placeholder={`Enter your ${contentType} content`}
+                placeholderTextColor={colorScheme.colors.text + '80'}
                 multiline
                 numberOfLines={contentType === 'long' ? 6 : 3}
               />
             )}
 
             {/* Form Settings */}
-            <View style={styles.formSettings}>
-              <View style={styles.row}>
-                <Text>Require Auth</Text>
+            <View style={[sectionStyle, { marginTop: Number(design.spacing.margin.section) }]}>
+              <View style={rowStyle}>
+                <Text style={{ color: colorScheme.colors.text }}>Require Auth</Text>
                 <Switch
                   value={formData.metadata?.requireAuth ?? false}
                   onValueChange={(value) => handleFormDataChange({
@@ -1096,8 +1224,8 @@ Innovation = f(ambition × execution)
                 />
               </View>
 
-              <View style={styles.row}>
-                <Text>Allow Resubmit</Text>
+              <View style={rowStyle}>
+                <Text style={{ color: colorScheme.colors.text }}>Allow Resubmit</Text>
                 <Switch
                   value={formData.metadata?.allowResubmit ?? false}
                   onValueChange={(value) => handleFormDataChange({
@@ -1110,8 +1238,8 @@ Innovation = f(ambition × execution)
                 />
               </View>
 
-              <View style={styles.row}>
-                <Text>Make Content Collapsible</Text>
+              <View style={rowStyle}>
+                <Text style={{ color: colorScheme.colors.text }}>Make Content Collapsible</Text>
                 <Switch
                   value={formData.metadata?.isCollapsible ?? true}
                   onValueChange={(value) => handleFormDataChange({
@@ -1126,8 +1254,8 @@ Innovation = f(ambition × execution)
             </View>
 
             {/* Media Toggle */}
-            <View style={styles.row}>
-              <Text>Include Media</Text>
+            <View style={rowStyle}>
+              <Text style={{ color: colorScheme.colors.text }}>Include Media</Text>
               <Switch
                 value={includeMedia}
                 onValueChange={setIncludeMedia}
@@ -1138,8 +1266,8 @@ Innovation = f(ambition × execution)
             {renderMediaSection()}
 
             {/* Interactive Switch */}
-            <View style={styles.row}>
-              <Text>Interactive Content</Text>
+            <View style={rowStyle}>
+              <Text style={{ color: colorScheme.colors.text }}>Interactive Content</Text>
               <Switch
                 value={isInteractive}
                 onValueChange={setIsInteractive}
@@ -1148,29 +1276,33 @@ Innovation = f(ambition × execution)
 
             {/* Interactive Type Selection */}
             {isInteractive && (
-              <View style={styles.radioGroup}>
+              <View style={{ marginTop: Number(design.spacing.margin.text) }}>
                 {(['all', 'poll', 'quiz', 'survey'] as const).map((type) => (
                   <Pressable
                     key={type}
-                    style={styles.radioOption}
+                    style={[rowStyle, { padding: Number(design.spacing.padding.item) }]}
                     onPress={() => setSelectedInteractiveType(type)}
                   >
-                    <Text>{type.charAt(0).toUpperCase() + type.slice(1)}</Text>
-                    <View style={styles.radio}>
-                      <View
-                        style={[
-                          styles.radioInner,
-                          selectedInteractiveType === type && styles.radioSelected
-                        ]}
-                      />
-                    </View>
+                    <Text style={{ color: colorScheme.colors.text }}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </Text>
+                    <View style={{
+                      width: Number(design.spacing.iconSize),
+                      height: Number(design.spacing.iconSize),
+                      borderRadius: Number(design.radius.full),
+                      borderWidth: 2,
+                      borderColor: colorScheme.colors.primary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: selectedInteractiveType === type ? colorScheme.colors.primary : 'transparent',
+                    }} />
                   </Pressable>
                 ))}
               </View>
             )}
 
             {/* Interactive Content Forms */}
-            <View style={styles.interactiveSection}>
+            <View style={{ marginTop: Number(design.spacing.margin.section) }}>
               {renderInteractiveContent()}
             </View>
           </View>
@@ -1178,26 +1310,36 @@ Innovation = f(ambition × execution)
           <Button
             onPress={handleSubmit}
             disabled={isSubmitting}
-            style={styles.submitButton}
+            style={submitButtonStyle}
           >
-            <Text>{isSubmitting ? 'Submitting...' : 'Submit'}</Text>
+            <Text style={{ color: colorScheme.colors.background }}>
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </Text>
           </Button>
         </ScrollView>
 
         {/* Right side - Feed Items */}
         <ScrollView
-          style={styles.column}
+          style={columnStyle}
           ref={feedListRef}
           refreshControl={
-            <RefreshControl refreshing={realtimeLoading} onRefresh={refreshFeed} />
+            <RefreshControl 
+              refreshing={realtimeLoading} 
+              onRefresh={refreshFeed}
+              colors={[colorScheme.colors.primary]}
+              tintColor={colorScheme.colors.primary}
+            />
           }
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + Number(design.spacing.padding.card),
+          }}
         >
-          <View style={styles.previewHeader}>
-            <Text style={styles.sectionTitle}>Feed Items</Text>
+          <View style={previewHeaderStyle}>
+            <Text style={sectionTitleStyle}>Feed Items</Text>
           </View>
 
           {feedItems.map((item, index) => (
-            <View key={item.id || index} style={styles.feedItemContainer}>
+            <View key={item.id || index} style={feedItemContainerStyle}>
               <FeedItem
                 data={item}
                 showHeader={true}
@@ -1205,27 +1347,26 @@ Innovation = f(ambition × execution)
               />
               <Button
                 onPress={() => handleEditItem(item)}
-                style={styles.editButton}
+                style={editButtonStyle}
               >
-                <Text>Edit</Text>
+                <Text style={{ color: colorScheme.colors.background }}>Edit</Text>
               </Button>
             </View>
           ))}
 
           {feedItems.length === 0 && !realtimeLoading && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No feed items found</Text>
+            <View style={emptyStateStyle}>
+              <Text style={emptyStateTextStyle}>No feed items found</Text>
             </View>
           )}
 
           {realtimeLoading && (
-            <View style={styles.loadingState}>
-              <Text>Loading feed items...</Text>
+            <View style={loadingStateStyle}>
+              <Text style={{ color: colorScheme.colors.text }}>Loading feed items...</Text>
             </View>
           )}
         </ScrollView>
       </View>
-
     </View>
   );
 }

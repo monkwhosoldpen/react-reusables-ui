@@ -6,8 +6,6 @@ import { H1, Muted } from '~/components/ui/typography';
 
 export default function BlueScreen() {
   return (
-    <View className='flex-1 justify-center items-center gap-5'>
-      <FeedScreen />
-    </View>
+    <FeedScreen />
   );
 }
