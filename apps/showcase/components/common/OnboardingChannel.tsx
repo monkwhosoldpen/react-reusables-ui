@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Channel } from '@/lib/types/channel.types';
 import { useAuth } from '@/lib/contexts/AuthContext'
 import LoginCommon from '@/components/common/LoginCommon'
-import { View, Text, StyleSheet, Image } from 'react-native'
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { View, Text } from 'react-native'
 
 export interface OnboardingChannelProps {
   username: string
@@ -23,9 +21,10 @@ export function OnboardingChannel({
   onboardingConfig,
   onComplete
 }: OnboardingChannelProps) {
-  const { design } = useDesign();
-  const { colorScheme } = useColorScheme();
-  const isDarkMode = colorScheme.name === 'dark';
+  console.log('[OnboardingChannel] Component mounted with props:', {
+    hasChannelDetails: !!channelDetails,
+    hasOnCompleteHandler: !!onComplete
+  })
 
   // Track current screen index for the middle screens
   const [currentScreenIndex, setCurrentScreenIndex] = useState<number>(-1)
@@ -68,88 +67,6 @@ export function OnboardingChannel({
     }
   }
 
-  const styles = StyleSheet.create({
-    dialogContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    content: {
-      padding: Number(design.spacing.padding.card) * 1.5,
-      gap: Number(design.spacing.gap) * 1.5,
-      width: '100%',
-      maxWidth: 425,
-      backgroundColor: colorScheme.colors.card,
-      borderRadius: Number(design.radius.lg),
-      margin: 'auto',
-    },
-    screenContent: {
-      alignItems: 'center',
-      gap: Number(design.spacing.gap) * 1.5,
-    },
-    header: {
-      alignItems: 'center',
-      gap: Number(design.spacing.gap),
-      marginBottom: Number(design.spacing.margin.section),
-    },
-    title: {
-      fontSize: Number(design.spacing.fontSize['2xl']),
-      fontWeight: '700',
-      color: colorScheme.colors.text,
-      textAlign: 'center',
-      letterSpacing: -0.5,
-    },
-    subtitle: {
-      fontSize: Number(design.spacing.fontSize.lg),
-      fontWeight: '600',
-      color: colorScheme.colors.text,
-      textAlign: 'center',
-      letterSpacing: -0.25,
-    },
-    description: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      textAlign: 'center',
-      lineHeight: Number(design.spacing.lineHeight.relaxed),
-      paddingHorizontal: Number(design.spacing.padding.card),
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      gap: Number(design.spacing.gap),
-      marginTop: Number(design.spacing.margin.section),
-      justifyContent: 'center',
-      width: '100%',
-    },
-    image: {
-      width: '100%',
-      height: 200,
-      borderRadius: Number(design.radius.lg),
-      marginBottom: Number(design.spacing.margin.section),
-      backgroundColor: colorScheme.colors.border,
-      overflow: 'hidden',
-    },
-    imagePlaceholder: {
-      width: '100%',
-      height: '100%',
-      backgroundColor: colorScheme.colors.primary + '20',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    imageText: {
-      fontSize: Number(design.spacing.fontSize.lg),
-      color: colorScheme.colors.primary,
-      opacity: Number(design.opacity.medium),
-    },
-    footer: {
-      marginTop: Number(design.spacing.margin.section),
-      borderTopWidth: 1,
-      borderTopColor: colorScheme.colors.border,
-      paddingTop: Number(design.spacing.padding.card),
-    },
-  });
-
   // Get the current screen from the screens array
   const currentScreen = currentScreenIndex >= 0 && currentScreenIndex < config.screens.length
     ? config.screens[currentScreenIndex]
@@ -157,109 +74,99 @@ export function OnboardingChannel({
 
   // Log when dialog opens/closes
   const handleOpenChange = (open: boolean) => {
+    console.log('[OnboardingChannel] Dialog open state changed:', open)
     if (!open && currentScreenIndex === -1) {
+      console.log('[OnboardingChannel] Dialog closed without starting onboarding')
       onComplete?.()
     }
   }
 
   // Log screen transitions
   const handleStartClick = () => {
+    console.log('[OnboardingChannel] Starting onboarding process')
     setCurrentScreenIndex(0)
   }
 
   const handleNextClick = () => {
+    console.log('[OnboardingChannel] Moving to next screen:', currentScreenIndex + 1)
     setCurrentScreenIndex(prev => prev + 1)
   }
 
   const handleFinishClick = async () => {
+    console.log('[OnboardingChannel] Finishing onboarding process')
     try {
       if (channelDetails) {
+        console.log('[OnboardingChannel] Calling completeChannelOnboarding with:', channelDetails)
         await completeChannelOnboarding(username, channelDetails)
+        console.log('[OnboardingChannel] Onboarding completed successfully')
         onComplete?.()
+      } else {
+        console.error('[OnboardingChannel] Cannot complete onboarding: missing channel details')
       }
     } catch (error) {
       console.error('[OnboardingChannel] Error completing onboarding:', error)
     }
   }
 
+  console.log('[OnboardingChannel] Current render state:', {
+    currentScreenIndex,
+    isWelcomeScreen: currentScreenIndex === -1,
+    isFinishScreen: currentScreenIndex === config.screens.length
+  })
+
   // Function to determine if user can proceed to next screen
   const canProceed = () => {
+    // Add any validation logic here if needed
+    // For now, always allow proceeding
     return true
   }
 
-  const renderImage = (imageUrl: string, altText: string) => (
-    <View style={styles.image}>
-      {imageUrl ? (
-        <Image
-          source={{ uri: imageUrl }}
-          style={{ width: '100%', height: '100%' }}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={styles.imagePlaceholder}>
-          <Text style={styles.imageText}>{altText}</Text>
-        </View>
-      )}
-    </View>
-  );
-
   return (
     <Dialog open onOpenChange={handleOpenChange}>
-      <View style={styles.dialogContainer}>
-        <DialogContent className='sm:max-w-[425px]'>
-          <View style={styles.content}>
-            {step === 'welcome' && (
-              <View style={styles.screenContent}>
-                <View style={styles.header}>
-                  <Text style={styles.title}>{config.welcomescreen.title}</Text>
-                  <Text style={styles.subtitle}>{config.welcomescreen.subtitle}</Text>
-                </View>
-                {renderImage(config.welcomescreen.image, "Welcome")}
-                <Text style={styles.description}>{config.welcomescreen.description}</Text>
-                <View style={styles.buttonContainer}>
-                  <Button onPress={handleStartClick}>{config.welcomescreen.buttontext}</Button>
-                </View>
-              </View>
-            )}
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {step === 'welcome' && config.welcomescreen.title}
+            {step === 'screens' && currentScreen?.title}
+            {step === 'finish' && config.finishscreen.title}
+          </DialogTitle>
+        </DialogHeader>
 
-            {step === 'screens' && currentScreen && (
-              <View style={styles.screenContent}>
-                <View style={styles.header}>
-                  <Text style={styles.title}>{currentScreen.title}</Text>
-                </View>
-                {renderImage(currentScreen.image, currentScreen.title)}
-                <Text style={styles.description}>{currentScreen.description}</Text>
-                <View style={styles.buttonContainer}>
-                  {currentScreenIndex > 0 && (
-                    <Button variant="outline" onPress={() => setCurrentScreenIndex(currentScreenIndex - 1)}>Back</Button>
-                  )}
-                  <Button onPress={handleNextClick} disabled={!canProceed()}>
-                    {currentScreen.buttontext}
-                  </Button>
-                </View>
-              </View>
-            )}
+        {step === 'welcome' && (
+          <View className="flex-1 items-center justify-center p-4">
+            <Text className="text-lg font-medium mb-2">{config.welcomescreen.subtitle}</Text>
+            <Text className="text-sm text-muted-foreground mb-4">{config.welcomescreen.description}</Text>
+            <Button onPress={handleStartClick}>{config.welcomescreen.buttontext}</Button>
+          </View>
+        )}
 
-            {step === 'finish' && (
-              <View style={styles.screenContent}>
-                <View style={styles.header}>
-                  <Text style={styles.title}>{config.finishscreen.title}</Text>
-                  <Text style={styles.subtitle}>{config.finishscreen.subtitle}</Text>
-                </View>
-                {renderImage(config.finishscreen.image, "Finished")}
-                <Text style={styles.description}>{config.finishscreen.description}</Text>
-                <View style={styles.buttonContainer}>
-                  <Button onPress={handleFinishClick}>{config.finishscreen.buttontext}</Button>
-                </View>
-              </View>
-            )}
-
-            <View style={styles.footer}>
-              <Button variant="outline" onPress={() => onComplete?.()}>Cancel</Button>
+        {step === 'screens' && currentScreen && (
+          <View className="flex-1 items-center justify-center p-4">
+            <Text className="text-lg font-medium mb-2">{currentScreen.title}</Text>
+            <Text className="text-sm text-muted-foreground mb-4">{currentScreen.description}</Text>
+            <View className="flex-row gap-2">
+              {currentScreenIndex > 0 && (
+                <Button variant="outline" onPress={() => setCurrentScreenIndex(currentScreenIndex - 1)}>Back</Button>
+              )}
+              <Button onPress={handleNextClick} disabled={!canProceed()}>
+                {currentScreen.buttontext}
+              </Button>
             </View>
           </View>
-        </DialogContent>
-      </View>
+        )}
+
+        {step === 'finish' && (
+          <View className="flex-1 items-center justify-center p-4">
+            <Text className="text-lg font-medium mb-2">{config.finishscreen.subtitle}</Text>
+            <Text className="text-sm text-muted-foreground mb-4">{config.finishscreen.description}</Text>
+            <Button onPress={handleFinishClick}>{config.finishscreen.buttontext}</Button>
+          </View>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onPress={() => onComplete?.()}>Cancel</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   )
 } 
