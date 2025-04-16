@@ -20,22 +20,22 @@ import { ColorScheme, DesignConfig } from '~/lib/providers/theme/types';
 import { CommonHeader } from '~/components/CommonHeader';
 
 const createStyles = (
-  isMobile: boolean, 
-  isTablet: boolean, 
-  design: DesignConfig, 
+  isMobile: boolean,
+  isTablet: boolean,
+  design: DesignConfig,
   colorScheme: ColorScheme,
   insets: { top: number; bottom: number; left: number; right: number }
 ) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colorScheme.colors.background,
+    backgroundColor: '#17212B',
   },
   header: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colorScheme.colors.border,
-    backgroundColor: colorScheme.colors.card,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#17212B',
   },
   headerContent: {
     width: '100%',
@@ -49,12 +49,13 @@ const createStyles = (
   sidebar: {
     width: isMobile ? 60 : isTablet ? 200 : 240,
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: colorScheme.colors.border,
-    backgroundColor: colorScheme.colors.card,
+    borderRightColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#17212B',
   },
   mainContent: {
     flex: 1,
     marginLeft: isMobile ? 60 : isTablet ? 200 : 240,
+    backgroundColor: '#17212B',
   },
   accessBar: {
     padding: 16,
@@ -62,8 +63,8 @@ const createStyles = (
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colorScheme.colors.border,
-    backgroundColor: colorScheme.colors.card,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#17212B',
   },
   accessInfo: {
     flex: 1,
@@ -75,15 +76,15 @@ const createStyles = (
     padding: 6,
     borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colorScheme.colors.border,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     minWidth: 80,
     alignItems: 'center',
-    backgroundColor: colorScheme.colors.background,
+    backgroundColor: '#242F3D',
   },
   statusText: {
     fontSize: 14,
-    color: colorScheme.colors.text,
-    opacity: 0.6,
+    color: '#ffffff',
+    opacity: 0.7,
   },
   channelStatusContainer: {
     flexDirection: 'row',
@@ -92,49 +93,48 @@ const createStyles = (
   },
   channelStatusLabel: {
     fontSize: 14,
-    color: colorScheme.colors.text,
-    opacity: 0.6,
+    color: '#ffffff',
+    opacity: 0.7,
   },
   channelStatusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
-    backgroundColor: colorScheme.colors.background,
+    backgroundColor: '#242F3D',
   },
   channelStatusText: {
     fontSize: 14,
-    color: colorScheme.colors.text,
+    color: '#ffffff',
   },
   messageList: {
     padding: 16,
+    backgroundColor: '#17212B',
   },
   messageItem: {
-    padding: 16,
-    marginBottom: 16,
-    borderRadius: 12,
-    backgroundColor: colorScheme.colors.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colorScheme.colors.border,
+    padding: 12,
+    marginBottom: 8,
+    borderRadius: 8,
+    backgroundColor: '#242F3D',
+    borderWidth: 0,
   },
   messageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   messageUsername: {
-    color: colorScheme.colors.text,
+    color: '#64B5F6',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 15,
   },
   messageTime: {
-    fontSize: 14,
-    color: colorScheme.colors.text,
-    opacity: 0.6,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.5)',
     marginLeft: 8,
   },
   messageContent: {
-    fontSize: 16,
-    color: colorScheme.colors.text,
+    fontSize: 15,
+    color: '#ffffff',
     lineHeight: 1.4,
   },
   loadingContainer: {
@@ -142,29 +142,29 @@ const createStyles = (
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
+    backgroundColor: '#17212B',
   },
   loadingText: {
     marginTop: 8,
-    fontSize: 16,
-    color: colorScheme.colors.text,
-    opacity: 0.6,
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
+    backgroundColor: '#17212B',
   },
   errorText: {
-    fontSize: 18,
-    color: colorScheme.colors.text,
+    fontSize: 16,
+    color: '#ffffff',
     textAlign: 'center',
     marginBottom: 8,
   },
   errorSubText: {
-    fontSize: 16,
-    color: colorScheme.colors.text,
-    opacity: 0.6,
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -173,10 +173,11 @@ const createStyles = (
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
+    backgroundColor: '#17212B',
   },
   noMessagesText: {
-    fontSize: 18,
-    color: colorScheme.colors.text,
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -186,12 +187,12 @@ export default function ChannelPage() {
   const router = useRouter();
   const { username } = useLocalSearchParams();
   const usernameStr = Array.isArray(username) ? username[0] : username || '';
-  
+
   // State management
   const [channel, setChannel] = useState<Channel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Theme and design
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
@@ -203,14 +204,14 @@ export default function ChannelPage() {
   // Fetch channel data only once
   useEffect(() => {
     let isMounted = true;
-    
+
     const fetchChannel = async () => {
       try {
         const res = await fetch(`${config.api.endpoints.channels.base}/${usernameStr}`);
-        
+
         if (!res.ok) {
-          throw new Error(res.status === 404 ? 
-            `Channel @${usernameStr} not found` : 
+          throw new Error(res.status === 404 ?
+            `Channel @${usernameStr} not found` :
             'Failed to fetch channel details');
         }
 
@@ -286,14 +287,14 @@ export default function ChannelPage() {
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      <CommonHeader 
-        title={usernameStr} 
+      <CommonHeader
+        title={usernameStr}
         showBackButton={true}
       />
       {/* Main Content Area */}
       <View style={styles.contentContainer}>
         {/* Sidebar */}
-        <View style={[styles.sidebar, { 
+        <View style={[styles.sidebar, {
           position: isMobile ? 'absolute' : 'relative',
           left: 0,
           top: 0,
@@ -302,9 +303,9 @@ export default function ChannelPage() {
           backgroundColor: colorScheme.colors.background,
           borderRightColor: colorScheme.colors.border,
         }]}>
-          <ChannelSidebar 
-            username={usernameStr} 
-            channelDetails={channel} 
+          <ChannelSidebar
+            username={usernameStr}
+            channelDetails={channel}
             selectedChannel={usernameStr}
             isCompact={isMobile}
           />
@@ -312,55 +313,57 @@ export default function ChannelPage() {
 
         {/* Content Area */}
         <View style={styles.mainContent}>
-          {/* Access Control Bar */}
-          <View style={[styles.accessBar, { 
-            backgroundColor: colorScheme.colors.card,
-            borderBottomColor: colorScheme.colors.border,
-          }]}>
-            <View style={styles.accessInfo}>
-              <View style={[styles.statusBadge, { 
-                backgroundColor: colorScheme.colors.background,
-                borderColor: colorScheme.colors.border,
-              }]}>
-                <Text style={{ 
-                  fontSize: isMobile ? 10 : 12,
-                  color: colorScheme.colors.text,
-                  opacity: 0.7,
-                }}>
-                  {loadingMessages ? 'Loading...' : currentAccessStatus}
-                </Text>
-              </View>
-              
-              {!isMobile && (
-                <View style={styles.channelStatusContainer}>
-                  <Text style={styles.channelStatusLabel}>
-                    Channel Status:
-                  </Text>
-                  <View style={[
-                    styles.channelStatusBadge,
-                    { backgroundColor: channel.is_public ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)' }
-                  ]}>
-                    <Text style={[
-                      styles.channelStatusText,
-                      { color: channel.is_public ? '#22c55e' : '#ef4444' }
-                    ]}>
-                      {channel.is_public ? 'Public' : 'Private'}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-            
-            <JoinButton
-              username={usernameStr}
-              channelDetails={channel}
-              buttonText={isMobile ? "Join" : "Join Channel"}
-              size="sm"
-            />
-          </View>
 
           {/* Messages Section */}
           <ScrollView style={styles.messageList}>
+
+            {/* Access Control Bar */}
+            <View style={[styles.accessBar, {
+              backgroundColor: colorScheme.colors.card,
+              borderBottomColor: colorScheme.colors.border,
+            }]}>
+              <View style={styles.accessInfo}>
+                <View style={[styles.statusBadge, {
+                  backgroundColor: colorScheme.colors.background,
+                  borderColor: colorScheme.colors.border,
+                }]}>
+                  <Text style={{
+                    fontSize: isMobile ? 10 : 12,
+                    color: colorScheme.colors.text,
+                    opacity: 0.7,
+                  }}>
+                    {loadingMessages ? 'Loading...' : currentAccessStatus}
+                  </Text>
+                </View>
+
+                {!isMobile && (
+                  <View style={styles.channelStatusContainer}>
+                    <Text style={styles.channelStatusLabel}>
+                      Channel Status:
+                    </Text>
+                    <View style={[
+                      styles.channelStatusBadge,
+                      { backgroundColor: channel.is_public ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)' }
+                    ]}>
+                      <Text style={[
+                        styles.channelStatusText,
+                        { color: channel.is_public ? '#22c55e' : '#ef4444' }
+                      ]}>
+                        {channel.is_public ? 'Public' : 'Private'}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              <JoinButton
+                username={usernameStr}
+                channelDetails={channel}
+                buttonText={isMobile ? "Join" : "Join Channel"}
+                size="sm"
+              />
+            </View>
+
             {loadingMessages ? (
               <View style={styles.loadingContainer}>
                 <Loader2 size={Number(design.spacing.iconSize)} color={colorScheme.colors.primary} />
@@ -376,8 +379,8 @@ export default function ChannelPage() {
               </View>
             ) : messages && messages.length > 0 ? (
               messages.map((message: ChannelMessage) => (
-                <View 
-                  key={message.id} 
+                <View
+                  key={message.id}
                   style={styles.messageItem}
                 >
                   <View style={styles.messageHeader}>

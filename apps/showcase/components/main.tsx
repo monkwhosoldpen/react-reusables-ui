@@ -40,6 +40,9 @@ interface Styles {
   itemContent: ViewStyle;
   itemTitle: TextStyle;
   itemSubtitle: TextStyle;
+  timeStamp: TextStyle;
+  messageCount: ViewStyle;
+  messageCountText: TextStyle;
   fab: ViewStyle;
   emptyState: ViewStyle;
   emptyStateText: TextStyle;
@@ -82,18 +85,15 @@ const styles = StyleSheet.create<Styles>({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    marginBottom: 8,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.02)',
+    backgroundColor: 'transparent',
   },
   itemSelected: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: 'rgba(128,128,128,0.05)',
   },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -104,16 +104,35 @@ const styles = StyleSheet.create<Styles>({
   },
   itemContent: {
     flex: 1,
-    marginRight: 12,
+    marginRight: 8,
   },
   itemTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
     marginBottom: 2,
   },
   itemSubtitle: {
-    fontSize: 14,
-    opacity: 0.7,
+    fontSize: 13,
+  },
+  timeStamp: {
+    fontSize: 12,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  messageCount: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  messageCountText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
   },
   fab: {
     position: 'absolute',
@@ -367,27 +386,36 @@ export function MainScreen({ initialData }: MainScreenProps) {
     const isFirstPrivateChannel = isPrivateChannel && index === 0;
     const isFirstPublicChannel = !isPrivateChannel && index === tenantRequests.length;
 
-    // Get channel activity info
     const channelActivity = item.channelActivity?.[0];
     const lastMessage = channelActivity?.last_message;
     const messageCount = channelActivity?.message_count || 0;
     const lastUpdated = channelActivity?.last_updated_at || item.updated_at || item.created_at;
+    
+    const formattedDate = lastUpdated ? new Date(lastUpdated).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    }) : '';
 
-    // Get request status if it's a private channel
-    const status = isPrivateChannel ? item.status : '';
+    // Dynamic colors based on color scheme
+    const isDarkMode = colorScheme.colors.text === '#ffffff' || colorScheme.colors.background === '#000000';
+    const avatarBgColor = isDarkMode ? 'rgba(255,255,255,0.1)' : '#E8EEF2';
+    const avatarTextColor = colorScheme.colors.primary;
+    const selectedBgColor = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    const subtitleColor = isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748B';
+    const timestampColor = isDarkMode ? 'rgba(255,255,255,0.5)' : '#64748B';
 
     return (
       <>
         {isFirstPrivateChannel && (
           <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
-            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
+            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>
               PRIVATE CHANNELS
             </Text>
           </View>
         )}
         {isFirstPublicChannel && (
           <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
-            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
+            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>
               PUBLIC CHANNELS
             </Text>
           </View>
@@ -396,49 +424,40 @@ export function MainScreen({ initialData }: MainScreenProps) {
           key={item.id || index}
           style={[
             styles.item,
-            selectedItem?.id === item.id && styles.itemSelected,
-            { backgroundColor: colorScheme.colors.card }
+            selectedItem?.id === item.id && [styles.itemSelected, { backgroundColor: selectedBgColor }],
           ]}
           onPress={() => {
             setSelectedItem(item);
             router.push(`/${item.username}` as any);
           }}
         >
-          <View style={[styles.avatar, { backgroundColor: colorScheme.colors.background }]}>
-            <Text style={[styles.avatarText, { color: colorScheme.colors.text }]}>
+          <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
+            <Text style={[styles.avatarText, { color: avatarTextColor }]}>
               {item.username?.[0]?.toUpperCase() || '#'}
             </Text>
           </View>
           <View style={styles.itemContent}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
-                {item.username || 'Unknown'}
-              </Text>
-              {status && (
-                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, fontSize: 12, opacity: 0.7 }]}>
-                  {status}
-                </Text>
-              )}
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.7 }]}>
-                {messageCount} messages
-              </Text>
-              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.7, marginHorizontal: 4 }]}>
-                •
-              </Text>
-              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.7 }]}>
-                {lastUpdated ? new Date(lastUpdated).toLocaleDateString() : 'Invalid Date'}
-              </Text>
-            </View>
+            <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
+              {item.username || 'Unknown'}
+            </Text>
             {lastMessage ? (
-              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.8 }]} numberOfLines={2}>
+              <Text style={[styles.itemSubtitle, { color: subtitleColor }]} numberOfLines={1}>
                 {lastMessage.message_text}
               </Text>
             ) : (
-              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.6 }]} numberOfLines={1}>
+              <Text style={[styles.itemSubtitle, { color: subtitleColor, opacity: 0.6 }]} numberOfLines={1}>
                 No messages yet
               </Text>
+            )}
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={[styles.timeStamp, { color: timestampColor }]}>{formattedDate}</Text>
+            {messageCount > 0 && (
+              <View style={[styles.messageCount, { backgroundColor: colorScheme.colors.primary }]}>
+                <Text style={styles.messageCountText}>
+                  {messageCount}
+                </Text>
+              </View>
             )}
           </View>
         </TouchableOpacity>

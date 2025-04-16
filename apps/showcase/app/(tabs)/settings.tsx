@@ -39,50 +39,6 @@ export default function SettingsScreen() {
     }
   };
 
-  // Apply design system tokens
-  const sectionStyle = {
-    ...styles.section,
-    backgroundColor: colorScheme.colors.card,
-    padding: Number(design.spacing.padding.card),
-    borderRadius: Number(design.radius.lg),
-    marginBottom: Number(design.spacing.margin.card),
-    shadowColor: colorScheme.colors.border,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  };
-
-  const cardStyle = {
-    backgroundColor: colorScheme.colors.background,
-    padding: Number(design.spacing.padding.item),
-    borderRadius: Number(design.radius.md),
-    marginTop: Number(design.spacing.margin.item),
-  };
-
-  const titleStyle = {
-    color: colorScheme.colors.primary,
-    fontSize: Number(design.spacing.fontSize.sm),
-    fontWeight: '600',
-    marginBottom: Number(design.spacing.margin.item),
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  };
-
-  const textStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.base),
-  };
-
-  const labelStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.sm),
-    opacity: 0.7,
-  };
-
   const settingsData = [
     {
       id: 'account',
