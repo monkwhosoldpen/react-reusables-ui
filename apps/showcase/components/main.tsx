@@ -299,28 +299,32 @@ export function MainScreen({ initialData }: MainScreenProps) {
             fetchTenantRequests()
           ]);
 
-          // Merge channel activity into follows
-          const followsWithActivity = await Promise.all(
-            follows.map(async (follow) => {
-              const channelActivity = await indexedDB.getAllFromIndex('channels_activity', 'by-username', follow.username);
-              return {
-                ...follow,
-                channelActivity, // Assuming this returns an array with the appropriate message data
-              };
-            })
-          );
+          // Get all channel activity records
+          const allChannelActivity = await indexedDB.getAll('channels_activity');
 
-          // Merge channel activity into tenant requests once available
-          const requestsWithActivity = await Promise.all(
-            requests.map(async (request) => {
-              // This assumes that eventually tenant requests will have channel activity data stored
-              const channelActivity = await indexedDB.getAllFromIndex('channels_activity', 'by-username', request.username);
-              return {
-                ...request,
-                channelActivity: channelActivity || [], // Default to empty array if not found yet
-              };
-            })
-          );
+          // Merge channel activity into follows
+          const followsWithActivity = follows.map(follow => {
+            const channelActivity = allChannelActivity.find(
+              activity => activity.username === follow.username
+            );
+            return {
+              ...follow,
+              channelActivity: channelActivity ? [channelActivity] : [],
+              isPrivate: false
+            };
+          });
+
+          // Merge channel activity into tenant requests
+          const requestsWithActivity = requests.map(request => {
+            const channelActivity = allChannelActivity.find(
+              activity => activity.username === request.username
+            );
+            return {
+              ...request,
+              channelActivity: channelActivity ? [channelActivity] : [],
+              isPrivate: true
+            };
+          });
 
           // Log combined records if needed for debugging
           console.log('Combined Records from IndexedDB:', {
@@ -359,7 +363,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
   }, []);
 
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
-    const isPrivateChannel = tenantRequests.some(request => request.username === item.username);
+    const isPrivateChannel = item.isPrivate;
     const isFirstPrivateChannel = isPrivateChannel && index === 0;
     const isFirstPublicChannel = !isPrivateChannel && index === tenantRequests.length;
 
@@ -370,8 +374,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
     const lastUpdated = channelActivity?.last_updated_at || item.updated_at || item.created_at;
 
     // Get request status if it's a private channel
-    const tenantRequest = tenantRequests.find(request => request.username === item.username);
-    const status = tenantRequest?.status || '';
+    const status = isPrivateChannel ? item.status : '';
 
     return (
       <>

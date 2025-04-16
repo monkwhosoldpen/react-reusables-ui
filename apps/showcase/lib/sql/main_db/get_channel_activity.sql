@@ -8,6 +8,17 @@ BEGIN
         'channels_activity', (
           SELECT COALESCE(jsonb_agg(ca), '[]'::jsonb)
           FROM channels_activity ca
+          WHERE ca.username IN (
+            -- Get usernames from followed channels
+            SELECT username 
+            FROM user_channel_follow 
+            WHERE user_id = p_user_id
+            UNION
+            -- Get usernames from tenant requests
+            SELECT username 
+            FROM tenant_requests 
+            WHERE uid = p_user_id::text
+          )
         ),
         'user_language', (
           SELECT COALESCE(jsonb_agg(ul), '[]'::jsonb)
@@ -39,7 +50,21 @@ BEGIN
         ),
         'raw_records', (
           SELECT jsonb_build_object(
-            'channels_activity', (SELECT COALESCE(jsonb_agg(ca), '[]'::jsonb) FROM channels_activity ca),
+            'channels_activity', (
+              SELECT COALESCE(jsonb_agg(ca), '[]'::jsonb)
+              FROM channels_activity ca
+              WHERE ca.username IN (
+                -- Get usernames from followed channels
+                SELECT username 
+                FROM user_channel_follow 
+                WHERE user_id = p_user_id
+                UNION
+                -- Get usernames from tenant requests
+                SELECT username 
+                FROM tenant_requests 
+                WHERE uid = p_user_id::text
+              )
+            ),
             'user_language', (SELECT COALESCE(jsonb_agg(ul), '[]'::jsonb) FROM user_language ul),
             'user_notifications', (SELECT COALESCE(jsonb_agg(un), '[]'::jsonb) FROM user_notifications un),
             'push_subscriptions', (SELECT COALESCE(jsonb_agg(ps), '[]'::jsonb) FROM push_subscriptions ps),
