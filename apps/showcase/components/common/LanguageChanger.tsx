@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { View } from "react-native";
+import { Text } from "~/components/ui/text";
+import { Button } from "~/components/ui/button";
+import { ChevronDown } from "~/lib/icons/ChevronDown";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  type Option,
-} from "@/components/ui/select";
-import { Text } from "react-native";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { cn } from "~/lib/utils";
 
 interface LanguageChangerProps {
   variant?: "default" | "settings";
@@ -25,6 +30,11 @@ const languageOptions = [
   { id: "malayalam", name: "Malayalam", nativeName: "മലയാളം" }
 ];
 
+const contentInsets = {
+  left: 12,
+  right: 12,
+};
+
 export default function LanguageChanger({ variant = "default", className = "" }: LanguageChangerProps) {
   const { userInfo, updateLanguagePreference } = useAuth();
   const [isChanging, setIsChanging] = useState(false);
@@ -35,12 +45,6 @@ export default function LanguageChanger({ variant = "default", className = "" }:
   
   // Get the current language option
   const currentLanguageData = languageOptions.find(lang => lang.id === currentLanguage);
-
-  // Convert to Option type
-  const currentLanguageOption: Option = {
-    value: currentLanguage,
-    label: currentLanguageData?.name || currentLanguage
-  };
 
   // Handle language change
   const handleLanguageChange = async (newLanguage: string) => {
@@ -65,49 +69,53 @@ export default function LanguageChanger({ variant = "default", className = "" }:
     }
   };
 
-  // Different styling based on variant
-  const triggerClassName = variant === "settings" 
-    ? "w-[130px] h-9 bg-muted/50 border-none rounded-md focus:ring-offset-0 focus:ring-0" 
-    : "w-[130px] h-9 bg-emerald-500/20 dark:bg-emerald-700/40 text-white border-none rounded-full focus:ring-offset-0 focus:ring-0";
-
   return (
-    <div className={className}>
-      <Select 
-        value={currentLanguageOption}
-        onValueChange={(option: Option) => {
-          if (option) {
-            handleLanguageChange(option.value);
-          }
-        }}
-        disabled={isChanging}
-      >
-        <SelectTrigger className={triggerClassName}>
-          <SelectValue placeholder="Select language">
-            <div className="flex items-center">
-              {isChanging ? (
-                <span className={variant === "default" ? "text-white" : ""}>Changing...</span>
-              ) : (
-                <span className={variant === "default" ? "text-white" : ""}>{currentLanguageOption.label}</span>
-              )}
-            </div>
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-          {languageOptions.map((language) => (
-            <SelectItem 
-              key={language.id} 
-              value={language.id}
-              label={language.name}
-              className="hover:bg-muted focus:bg-muted"
-            >
-              <div className="flex items-center">
-                <span>{language.name}</span>
-                <span className="text-xs text-muted-foreground ml-1">({language.nativeName})</span>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <View className={className}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant={variant === "settings" ? "outline" : "ghost"}
+            size="sm"
+            style={{
+              width: 130,
+              height: 36,
+              backgroundColor: variant === "settings" ? "rgba(0, 0, 0, 0.05)" : "rgba(16, 185, 129, 0.2)",
+              borderWidth: 0,
+              borderRadius: variant === "settings" ? 6 : 9999,
+            }}
+            disabled={isChanging}
+          >
+            <View className="flex-row items-center gap-2">
+              <Text style={{ color: variant === "default" ? "#ffffff" : undefined }}>
+                {isChanging ? "Changing..." : currentLanguageData?.name || currentLanguage}
+              </Text>
+              <ChevronDown 
+                size={18} 
+                className={variant === "default" ? "text-white" : "text-foreground"} 
+              />
+            </View>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" insets={contentInsets} className="w-64 native:w-72">
+          <DropdownMenuLabel>Select language</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup className="gap-1">
+            {languageOptions.map((language) => (
+              <DropdownMenuItem
+                key={language.id}
+                onPress={() => handleLanguageChange(language.id)}
+                className={cn(
+                  "flex-col items-start gap-1",
+                  currentLanguage === language.id ? "bg-secondary/70" : ""
+                )}
+              >
+                <Text>{language.name}</Text>
+                <Text className="text-xs text-muted-foreground">({language.nativeName})</Text>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </View>
   );
 } 

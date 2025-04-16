@@ -84,71 +84,87 @@ const styles = StyleSheet.create<Styles>({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: 16,
     backgroundColor: 'transparent',
+    borderRadius: 12,
+    marginVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   itemSelected: {
     backgroundColor: 'rgba(128,128,128,0.05)',
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    backgroundColor: '#E8EEF2',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   avatarText: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1E293B',
   },
   itemContent: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 12,
   },
   itemTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    marginBottom: 2,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+    color: '#1E293B',
   },
   itemSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
   },
   timeStamp: {
     fontSize: 12,
-    alignSelf: 'flex-start',
-    marginTop: 2,
+    color: '#94A3B8',
+    marginBottom: 4,
   },
   messageCount: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 6,
-    alignSelf: 'flex-start',
-    marginTop: 2,
+    paddingHorizontal: 8,
+    backgroundColor: '#3B82F6',
   },
   messageCountText: {
-    color: '#fff',
-    fontSize: 11,
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '600',
   },
   fab: {
     position: 'absolute',
-    right: 16,
-    bottom: 16,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#0084ff',
+    right: 24,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#3B82F6',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 4,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
   emptyState: {
     flex: 1,
@@ -159,7 +175,7 @@ const styles = StyleSheet.create<Styles>({
   emptyStateText: {
     fontSize: 16,
     textAlign: 'center',
-    opacity: 0.6,
+    color: '#64748B',
   },
   loginContainer: {
     flex: 1,
@@ -205,44 +221,54 @@ const styles = StyleSheet.create<Styles>({
   },
   sectionHeader: {
     paddingVertical: 12,
-    paddingHorizontal: 0,
+    paddingHorizontal: 16,
     marginTop: 8,
+    backgroundColor: 'transparent',
   },
   sectionHeaderText: {
     fontSize: 12,
     fontWeight: '600',
-    opacity: 0.6,
+    color: '#94A3B8',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    letterSpacing: 1,
   },
   card: {
-    padding: 16,
-    borderRadius: 12,
+    padding: 20,
+    borderRadius: 16,
     marginTop: 24,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 8,
+    color: '#1E293B',
   },
   settingDescription: {
     fontSize: 16,
-    opacity: 0.6,
+    color: '#64748B',
     marginBottom: 16,
+    lineHeight: 24,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginTop: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 12,
+    backgroundColor: '#3B82F6',
   },
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#FFFFFF',
     marginLeft: 8,
   },
 });
@@ -329,7 +355,8 @@ export function MainScreen({ initialData }: MainScreenProps) {
             return {
               ...follow,
               channelActivity: channelActivity ? [channelActivity] : [],
-              isPrivate: false
+              isPrivate: false,
+              id: follow.id || follow.username // Ensure id is set
             };
           });
 
@@ -341,7 +368,9 @@ export function MainScreen({ initialData }: MainScreenProps) {
             return {
               ...request,
               channelActivity: channelActivity ? [channelActivity] : [],
-              isPrivate: true
+              isPrivate: true,
+              id: request.id || request.username, // Ensure id is set
+              username: request.username || request.tenant_name // Ensure username is set
             };
           });
 
@@ -396,26 +425,18 @@ export function MainScreen({ initialData }: MainScreenProps) {
       day: 'numeric',
     }) : '';
 
-    // Dynamic colors based on color scheme
-    const isDarkMode = colorScheme.colors.text === '#ffffff' || colorScheme.colors.background === '#000000';
-    const avatarBgColor = isDarkMode ? 'rgba(255,255,255,0.1)' : '#E8EEF2';
-    const avatarTextColor = colorScheme.colors.primary;
-    const selectedBgColor = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-    const subtitleColor = isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748B';
-    const timestampColor = isDarkMode ? 'rgba(255,255,255,0.5)' : '#64748B';
-
     return (
       <>
         {isFirstPrivateChannel && (
           <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
-            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>
+            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text, opacity: 0.6 }]}>
               PRIVATE CHANNELS
             </Text>
           </View>
         )}
         {isFirstPublicChannel && (
           <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
-            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>
+            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text, opacity: 0.6 }]}>
               PUBLIC CHANNELS
             </Text>
           </View>
@@ -424,41 +445,55 @@ export function MainScreen({ initialData }: MainScreenProps) {
           key={item.id || index}
           style={[
             styles.item,
-            selectedItem?.id === item.id && [styles.itemSelected, { backgroundColor: selectedBgColor }],
+            { 
+              backgroundColor: colorScheme.colors.card,
+              shadowColor: colorScheme.colors.text,
+              shadowOpacity: 0.1,
+            },
+            selectedItem?.id === item.id && [styles.itemSelected, { backgroundColor: colorScheme.colors.notification }],
           ]}
           onPress={() => {
             setSelectedItem(item);
             router.push(`/${item.username}` as any);
           }}
         >
-          <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
-            <Text style={[styles.avatarText, { color: avatarTextColor }]}>
+          <View style={[
+            styles.avatar, 
+            { 
+              backgroundColor: colorScheme.colors.notification,
+              shadowColor: colorScheme.colors.text,
+              shadowOpacity: 0.1,
+            }
+          ]}>
+            <Text style={[styles.avatarText, { color: colorScheme.colors.background }]}>
               {item.username?.[0]?.toUpperCase() || '#'}
             </Text>
           </View>
           <View style={styles.itemContent}>
-            <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
-              {item.username || 'Unknown'}
-            </Text>
-            {lastMessage ? (
-              <Text style={[styles.itemSubtitle, { color: subtitleColor }]} numberOfLines={1}>
-                {lastMessage.message_text}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
+                {item.username || 'Unknown'}
               </Text>
-            ) : (
-              <Text style={[styles.itemSubtitle, { color: subtitleColor, opacity: 0.6 }]} numberOfLines={1}>
-                No messages yet
-              </Text>
-            )}
-          </View>
-          <View style={{ alignItems: 'flex-end' }}>
-            <Text style={[styles.timeStamp, { color: timestampColor }]}>{formattedDate}</Text>
-            {messageCount > 0 && (
-              <View style={[styles.messageCount, { backgroundColor: colorScheme.colors.primary }]}>
-                <Text style={styles.messageCountText}>
-                  {messageCount}
+              <Text style={[styles.timeStamp, { color: colorScheme.colors.text, opacity: 0.6 }]}>{formattedDate}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              {lastMessage ? (
+                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.7 }]} numberOfLines={1}>
+                  {lastMessage.message_text}
                 </Text>
-              </View>
-            )}
+              ) : (
+                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.6 }]} numberOfLines={1}>
+                  No messages yet
+                </Text>
+              )}
+              {messageCount > 0 && (
+                <View style={[styles.messageCount, { backgroundColor: colorScheme.colors.primary }]}>
+                  <Text style={[styles.messageCountText, { color: colorScheme.colors.background }]}>
+                    {messageCount}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
         </TouchableOpacity>
       </>

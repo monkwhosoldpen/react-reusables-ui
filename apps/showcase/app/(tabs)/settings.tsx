@@ -5,7 +5,6 @@ import { useColorScheme, type ThemeName } from '~/lib/providers/theme/ColorSchem
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { type DesignType } from '~/lib/providers/theme/types';
 import { Switch } from '~/components/ui/switch';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type Option } from '~/components/ui/select';
 import { Button } from '~/components/ui/button';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +13,22 @@ import LanguageChanger from '@/components/common/LanguageChanger';
 import { config } from '~/lib/config';
 import { FlashList } from '@shopify/flash-list';
 import { cn } from '~/lib/utils';
+import { ChevronDown } from '~/lib/icons/ChevronDown';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu';
+import { Muted } from '~/components/ui/typography';
+
+const contentInsets = {
+  left: 12,
+  right: 12,
+};
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -29,13 +44,10 @@ export default function SettingsScreen() {
     router.push('/login');
   };
 
-  const handleThemeChange = (option: Option) => {
-    if (option?.value) {
-      const newTheme = option.value as ThemeName;
-      updateTheme(newTheme);
-      if (newTheme !== 'redblack') {
-        updateDesign(newTheme as DesignType);
-      }
+  const handleThemeChange = (newTheme: string) => {
+    updateTheme(newTheme as ThemeName);
+    if (newTheme !== 'redblack') {
+      updateDesign(newTheme as DesignType);
     }
   };
 
@@ -106,27 +118,8 @@ export default function SettingsScreen() {
               <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
                 Theme
               </Text>
-              <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-                Choose your preferred style
-              </Text>
             </View>
-            <Select 
-              defaultValue={{ value: themeName, label: themeName }}
-              onValueChange={handleThemeChange}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Select theme" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="whatsapp" label="WhatsApp" />
-                <SelectItem value="dracula" label="Dracula" />
-                <SelectItem value="twitter" label="Twitter" />
-                <SelectItem value="facebook" label="Facebook" />
-                <SelectItem value="spotify" label="Spotify" />
-                <SelectItem value="ghiblistudio" label="Studio Ghibli" />
-                <SelectItem value="redblack" label="Red-Black" />
-              </SelectContent>
-            </Select>
+            <ThemeDropdownSelect defaultValue={themeName} onValueChange={handleThemeChange} />
           </View>
         </>
       ),
@@ -139,9 +132,6 @@ export default function SettingsScreen() {
           <View>
             <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
               App Language
-            </Text>
-            <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-              Choose your preferred language
             </Text>
           </View>
           <LanguageChanger variant="settings" />
@@ -194,6 +184,132 @@ export default function SettingsScreen() {
         )}
       />
     </View>
+  );
+}
+
+function ThemeDropdownSelect({ 
+  defaultValue, 
+  onValueChange 
+}: { 
+  defaultValue: string;
+  onValueChange: (value: string) => void;
+}) {
+  const [value, setValue] = React.useState(defaultValue);
+  
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          style={{
+            flexDirection: 'row',
+            gap: 8,
+            paddingRight: 12,
+          }}
+        >
+          <Text>{value}</Text>
+          <ChevronDown size={18} className="text-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" insets={contentInsets} className="w-64 native:w-72">
+        <DropdownMenuLabel>Select theme</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup className="gap-1">
+          <DropdownMenuItem
+            onPress={() => {
+              setValue('whatsapp');
+              onValueChange('whatsapp');
+            }}
+            className={cn(
+              'flex-col items-start gap-1',
+              value === 'whatsapp' ? 'bg-secondary/70' : ''
+            )}
+          >
+            <Text>WhatsApp</Text>
+            <Muted>Modern messaging theme</Muted>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onPress={() => {
+              setValue('dracula');
+              onValueChange('dracula');
+            }}
+            className={cn(
+              'flex-col items-start gap-1',
+              value === 'dracula' ? 'bg-secondary/70' : ''
+            )}
+          >
+            <Text>Dracula</Text>
+            <Muted>Dark theme with purple accents</Muted>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onPress={() => {
+              setValue('twitter');
+              onValueChange('twitter');
+            }}
+            className={cn(
+              'flex-col items-start gap-1',
+              value === 'twitter' ? 'bg-secondary/70' : ''
+            )}
+          >
+            <Text>Twitter</Text>
+            <Muted>Social media inspired theme</Muted>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onPress={() => {
+              setValue('facebook');
+              onValueChange('facebook');
+            }}
+            className={cn(
+              'flex-col items-start gap-1',
+              value === 'facebook' ? 'bg-secondary/70' : ''
+            )}
+          >
+            <Text>Facebook</Text>
+            <Muted>Social media inspired theme</Muted>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onPress={() => {
+              setValue('spotify');
+              onValueChange('spotify');
+            }}
+            className={cn(
+              'flex-col items-start gap-1',
+              value === 'spotify' ? 'bg-secondary/70' : ''
+            )}
+          >
+            <Text>Spotify</Text>
+            <Muted>Music streaming inspired theme</Muted>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onPress={() => {
+              setValue('ghiblistudio');
+              onValueChange('ghiblistudio');
+            }}
+            className={cn(
+              'flex-col items-start gap-1',
+              value === 'ghiblistudio' ? 'bg-secondary/70' : ''
+            )}
+          >
+            <Text>Studio Ghibli</Text>
+            <Muted>Animated movie inspired theme</Muted>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onPress={() => {
+              setValue('redblack');
+              onValueChange('redblack');
+            }}
+            className={cn(
+              'flex-col items-start gap-1',
+              value === 'redblack' ? 'bg-secondary/70' : ''
+            )}
+          >
+            <Text>Red-Black</Text>
+            <Muted>High contrast theme</Muted>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
