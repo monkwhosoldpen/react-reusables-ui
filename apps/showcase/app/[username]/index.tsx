@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
-import { ChannelHeader } from '@/components/channel-profile/ChannelHeader';
 import { ChannelSidebar } from '@/components/channel-profile/ChannelSidebar';
+import { ChannelMessages } from '@/components/channel-profile/ChannelMessages';
 import { Channel, ChannelMessage } from '@/lib/types/channel.types';
 import { config } from '~/lib/config';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
@@ -18,6 +18,7 @@ import { Loader2 } from 'lucide-react';
 import { useLocalSearchParams } from 'expo-router';
 import { ColorScheme, DesignConfig } from '~/lib/providers/theme/types';
 import { CommonHeader } from '~/components/CommonHeader';
+import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 
 const createStyles = (
   isMobile: boolean,
@@ -201,6 +202,8 @@ export default function ChannelPage() {
   const isTablet = width >= 768 && width < 1024;
   const styles = useMemo(() => createStyles(isMobile, isTablet, design, colorScheme, { top: 0, bottom: 0, left: 0, right: 0 }), [isMobile, isTablet, design, colorScheme]);
 
+  const messagesEndRef = useRef<View>(null);
+
   // Fetch channel data only once
   useEffect(() => {
     let isMounted = true;
@@ -287,9 +290,9 @@ export default function ChannelPage() {
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      <CommonHeader
-        title={usernameStr}
-        showBackButton={true}
+      <ChannelHeader
+        username={usernameStr}
+        channelDetails={channel}
       />
       {/* Main Content Area */}
       <View style={styles.contentContainer}>
@@ -313,10 +316,8 @@ export default function ChannelPage() {
 
         {/* Content Area */}
         <View style={styles.mainContent}>
-
           {/* Messages Section */}
           <ScrollView style={styles.messageList}>
-
             {/* Access Control Bar */}
             <View style={[styles.accessBar, {
               backgroundColor: colorScheme.colors.card,
@@ -364,45 +365,13 @@ export default function ChannelPage() {
               />
             </View>
 
-            {loadingMessages ? (
-              <View style={styles.loadingContainer}>
-                <Loader2 size={Number(design.spacing.iconSize)} color={colorScheme.colors.primary} />
-                <Text style={styles.loadingText}>
-                  Loading messages...
-                </Text>
-              </View>
-            ) : messageError ? (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>
-                  {messageError}
-                </Text>
-              </View>
-            ) : messages && messages.length > 0 ? (
-              messages.map((message: ChannelMessage) => (
-                <View
-                  key={message.id}
-                  style={styles.messageItem}
-                >
-                  <View style={styles.messageHeader}>
-                    <Text style={styles.messageUsername}>
-                      {message.username}
-                    </Text>
-                    <Text style={styles.messageTime}>
-                      {new Date(message.created_at).toLocaleTimeString()}
-                    </Text>
-                  </View>
-                  <Text style={styles.messageContent}>
-                    {message.message_text}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <View style={styles.noMessagesContainer}>
-                <Text style={styles.noMessagesText}>
-                  No messages yet
-                </Text>
-              </View>
-            )}
+            <ChannelMessages
+              messages={messages || []}
+              messagesLoading={loadingMessages}
+              messagesError={messageError}
+              messagesEndRef={messagesEndRef}
+              channelDetails={channel}
+            />
           </ScrollView>
         </View>
       </View>

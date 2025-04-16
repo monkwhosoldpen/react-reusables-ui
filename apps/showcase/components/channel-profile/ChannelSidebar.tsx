@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Text } from '~/components/ui/text'
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider'
-import { Users, Plus } from 'lucide-react'
+import { Users, Plus, Settings, MessageCircle } from 'lucide-react'
 
 interface ChannelSidebarProps {
   username: string
@@ -21,52 +21,106 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRightWidth: StyleSheet.hairlineWidth,
   },
-  mobileScrollView: {
+  header: {
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  scrollView: {
     flex: 1,
-  },
-  mobileItem: {
-    padding: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  selectedMobileItem: {
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-  },
-  mobileLabel: {
-    maxWidth: 60,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    marginVertical: 8,
-  },
-  mobilePlusButton: {
-    padding: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   channelItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 16,
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    marginVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  mobileChannelItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
     padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    gap: 4,
   },
   selectedChannelItem: {
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: 'rgba(128,128,128,0.05)',
   },
-  channelIcon: {
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    backgroundColor: '#E8EEF2',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  mobileAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  channelContent: {
+    flex: 1,
     marginRight: 12,
   },
-  channelInfo: {
-    flex: 1,
+  mobileChannelContent: {
+    alignItems: 'center',
+  },
+  channelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  mobileChannelHeader: {
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   channelName: {
     fontWeight: '600',
+    fontSize: 15,
+    color: '#1E293B',
   },
-  channelStatus: {
-    opacity: 0.7,
+  mobileChannelName: {
+    fontSize: 12,
+    textAlign: 'center',
+    maxWidth: 60,
+    lineHeight: 14,
+    color: '#1E293B',
+  },
+  timestamp: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginBottom: 4,
+  },
+  messagePreview: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+  },
+  footer: {
+    flexDirection: 'row',
+    padding: 12,
+    justifyContent: 'space-around',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  footerButton: {
+    padding: 8,
   },
 });
 
@@ -79,6 +133,7 @@ export function ChannelSidebar({
   const { colorScheme } = useColorScheme()
   const { design } = useDesign()
   const { width } = useWindowDimensions()
+  const isMobile = width < 768
 
   const sidebarStyle = {
     ...styles.sidebar,
@@ -87,122 +142,94 @@ export function ChannelSidebar({
     width: isCompact ? 72 : 320,
   }
 
-  const channelItemStyle = {
-    ...styles.channelItem,
-    backgroundColor: colorScheme.colors.card,
-    borderColor: colorScheme.colors.border,
-    padding: isCompact ? 8 : 16,
-    flexDirection: isCompact ? 'column' : 'row',
-    alignItems: 'center',
-    gap: isCompact ? 4 : 12,
-  }
-
   const textStyle = {
     color: colorScheme.colors.text,
-    fontSize: isCompact ? 10 : Number(design.spacing.fontSize.base),
-    textAlign: isCompact ? 'center' as const : 'left' as const,
-  }
-
-  const mutedTextStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.sm),
-    opacity: 0.7,
-  }
-
-  if (isCompact) {
-    return (
-      <View style={sidebarStyle}>
-        <ScrollView style={styles.mobileScrollView}>
-          {/* Main Channel */}
-          <Link href={`/${username}`}>
-            <View style={[
-              styles.mobileItem,
-              selectedChannel === username && styles.selectedMobileItem
-            ]}>
-              <Users size={24} color={colorScheme.colors.text} />
-              <Text style={[textStyle, styles.mobileLabel]} numberOfLines={1}>
-                {username}
-              </Text>
-            </View>
-          </Link>
-
-          {channelDetails.related_channels && channelDetails.related_channels.length > 0 && (
-            <View style={[styles.divider, { backgroundColor: colorScheme.colors.border }]} />
-          )}
-
-          {/* Related Channels */}
-          {channelDetails.related_channels?.map((related) => (
-            <Link href={`/${related.username}`} key={related.username}>
-              <View style={[
-                styles.mobileItem,
-                selectedChannel === related.username && styles.selectedMobileItem
-              ]}>
-                <Users size={24} color={colorScheme.colors.text} />
-                <Text style={[textStyle, styles.mobileLabel]} numberOfLines={1}>
-                  {related.username}
-                </Text>
-              </View>
-            </Link>
-          ))}
-        </ScrollView>
-        <View style={[styles.mobilePlusButton, { borderTopColor: colorScheme.colors.border }]}>
-          <Plus size={24} color={colorScheme.colors.text} />
-        </View>
-      </View>
-    )
   }
 
   return (
     <View style={sidebarStyle}>
-      <ScrollView style={styles.mobileScrollView}>
+      <ScrollView style={styles.scrollView}>
         {/* Main Channel */}
         <Link href={`/${username}`}>
           <View style={[
-            styles.channelItem,
-            selectedChannel === username && styles.selectedChannelItem
+            isMobile ? styles.mobileChannelItem : styles.channelItem,
+            selectedChannel === username && styles.selectedChannelItem,
+            { backgroundColor: colorScheme.colors.card }
           ]}>
-            <View style={styles.channelIcon}>
-              <Users size={24} color={colorScheme.colors.text} />
+            <View style={[
+              styles.avatar,
+              isMobile && styles.mobileAvatar,
+              { backgroundColor: colorScheme.colors.notification }
+            ]}>
+              <Users size={isMobile ? 20 : 24} color={colorScheme.colors.background} />
             </View>
-            <View style={styles.channelInfo}>
-              <Text style={[textStyle, styles.channelName]}>
-                @{username}
-              </Text>
-              <Text style={[mutedTextStyle, styles.channelStatus]}>
-                {channelDetails.is_public ? 'Public Channel' : 'Private Channel'}
-              </Text>
+            <View style={[isMobile ? styles.mobileChannelContent : styles.channelContent]}>
+              <View style={[isMobile ? styles.mobileChannelHeader : styles.channelHeader]}>
+                <Text style={[
+                  isMobile ? styles.mobileChannelName : styles.channelName,
+                  textStyle
+                ]} numberOfLines={2}>
+                  {username}
+                </Text>
+                {!isMobile && (
+                  <Text style={[styles.timestamp, textStyle]}>
+                    10:15
+                  </Text>
+                )}
+              </View>
+              {!isMobile && (
+                <Text style={[styles.messagePreview, textStyle]} numberOfLines={1}>
+                  {channelDetails.is_public ? 'Public Channel' : 'Private Channel'}
+                </Text>
+              )}
             </View>
           </View>
         </Link>
-
-        {channelDetails.related_channels && channelDetails.related_channels.length > 0 && (
-          <View style={[styles.divider, { backgroundColor: colorScheme.colors.border }]} />
-        )}
 
         {/* Related Channels */}
         {channelDetails.related_channels?.map((related) => (
           <Link href={`/${related.username}`} key={related.username}>
             <View style={[
-              styles.channelItem,
-              selectedChannel === related.username && styles.selectedChannelItem
+              isMobile ? styles.mobileChannelItem : styles.channelItem,
+              selectedChannel === related.username && styles.selectedChannelItem,
+              { backgroundColor: colorScheme.colors.card }
             ]}>
-              <View style={styles.channelIcon}>
-                <Users size={24} color={colorScheme.colors.text} />
+              <View style={[
+                styles.avatar,
+                isMobile && styles.mobileAvatar,
+                { backgroundColor: colorScheme.colors.notification }
+              ]}>
+                <Users size={isMobile ? 20 : 24} color={colorScheme.colors.background} />
               </View>
-              <View style={styles.channelInfo}>
-                <Text style={[textStyle, styles.channelName]}>
-                  @{related.username}
-                </Text>
-                <Text style={[mutedTextStyle, styles.channelStatus]}>
-                  {related.is_public ? 'Public Channel' : 'Private Channel'}
-                </Text>
+              <View style={[isMobile ? styles.mobileChannelContent : styles.channelContent]}>
+                <View style={[isMobile ? styles.mobileChannelHeader : styles.channelHeader]}>
+                  <Text style={[
+                    isMobile ? styles.mobileChannelName : styles.channelName,
+                    textStyle
+                  ]} numberOfLines={2}>
+                    {related.username}
+                  </Text>
+                  {!isMobile && (
+                    <Text style={[styles.timestamp, textStyle]}>
+                      9:45
+                    </Text>
+                  )}
+                </View>
+                {!isMobile && (
+                  <Text style={[styles.messagePreview, textStyle]} numberOfLines={1}>
+                    {related.is_public ? 'Public Channel' : 'Private Channel'}
+                  </Text>
+                )}
               </View>
             </View>
           </Link>
         ))}
       </ScrollView>
-      <View style={[styles.mobilePlusButton, { borderTopColor: colorScheme.colors.border }]}>
-        <Plus size={24} color={colorScheme.colors.text} />
+
+      <View style={[styles.footer, { borderTopColor: colorScheme.colors.border }]}>
+        <View style={styles.footerButton}>
+          <Settings size={24} color={colorScheme.colors.text} />
+        </View>
       </View>
     </View>
   )

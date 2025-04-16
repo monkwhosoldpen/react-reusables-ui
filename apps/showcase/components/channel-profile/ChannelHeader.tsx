@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   leftSection: {
     flexDirection: 'row',
@@ -36,13 +37,17 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 8,
     borderRadius: 9999,
+    backgroundColor: 'transparent',
   },
   usernameText: {
+    fontSize: 16,
     fontWeight: '600',
+    color: '#1E293B',
   },
   settingsButton: {
     padding: 8,
     borderRadius: 9999,
+    backgroundColor: 'transparent',
   },
 });
 
@@ -56,12 +61,11 @@ export function ChannelHeader({ username, channelDetails }: ChannelHeaderProps) 
     ...styles.header,
     backgroundColor: colorScheme.colors.background,
     borderBottomColor: colorScheme.colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   }
 
   const textStyle = {
     color: colorScheme.colors.text,
-    fontSize: isMobile ? Number(design.spacing.fontSize.base) : Number(design.spacing.fontSize.lg),
+    fontSize: isMobile ? 14 : 16,
   }
 
   const backButtonStyle = {

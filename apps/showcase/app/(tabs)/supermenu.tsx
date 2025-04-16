@@ -6,72 +6,6 @@ import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider'
 import { cn } from '~/lib/utils'
 
-const styles = StyleSheet.create({
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-  },
-  itemSelected: {
-    backgroundColor: 'rgba(128,128,128,0.05)',
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  itemContent: {
-    flex: 1,
-    marginRight: 8,
-  },
-  itemTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  itemSubtitle: {
-    fontSize: 13,
-  },
-  timeStamp: {
-    fontSize: 12,
-    alignSelf: 'flex-start',
-    marginTop: 2,
-  },
-  messageCount: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-    alignSelf: 'flex-start',
-    marginTop: 2,
-  },
-  messageCountText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  sectionHeader: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginTop: 8,
-  },
-  sectionHeaderText: {
-    fontSize: 12,
-    fontWeight: '600',
-    opacity: 0.6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  }
-});
-
 export default function SuperMenu() {
   const insets = useSafeAreaInsets()
   const { colorScheme } = useColorScheme()
@@ -83,61 +17,168 @@ export default function SuperMenu() {
   const subtitleColor = isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748B'
   const timestampColor = isDarkMode ? 'rgba(255,255,255,0.5)' : '#64748B'
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colorScheme.colors.background,
+    },
+    header: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colorScheme.colors.border,
+      backgroundColor: colorScheme.colors.primary,
+    },
+    headerContent: {
+      width: '100%',
+      maxWidth: 1200,
+      alignSelf: 'center',
+    },
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: 'transparent',
+      borderRadius: 12,
+      marginVertical: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    itemSelected: {
+      backgroundColor: 'rgba(128,128,128,0.05)',
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+      backgroundColor: '#E8EEF2',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    itemContent: {
+      flex: 1,
+      marginRight: 12,
+    },
+    itemTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 4,
+      color: '#1E293B',
+    },
+    itemSubtitle: {
+      fontSize: 14,
+      color: '#64748B',
+      lineHeight: 20,
+    },
+    timeStamp: {
+      fontSize: 12,
+      color: '#94A3B8',
+      marginBottom: 4,
+    },
+    messageCount: {
+      minWidth: 24,
+      height: 24,
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      backgroundColor: colorScheme.colors.primary,
+    },
+    messageCountText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    sectionHeader: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginTop: 8,
+      backgroundColor: 'transparent',
+    },
+    sectionHeaderText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#94A3B8',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    card: {
+      padding: 20,
+      borderRadius: 16,
+      marginTop: 24,
+      backgroundColor: colorScheme.colors.card,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    sectionTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      marginBottom: 8,
+      color: '#1E293B',
+    },
+    settingDescription: {
+      fontSize: 16,
+      color: '#64748B',
+      marginBottom: 16,
+      lineHeight: 24,
+    },
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+      marginTop: 12,
+      backgroundColor: colorScheme.colors.primary,
+    },
+    buttonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#FFFFFF',
+      marginLeft: 8,
+    },
+  });
+
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: colorScheme.colors.background }}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
       {/* Header */}
-      <View className="px-6 pt-4 pb-3 flex-row items-center justify-between" style={{ backgroundColor: colorScheme.colors.primary }}>
-        <View className="flex-row items-center">
-          <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
-            <Text style={[styles.itemTitle, { color: colorScheme.colors.primary }]}>U</Text>
-          </View>
-          <View className="ml-4">
-            <Text className="font-semibold text-lg" style={{ color: colorScheme.colors.background }}>Hello, User</Text>
-            <View className="flex-row items-center">
-              <Text className="text-sm" style={{ color: colorScheme.colors.background, opacity: 0.8 }}>Mumbai</Text>
-              <MaterialIcons name="keyboard-arrow-down" size={22} color={colorScheme.colors.background} style={{ opacity: 0.8 }} />
+      <View style={[styles.header, { backgroundColor: colorScheme.colors.primary }]}>
+        <View style={styles.headerContent}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
+              <Text style={[styles.itemTitle, { color: colorScheme.colors.primary }]}>U</Text>
+            </View>
+            <View style={{ marginLeft: 12 }}>
+              <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>Hello, User</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.background, opacity: 0.8 }]}>Mumbai</Text>
+                <MaterialIcons name="keyboard-arrow-down" size={22} color={colorScheme.colors.background} style={{ opacity: 0.8 }} />
+              </View>
             </View>
           </View>
-        </View>
-        <View className="flex-row items-center space-x-5">
-          <TouchableOpacity>
-            <Ionicons name="scan-outline" size={26} color={colorScheme.colors.background} />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <MaterialIcons name="notifications-none" size={26} color={colorScheme.colors.background} />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <MaterialIcons name="help-outline" size={26} color={colorScheme.colors.background} />
-          </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView 
-        className="flex-1" 
-        contentContainerStyle={{ 
-          paddingBottom: 20,
-          paddingTop: insets.top,
-        }} 
-        style={{ backgroundColor: colorScheme.colors.background }}
+        style={{ flex: 1, backgroundColor: colorScheme.colors.background }}
+        contentContainerStyle={{ paddingBottom: 20 }}
       >
-        {/* Balance Card */}
-        <View className="px-6 pb-6" style={{ backgroundColor: colorScheme.colors.primary }}>
-          <TouchableOpacity style={[styles.item, { backgroundColor: colorScheme.colors.primary, opacity: 0.9 }]}>
-            <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
-              <MaterialIcons name="account-balance-wallet" size={24} color={colorScheme.colors.primary} />
-            </View>
-            <View style={styles.itemContent}>
-              <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>PhonePe Balance</Text>
-              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.background }]}>₹10,245.50</Text>
-            </View>
-            <TouchableOpacity className="px-5 py-2.5 rounded-full" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.8 }}>
-              <Text className="font-medium text-sm" style={{ color: colorScheme.colors.background }}>ADD MONEY</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </View>
 
         {/* Scan & Pay Button */}
-        <View className="px-6 -mt-5">
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <TouchableOpacity style={[styles.item, { backgroundColor: colorScheme.colors.card }]}>
             <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.primary}1A` }]}>
               <Ionicons name="qr-code-outline" size={24} color={colorScheme.colors.primary} />
@@ -151,12 +192,12 @@ export default function SuperMenu() {
         </View>
 
         {/* People Section */}
-        <View className="mt-6 px-6">
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>PEOPLE</Text>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
-            <TouchableOpacity className="items-center mr-8">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+            <TouchableOpacity style={{ alignItems: 'center', marginRight: 32 }}>
               <View style={[styles.avatar, { width: 56, height: 56, backgroundColor: `${colorScheme.colors.primary}1A`, borderColor: colorScheme.colors.primary, borderWidth: 1 }]}>
                 <MaterialIcons name="person-add" size={24} color={colorScheme.colors.primary} />
               </View>
@@ -169,7 +210,7 @@ export default function SuperMenu() {
               { name: "Neha", initial: "N" },
               { name: "Vikram", initial: "V" },
             ].map((contact, index) => (
-              <TouchableOpacity key={index} className="items-center mr-8">
+              <TouchableOpacity key={index} style={{ alignItems: 'center', marginRight: 32 }}>
                 <View style={[styles.avatar, { width: 56, height: 56, backgroundColor: colorScheme.colors.card }]}>
                   <Text style={[styles.itemTitle, { color: colorScheme.colors.text, opacity: 0.6 }]}>{contact.initial}</Text>
                 </View>
@@ -180,7 +221,7 @@ export default function SuperMenu() {
         </View>
 
         {/* Quick Actions Section */}
-        <View className="mt-4 px-6">
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>QUICK ACTIONS</Text>
           </View>
@@ -212,264 +253,261 @@ export default function SuperMenu() {
         </View>
 
         {/* Quick Actions Grid */}
-        <View className="mt-4 px-6 py-6 rounded-t-2xl" style={{ backgroundColor: colorScheme.colors.card }}>
-          <Text className="font-semibold mb-6 text-lg" style={{ color: colorScheme.colors.text }}>Money Transfers</Text>
-          <View className="flex-row flex-wrap justify-between">
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="account-balance" size={30} color={colorScheme.colors.primary} />
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
+            <View style={{ paddingHorizontal: 16 }}>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Money Transfers</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                {[
+                  { icon: "account-balance", title: "To Bank\nAccount" },
+                  { icon: "phone-android", title: "To Mobile\nNumber" },
+                  { icon: "person", title: "To Self\nAccount" },
+                  { icon: "bank-outline", title: "Check\nBalance" },
+                ].map((item, index) => (
+                  <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
+                    <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                      <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
+                    </View>
+                    <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, textAlign: 'center', marginTop: 8 }]}>
+                      {item.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>To Bank{"\n"}Account</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="phone-android" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>To Mobile{"\n"}Number</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="person" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>To Self{"\n"}Account</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialCommunityIcons name="bank-outline" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Check{"\n"}Balance</Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
 
         {/* Recharge & Pay Bills Section */}
-        <View className="px-6 py-6" style={{ backgroundColor: colorScheme.colors.card }}>
-          <Text className="font-semibold mb-6 text-lg" style={{ color: colorScheme.colors.text }}>Recharge & Pay Bills</Text>
-          <View className="flex-row flex-wrap justify-between">
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="mobile-friendly" size={30} color={colorScheme.colors.primary} />
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
+            <View style={{ paddingHorizontal: 16 }}>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Recharge & Pay Bills</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                {[
+                  { icon: "mobile-friendly", title: "Mobile\nRecharge" },
+                  { icon: "live-tv", title: "DTH" },
+                  { icon: "bolt", title: "Electricity" },
+                  { icon: "credit-card", title: "Credit Card\nBill" },
+                  { icon: "gas-cylinder", title: "Gas\nCylinder" },
+                  { icon: "water", title: "Water\nBill" },
+                  { icon: "wifi", title: "Broadband" },
+                  { icon: "more-horiz", title: "See All" },
+                ].map((item, index) => (
+                  <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
+                    <View style={[
+                      styles.avatar, 
+                      { 
+                        width: 64, 
+                        height: 64, 
+                        backgroundColor: item.icon === 'more-horiz' ? colorScheme.colors.card : `${colorScheme.colors.primary}1A`
+                      }
+                    ]}>
+                      {item.icon === 'water' ? (
+                        <FontAwesome5 name={item.icon} size={26} color={colorScheme.colors.primary} />
+                      ) : (
+                        <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
+                      )}
+                    </View>
+                    <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, textAlign: 'center', marginTop: 8 }]}>
+                      {item.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Mobile{"\n"}Recharge</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="live-tv" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>DTH</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="bolt" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Electricity</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="credit-card" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Credit Card{"\n"}Bill</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialCommunityIcons name="gas-cylinder" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Gas{"\n"}Cylinder</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <FontAwesome5 name="water" size={26} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Water{"\n"}Bill</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="wifi" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Broadband</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.card }}>
-                <MaterialIcons name="more-horiz" size={30} color={colorScheme.colors.text} style={{ opacity: 0.6 }} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>See All</Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        {/* Offers & Rewards */}
-        <View className="mt-2 px-6 py-6" style={{ backgroundColor: colorScheme.colors.card }}>
-          <Text className="font-semibold mb-5 text-lg" style={{ color: colorScheme.colors.text }}>Offers & Rewards</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
-            <TouchableOpacity className="mr-4">
-              <View className="w-52 h-32 rounded-xl p-5 justify-between" style={{ backgroundColor: colorScheme.colors.primary }}>
-                <View className="flex-row items-center">
-                  <MaterialCommunityIcons name="gift-outline" size={26} color={colorScheme.colors.background} />
-                  <Text className="ml-3 font-medium text-lg" style={{ color: colorScheme.colors.background }}>Rewards</Text>
-                </View>
-                <Text className="text-sm" style={{ color: colorScheme.colors.background, opacity: 0.8 }}>Collect 250 points to get ₹50 cashback</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity className="mr-4">
-              <View className="w-52 h-32 rounded-xl p-5 justify-between" style={{ backgroundColor: colorScheme.colors.primary }}>
-                <View className="flex-row items-center">
-                  <MaterialIcons name="local-offer" size={26} color={colorScheme.colors.background} />
-                  <Text className="ml-3 font-medium text-lg" style={{ color: colorScheme.colors.background }}>Offers</Text>
-                </View>
-                <Text className="text-sm" style={{ color: colorScheme.colors.background, opacity: 0.8 }}>20% off on your first transaction</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity className="mr-4">
-              <View className="w-52 h-32 rounded-xl p-5 justify-between" style={{ backgroundColor: colorScheme.colors.primary }}>
-                <View className="flex-row items-center">
-                  <MaterialIcons name="card-giftcard" size={26} color={colorScheme.colors.background} />
-                  <Text className="ml-3 font-medium text-lg" style={{ color: colorScheme.colors.background }}>Refer & Earn</Text>
-                </View>
-                <Text className="text-sm" style={{ color: colorScheme.colors.background, opacity: 0.8 }}>Refer friends and get ₹100 per referral</Text>
-              </View>
-            </TouchableOpacity>
-          </ScrollView>
+        {/* Offers & Rewards Section */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
+            <View style={{ paddingHorizontal: 16 }}>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Offers & Rewards</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+                {[
+                  { 
+                    icon: "gift-outline", 
+                    title: "Rewards", 
+                    subtitle: "Collect 250 points to get ₹50 cashback",
+                    color: colorScheme.colors.primary
+                  },
+                  { 
+                    icon: "local-offer", 
+                    title: "Offers", 
+                    subtitle: "20% off on your first transaction",
+                    color: colorScheme.colors.primary
+                  },
+                  { 
+                    icon: "card-giftcard", 
+                    title: "Refer & Earn", 
+                    subtitle: "Refer friends and get ₹100 per referral",
+                    color: colorScheme.colors.primary
+                  },
+                ].map((offer, index) => (
+                  <TouchableOpacity key={index} style={{ marginRight: 16 }}>
+                    <View style={{ 
+                      width: 208, 
+                      height: 128, 
+                      borderRadius: 12, 
+                      padding: 20,
+                      backgroundColor: offer.color,
+                      justifyContent: 'space-between'
+                    }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <MaterialIcons name={offer.icon as any} size={26} color={colorScheme.colors.background} />
+                        <Text style={{ 
+                          fontSize: 18, 
+                          fontWeight: '600', 
+                          color: colorScheme.colors.background,
+                          marginLeft: 12
+                        }}>
+                          {offer.title}
+                        </Text>
+                      </View>
+                      <Text style={{ 
+                        fontSize: 14, 
+                        color: colorScheme.colors.background,
+                        opacity: 0.8
+                      }}>
+                        {offer.subtitle}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
         </View>
 
-        {/* Travel & Entertainment */}
-        <View className="mt-2 px-6 py-6" style={{ backgroundColor: colorScheme.colors.card }}>
-          <Text className="font-semibold mb-6 text-lg" style={{ color: colorScheme.colors.text }}>Travel & Entertainment</Text>
-          <View className="flex-row flex-wrap justify-between">
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="flight" size={30} color={colorScheme.colors.primary} />
+        {/* Travel & Entertainment Section */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
+            <View style={{ paddingHorizontal: 16 }}>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Travel & Entertainment</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                {[
+                  { icon: "flight", title: "Flights" },
+                  { icon: "directions-bus", title: "Bus" },
+                  { icon: "train", title: "Trains" },
+                  { icon: "movie", title: "Movies" },
+                ].map((item, index) => (
+                  <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
+                    <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                      <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
+                    </View>
+                    <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, textAlign: 'center', marginTop: 8 }]}>
+                      {item.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Flights</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="directions-bus" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Bus</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="train" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Trains</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="movie" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Movies</Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
 
         {/* Insurance Section */}
-        <View className="mt-2 px-6 py-6" style={{ backgroundColor: colorScheme.colors.card }}>
-          <Text className="font-semibold mb-6 text-lg" style={{ color: colorScheme.colors.text }}>Insurance</Text>
-          <View className="flex-row flex-wrap justify-between">
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialCommunityIcons name="car-outline" size={30} color={colorScheme.colors.primary} />
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
+            <View style={{ paddingHorizontal: 16 }}>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Insurance</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                {[
+                  { icon: "car-outline", title: "Car" },
+                  { icon: "motorbike", title: "Bike" },
+                  { icon: "health-and-safety", title: "Health" },
+                  { icon: "home", title: "Home" },
+                ].map((item, index) => (
+                  <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
+                    <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                      <MaterialCommunityIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
+                    </View>
+                    <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, textAlign: 'center', marginTop: 8 }]}>
+                      {item.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Car</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialCommunityIcons name="motorbike" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Bike</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="health-and-safety" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Health</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="home" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Home</Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        {/* UPI Payments Section */}
-        <View className="px-6 py-5 mt-2" style={{ backgroundColor: colorScheme.colors.card }}>
-          <View className="flex-row items-center justify-between p-5 rounded-xl" style={{ backgroundColor: colorScheme.colors.background }}>
-            <View className="flex-row items-center">
-              <MaterialIcons name="payment" size={30} color={colorScheme.colors.text} style={{ opacity: 0.6 }} />
-              <View className="ml-4">
-                <Text className="font-medium text-lg" style={{ color: colorScheme.colors.text }}>UPI-less Payments</Text>
-                <Text className="text-sm" style={{ color: colorScheme.colors.text, opacity: 0.6 }}>Pay without UPI PIN</Text>
-              </View>
+        {/* UPI-less Payments Section */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
+            <View style={{ paddingHorizontal: 16 }}>
+              <TouchableOpacity style={[
+                styles.item, 
+                { 
+                  backgroundColor: colorScheme.colors.card,
+                  padding: 20,
+                  borderRadius: 12
+                }
+              ]}>
+                <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                  <MaterialIcons name="payment" size={30} color={colorScheme.colors.primary} />
+                </View>
+                <View style={styles.itemContent}>
+                  <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]}>UPI-less Payments</Text>
+                  <Text style={[styles.itemSubtitle, { color: subtitleColor }]}>Pay without UPI PIN</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color={colorScheme.colors.text} style={{ opacity: 0.6 }} />
+              </TouchableOpacity>
             </View>
-            <MaterialIcons name="chevron-right" size={26} color={colorScheme.colors.text} style={{ opacity: 0.6 }} />
           </View>
         </View>
 
         {/* Apps by PhonePe Section */}
-        <View className="mt-2 px-6 py-6" style={{ backgroundColor: colorScheme.colors.card }}>
-          <Text className="font-semibold mb-6 text-lg" style={{ color: colorScheme.colors.text }}>Apps by PhonePe</Text>
-          <View className="flex-row flex-wrap justify-between">
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialCommunityIcons name="store" size={30} color={colorScheme.colors.primary} />
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
+            <View style={{ paddingHorizontal: 16 }}>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Apps by PhonePe</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                {[
+                  { icon: "store", title: "Store" },
+                  { icon: "trending-up", title: "Share\nMarket" },
+                  { icon: "location-on", title: "Pincode" },
+                  { icon: "attach-money", title: "Wealth" },
+                ].map((item, index) => (
+                  <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
+                    <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                      <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
+                    </View>
+                    <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, textAlign: 'center', marginTop: 8 }]}>
+                      {item.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Store</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="trending-up" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Share{"\n"}Market</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="location-on" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Pincode</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center w-[22%] mb-8">
-              <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: colorScheme.colors.primary, opacity: 0.1 }}>
-                <MaterialIcons name="attach-money" size={30} color={colorScheme.colors.primary} />
-              </View>
-              <Text className="text-sm text-center" style={{ color: colorScheme.colors.text }}>Wealth</Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        {/* Sponsored Links */}
-        <View className="px-6 py-6 mt-2 mb-6" style={{ backgroundColor: colorScheme.colors.card }}>
-          <Text className="mb-4 text-base" style={{ color: colorScheme.colors.text, opacity: 0.6 }}>Sponsored Links</Text>
-          <View className="flex-row justify-between">
-            <TouchableOpacity className="w-[30%] aspect-square rounded-xl items-center justify-center overflow-hidden" style={{ backgroundColor: colorScheme.colors.background }}>
-              <Image source={{ uri: "/placeholder.svg?height=120&width=120" }} className="w-full h-full" />
-            </TouchableOpacity>
-            <TouchableOpacity className="w-[30%] aspect-square rounded-xl items-center justify-center overflow-hidden" style={{ backgroundColor: colorScheme.colors.background }}>
-              <Image source={{ uri: "/placeholder.svg?height=120&width=120" }} className="w-full h-full" />
-            </TouchableOpacity>
-            <TouchableOpacity className="w-[30%] aspect-square rounded-xl items-center justify-center overflow-hidden" style={{ backgroundColor: colorScheme.colors.background }}>
-              <Image source={{ uri: "/placeholder.svg?height=120&width=120" }} className="w-full h-full" />
-            </TouchableOpacity>
+        {/* Sponsored Links Section */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
+            <View style={{ paddingHorizontal: 16 }}>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Sponsored Links</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                {[1, 2, 3].map((_, index) => (
+                  <TouchableOpacity 
+                    key={index} 
+                    style={{ 
+                      width: '30%', 
+                      aspectRatio: 1,
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      backgroundColor: colorScheme.colors.background
+                    }}
+                  >
+                    <Image 
+                      source={{ uri: "/placeholder.svg?height=120&width=120" }} 
+                      style={{ width: '100%', height: '100%' }} 
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
           </View>
         </View>
       </ScrollView>
