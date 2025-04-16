@@ -60,8 +60,7 @@ export default function MaterialTopTabsLayout() {
             elevation: 0,
             shadowOpacity: 0,
           },
-        }}
-      >
+        }} id={undefined}      >
         <MaterialTopTabs.Screen
           name='index'
           options={{

@@ -339,11 +339,27 @@ export function AuthHelper(): AuthHelperReturn {
           
           if (data.success) {
             try {
+              // Transform the new API response structure into the old format
+              const transformedData = {
+                ...data,
+                userPreferences: {
+                  channels_messages: data.rawRecords?.channels_messages || [],
+                  channels_activity: data.rawRecords?.channels_activity || [],
+                  user_language: data.rawRecords?.user_language || [],
+                  user_notifications: data.rawRecords?.user_notifications || [],
+                  push_subscriptions: data.rawRecords?.push_subscriptions || [],
+                  tenant_requests: data.rawRecords?.tenant_requests || [],
+                  user_location: data.rawRecords?.user_location || [],
+                  user_channel_follow: data.rawRecords?.user_channel_follow || [],
+                  user_channel_last_viewed: data.rawRecords?.user_channel_last_viewed || []
+                }
+              };
+
               // Save all raw API data to IndexedDB in one call
-              await indexedDB.saveRawApiData(userId, data);
+              await indexedDB.saveRawApiData(userId, transformedData);
 
               // Create simplified user info for state - extract just what's needed for UI
-              const preferences = data.userPreferences;
+              const preferences = transformedData.userPreferences;
               
               // Extract language from user_language array
               const language = preferences.user_language?.length > 0 

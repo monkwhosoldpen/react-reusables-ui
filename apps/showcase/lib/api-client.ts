@@ -50,17 +50,25 @@ export async function fetchTenantUsers(): Promise<TenantUser[]> {
 // Fetch tenant requests from the API
 export async function fetchTenantRequests(): Promise<TenantRequest[]> {
   try {
+    console.log('API client: Fetching tenant requests from', config.api.endpoints.dashboard.tenantRequests);
     const response = await fetch(config.api.endpoints.dashboard.tenantRequests);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('API client: Error fetching tenant requests:', {
+        status: response.status,
+        error: errorData.error || `HTTP error! status: ${response.status}`
+      });
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('API client received tenant requests:', data.requests);
+    console.log('API client: Successfully fetched tenant requests:', {
+      count: data.requests?.length || 0,
+      requests: data.requests
+    });
     return data.requests || [];
   } catch (err) {
-    console.error('Error fetching tenant requests:', err);
+    console.error('API client: Error in fetchTenantRequests:', err);
     throw err;
   }
 }
@@ -83,7 +91,12 @@ export async function updateTenantRequestStatus(requestId: string, status: Tenan
         break;
     }
 
-    console.log(`API client: Updating request ${requestId} with action ${action} for status ${status}`);
+    console.log('API client: Updating tenant request:', {
+      requestId,
+      action,
+      status,
+      endpoint: config.api.endpoints.dashboard.tenantRequests
+    });
 
     const response = await fetch(config.api.endpoints.dashboard.tenantRequests, {
       method: 'PATCH',
@@ -98,13 +111,25 @@ export async function updateTenantRequestStatus(requestId: string, status: Tenan
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('API client: Error updating tenant request:', {
+        requestId,
+        status: response.status,
+        error: errorData.error || `HTTP error! status: ${response.status}`
+      });
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log('API client: Update result:', result);
+    console.log('API client: Successfully updated tenant request:', {
+      requestId,
+      result
+    });
   } catch (err) {
-    console.error(`Error updating tenant request status to ${status}:`, err);
+    console.error('API client: Error in updateTenantRequestStatus:', {
+      requestId,
+      status,
+      error: err
+    });
     throw err;
   }
 }

@@ -283,12 +283,6 @@ export function FollowButton({
       <Button
         variant={following ? "default" : "outline"}
         size={size}
-        className={cn(
-          "gap-2 font-medium",
-          following && "bg-primary hover:bg-primary/90 text-white",
-          !following && "text-primary border-primary/20 hover:bg-primary/10",
-          className
-        )}
         style={{
           borderRadius: Number(design.radius.md),
           paddingHorizontal: Number(design.spacing.padding.item),

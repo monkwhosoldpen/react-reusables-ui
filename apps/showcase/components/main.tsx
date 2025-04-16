@@ -11,20 +11,14 @@ import {
   TextStyle,
   useWindowDimensions,
 } from "react-native";
-import { useTheme } from '~/lib/providers/theme/ThemeProvider';
 import { ThemeName, useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { TenantRequest, useAuth } from '~/lib/contexts/AuthContext';
-import { FollowButton } from '@/components/common/FollowButton';
 import { LogIn, LogOut } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { indexedDB } from '@/lib/services/indexedDB';
-import LanguageChanger from '@/components/common/LanguageChanger';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Switch } from '~/components/ui/switch';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type Option } from '~/components/ui/select';
 import { FlashList } from '@shopify/flash-list';
-import { cn } from '~/lib/utils';
 
 interface MainScreenProps {
   initialData?: {
@@ -119,7 +113,7 @@ const styles = StyleSheet.create<Styles>({
   },
   itemSubtitle: {
     fontSize: 14,
-    opacity: 0.6,
+    opacity: 0.7,
   },
   fab: {
     position: 'absolute',
@@ -196,11 +190,12 @@ const styles = StyleSheet.create<Styles>({
     marginTop: 8,
   },
   sectionHeaderText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     opacity: 0.6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    marginBottom: 8,
   },
   card: {
     padding: 16,
@@ -234,17 +229,12 @@ const styles = StyleSheet.create<Styles>({
 });
 
 export function MainScreen({ initialData }: MainScreenProps) {
-  const { theme } = useTheme();
-  const { colorScheme, updateTheme } = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
-  const isSmallScreen = width < 375;
-  const isMediumScreen = width >= 375 && width < 768;
-  const isLargeScreen = width >= 768;
 
   const [followedChannels, setFollowedChannels] = useState<any[]>(initialData?.follows || []);
   const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>(initialData?.requests || []);
@@ -308,8 +298,38 @@ export function MainScreen({ initialData }: MainScreenProps) {
             fetchUserFollows(),
             fetchTenantRequests()
           ]);
-          setFollowedChannels(follows);
-          setTenantRequests(requests);
+
+          // Merge channel activity into follows
+          const followsWithActivity = await Promise.all(
+            follows.map(async (follow) => {
+              const channelActivity = await indexedDB.getAllFromIndex('channels_activity', 'by-username', follow.username);
+              return {
+                ...follow,
+                channelActivity, // Assuming this returns an array with the appropriate message data
+              };
+            })
+          );
+
+          // Merge channel activity into tenant requests once available
+          const requestsWithActivity = await Promise.all(
+            requests.map(async (request) => {
+              // This assumes that eventually tenant requests will have channel activity data stored
+              const channelActivity = await indexedDB.getAllFromIndex('channels_activity', 'by-username', request.username);
+              return {
+                ...request,
+                channelActivity: channelActivity || [], // Default to empty array if not found yet
+              };
+            })
+          );
+
+          // Log combined records if needed for debugging
+          console.log('Combined Records from IndexedDB:', {
+            follows: followsWithActivity,
+            tenant_requests: requestsWithActivity
+          });
+
+          setFollowedChannels(followsWithActivity);
+          setTenantRequests(requestsWithActivity);
           setIsDataLoaded(true);
         } catch (error) {
           console.error('Error loading data:', error);
@@ -338,113 +358,34 @@ export function MainScreen({ initialData }: MainScreenProps) {
     }
   }, []);
 
-  // Apply design system tokens
-  const titleStyle: TextStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.lg),
-    fontWeight: '600' as const,
-    marginBottom: Number(design.spacing.margin.card),
-    opacity: 1,
-  };
-
-  const textStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.base),
-  };
-
-  const labelStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.sm),
-    opacity: 0.7,
-  };
-
-  const listItemStyle: ViewStyle = {
-    backgroundColor: colorScheme.colors.card,
-    borderBottomColor: colorScheme.colors.border,
-    padding: Number(design.spacing.padding.item),
-    borderRadius: Number(design.radius.md),
-    marginBottom: Number(design.spacing.margin.item),
-  };
-
-  const avatarStyle: ViewStyle = {
-    width: Number(design.spacing.avatarSize),
-    height: Number(design.spacing.avatarSize),
-    borderRadius: Number(design.radius.full),
-    backgroundColor: colorScheme.colors.primary + '20',
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    marginRight: Number(design.spacing.margin.item),
-  };
-
-  const avatarTextStyle: TextStyle = {
-    fontSize: Number(design.spacing.fontSize.lg),
-    fontWeight: '500' as const,
-    color: colorScheme.colors.primary,
-  };
-
-  const listItemTextStyle: TextStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.base),
-    fontWeight: '500' as const,
-    opacity: 1,
-  };
-
-  const listItemSecondaryTextStyle: TextStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.sm),
-    opacity: 0.8,
-  };
-
-  const followedListStyle: ViewStyle = {
-    marginTop: Number(design.spacing.margin.card),
-    backgroundColor: colorScheme.colors.card,
-    borderRadius: Number(design.radius.md),
-    overflow: 'hidden' as const,
-    boxShadow: design.shadow.sm,
-  };
-
-  const followedItemStyle: ViewStyle = {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    padding: Number(design.spacing.padding.item),
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colorScheme.colors.border,
-    gap: Number(design.spacing.gap),
-  };
-
-  const trendsSectionStyle: ViewStyle = {
-    padding: Number(design.spacing.padding.card),
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colorScheme.colors.border,
-    backgroundColor: colorScheme.colors.card,
-    borderRadius: Number(design.radius.md),
-  };
-
-  const showMoreTextStyle: TextStyle = {
-    color: colorScheme.colors.primary,
-    fontSize: Number(design.spacing.fontSize.base),
-    marginTop: Number(design.spacing.margin.text),
-    fontWeight: '600' as const,
-  };
-
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
-    const isPrivateChannel = tenantRequests.some(request => request.id === item.id);
+    const isPrivateChannel = tenantRequests.some(request => request.username === item.username);
     const isFirstPrivateChannel = isPrivateChannel && index === 0;
     const isFirstPublicChannel = !isPrivateChannel && index === tenantRequests.length;
+
+    // Get channel activity info
+    const channelActivity = item.channelActivity?.[0];
+    const lastMessage = channelActivity?.last_message;
+    const messageCount = channelActivity?.message_count || 0;
+    const lastUpdated = channelActivity?.last_updated_at || item.updated_at || item.created_at;
+
+    // Get request status if it's a private channel
+    const tenantRequest = tenantRequests.find(request => request.username === item.username);
+    const status = tenantRequest?.status || '';
 
     return (
       <>
         {isFirstPrivateChannel && (
           <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
             <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
-              Private Channels
+              PRIVATE CHANNELS
             </Text>
           </View>
         )}
         {isFirstPublicChannel && (
           <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
             <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text }]}>
-              Public Channels
+              PUBLIC CHANNELS
             </Text>
           </View>
         )}
@@ -466,21 +407,37 @@ export function MainScreen({ initialData }: MainScreenProps) {
             </Text>
           </View>
           <View style={styles.itemContent}>
-            <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
-              {item.username || 'Unknown'}
-            </Text>
-            <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
-              {isPrivateChannel ? (item.status || 'NA') : (item.type || 'Channel')}
-            </Text>
-          </View>
-          {!isPrivateChannel && (
-            <View style={{ marginLeft: 8 }}>
-              <FollowButton
-                username={item.username}
-                initialFollowing={true}
-              />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
+                {item.username || 'Unknown'}
+              </Text>
+              {status && (
+                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, fontSize: 12, opacity: 0.7 }]}>
+                  {status}
+                </Text>
+              )}
             </View>
-          )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.7 }]}>
+                {messageCount} messages
+              </Text>
+              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.7, marginHorizontal: 4 }]}>
+                •
+              </Text>
+              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.7 }]}>
+                {lastUpdated ? new Date(lastUpdated).toLocaleDateString() : 'Invalid Date'}
+              </Text>
+            </View>
+            {lastMessage ? (
+              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.8 }]} numberOfLines={2}>
+                {lastMessage.message_text}
+              </Text>
+            ) : (
+              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.6 }]} numberOfLines={1}>
+                No messages yet
+              </Text>
+            )}
+          </View>
         </TouchableOpacity>
       </>
     );
@@ -576,8 +533,8 @@ export function MainScreen({ initialData }: MainScreenProps) {
         style={[styles.fab, { backgroundColor: colorScheme.colors.primary }]}
         onPress={() => router.push('/explore')}
       >
-        <Text style={{ 
-          color: colorScheme.colors.background, 
+        <Text style={{
+          color: colorScheme.colors.background,
           fontSize: 24,
           fontWeight: '600',
         }}>+</Text>
