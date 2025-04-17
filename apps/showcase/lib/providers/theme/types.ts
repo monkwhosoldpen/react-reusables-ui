@@ -1,4 +1,4 @@
-export type DesignType = 'whatsapp' | 'twitter' | 'facebook' | 'dracula' | 'spotify' | 'ghiblistudio' | 'redblack';
+export type DesignType = 'twitter' | 'facebook' | 'whatsapp' | 'dracula' | 'spotify' | 'ghiblistudio' | 'redblack' | 'material';
 
 export interface DesignConfig {
   name: DesignType;
@@ -52,11 +52,19 @@ export interface DesignConfig {
     lg: string;
     xl: string;
   };
+  elevation: {
+    none: string;
+    sm: string;
+    md: string;
+    lg: string;
+    xl: string;
+  };
   opacity: {
     disabled: string;
     subtle: string;
     medium: string;
     strong: string;
+    glass: string;
   };
   zIndex: {
     base: string;

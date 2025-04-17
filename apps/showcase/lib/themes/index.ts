@@ -4,7 +4,7 @@ import { ColorSchemeConfig } from "./types";
 export const whatsappLightModeColors: ColorSchemeConfig = {
   name: 'light',
   colors: {
-    primary: '#008069',
+    primary: '#128C7E', // Darker WhatsApp green
     background: '#FFFFFF',
     card: '#F0F2F5',
     text: '#111B21',
@@ -16,7 +16,7 @@ export const whatsappLightModeColors: ColorSchemeConfig = {
 export const whatsappDarkModeColors: ColorSchemeConfig = {
   name: 'dark',
   colors: {
-    primary: '#00A884',
+    primary: '#075E54', // Material Design dark green
     background: '#111B21',
     card: '#1F2C33',
     text: '#E9EDEF',
@@ -175,6 +175,31 @@ export const redblackDarkModeColors: ColorSchemeConfig = {
   },
 };
 
+// Material Theme Colors
+export const materialLightModeColors: ColorSchemeConfig = {
+  name: 'light',
+  colors: {
+    primary: '#6750A4',
+    background: '#FFFBFE',
+    card: '#FFFFFF',
+    text: '#1C1B1F',
+    border: '#E7E0EC',
+    notification: '#B4A9FF',
+  },
+};
+
+export const materialDarkModeColors: ColorSchemeConfig = {
+  name: 'dark',
+  colors: {
+    primary: '#D0BCFF',
+    background: '#1C1B1F',
+    card: '#2B2930',
+    text: '#E6E1E5',
+    border: '#49454F',
+    notification: '#B4A9FF',
+  },
+};
+
 // Theme Configurations
 export const themes = {
   whatsapp: {
@@ -196,5 +221,9 @@ export const themes = {
   spotify: {
     light: spotifyLightModeColors,
     dark: spotifyDarkModeColors,
+  },
+  material: {
+    light: materialLightModeColors,
+    dark: materialDarkModeColors,
   },
 } as const;

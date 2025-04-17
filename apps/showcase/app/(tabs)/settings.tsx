@@ -307,6 +307,19 @@ function ThemeDropdownSelect({
             <Text>Red-Black</Text>
             <Muted>High contrast theme</Muted>
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onPress={() => {
+              setValue('material');
+              onValueChange('material');
+            }}
+            className={cn(
+              'flex-col items-start gap-1',
+              value === 'material' ? 'bg-secondary/70' : ''
+            )}
+          >
+            <Text>Material</Text>
+            <Muted>Google's Material Design 3</Muted>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

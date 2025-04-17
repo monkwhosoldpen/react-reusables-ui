@@ -10,14 +10,15 @@ import {
   facebookDarkModeColors, facebookLightModeColors,
   spotifyDarkModeColors, spotifyLightModeColors,
   ghiblistudioDarkModeColors, ghiblistudioLightModeColors,
-  redblackDarkModeColors, redblackLightModeColors
+  redblackDarkModeColors, redblackLightModeColors,
+  materialDarkModeColors, materialLightModeColors
 } from '~/lib/themes';
 
 const COLOR_SCHEME_STORAGE_KEY = '@color-scheme';
 const THEME_STORAGE_KEY = '@theme-name';
 const DARK_MODE_STORAGE_KEY = '@dark-mode';
 
-export type ThemeName = 'whatsapp' | 'dracula' | 'twitter' | 'facebook' | 'spotify' | 'ghiblistudio' | 'redblack';
+export type ThemeName = 'whatsapp' | 'dracula' | 'twitter' | 'facebook' | 'spotify' | 'ghiblistudio' | 'redblack' | 'material';
 
 interface ColorSchemeContextType {
   colorScheme: ColorSchemeConfig;
@@ -71,6 +72,10 @@ const themes = {
   redblack: {
     light: redblackLightModeColors,
     dark: redblackDarkModeColors,
+  },
+  material: {
+    light: materialLightModeColors,
+    dark: materialDarkModeColors,
   },
 } as const;
 

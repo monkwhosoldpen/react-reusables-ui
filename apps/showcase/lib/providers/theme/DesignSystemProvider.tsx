@@ -5,10 +5,10 @@ import { DesignType, DesignConfig } from './types';
 const twitterDesign: DesignConfig = {
   name: 'twitter',
   spacing: {
-    gap: '12', // Twitter uses 12px as base unit
+    gap: '12',
     margin: {
       text: '4',
-      card: '16', // Cards have 16px margin
+      card: '16',
       formGroup: '20',
       section: '32',
       item: '12',
@@ -21,44 +21,52 @@ const twitterDesign: DesignConfig = {
       section: '24',
     },
     fontSize: {
-      xs: '13', // Twitter's smallest text
-      sm: '15', // Regular text
+      xs: '13',
+      sm: '15',
       base: '15',
-      lg: '17', // Headings
-      xl: '20', // Large headings
-      '2xl': '24', // Page titles
-      '3xl': '32', // Hero text
+      lg: '17',
+      xl: '20',
+      '2xl': '24',
+      '3xl': '32',
     },
     lineHeight: {
-      normal: '1.2', // Twitter's tight line height
+      normal: '1.2',
       relaxed: '1.4',
       loose: '1.6',
     },
-    iconSize: '24', // Twitter's icon size
-    inputHeight: '52', // Twitter's input height
+    iconSize: '24',
+    inputHeight: '52',
     buttonHeight: '52',
-    avatarSize: '48', // Twitter's avatar size
+    avatarSize: '48',
   },
   radius: {
     none: '0',
     sm: '4',
     md: '8',
-    lg: '12',
-    xl: '16',
+    lg: '16',
+    xl: '24',
     full: '9999',
   },
   shadow: {
     none: '0 0 0 rgba(0,0,0,0)',
-    sm: '0 1px 2px rgba(0,0,0,0.1)',
-    md: '0 2px 4px rgba(0,0,0,0.1)',
-    lg: '0 4px 8px rgba(0,0,0,0.1)',
-    xl: '0 8px 16px rgba(0,0,0,0.1)',
+    sm: '0 1px 2px rgba(0,0,0,0.05), 0 1px 1px rgba(0,0,0,0.1)',
+    md: '0 2px 4px rgba(0,0,0,0.05), 0 2px 2px rgba(0,0,0,0.1)',
+    lg: '0 4px 8px rgba(0,0,0,0.05), 0 4px 4px rgba(0,0,0,0.1)',
+    xl: '0 8px 16px rgba(0,0,0,0.05), 0 8px 8px rgba(0,0,0,0.1)',
+  },
+  elevation: {
+    none: '0',
+    sm: '1',
+    md: '2',
+    lg: '4',
+    xl: '8',
   },
   opacity: {
     disabled: '0.4',
     subtle: '0.6',
     medium: '0.8',
     strong: '0.9',
+    glass: '0.95',
   },
   zIndex: {
     base: '0',
@@ -74,7 +82,7 @@ const twitterDesign: DesignConfig = {
 const facebookDesign: DesignConfig = {
   name: 'facebook',
   spacing: {
-    gap: '16', // Facebook's base unit
+    gap: '16',
     margin: {
       text: '8',
       card: '16',
@@ -99,12 +107,12 @@ const facebookDesign: DesignConfig = {
       '3xl': '32',
     },
     lineHeight: {
-      normal: '1.4', // Facebook's comfortable line height
+      normal: '1.4',
       relaxed: '1.6',
       loose: '1.8',
     },
     iconSize: '20',
-    inputHeight: '40', // Facebook's compact inputs
+    inputHeight: '40',
     buttonHeight: '40',
     avatarSize: '40',
   },
@@ -118,16 +126,24 @@ const facebookDesign: DesignConfig = {
   },
   shadow: {
     none: '0 0 0 rgba(0,0,0,0)',
-    sm: '0 1px 2px rgba(0,0,0,0.1)',
-    md: '0 2px 4px rgba(0,0,0,0.1)',
-    lg: '0 4px 6px rgba(0,0,0,0.1)',
-    xl: '0 8px 12px rgba(0,0,0,0.1)',
+    sm: '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)',
+    md: '0 3px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)',
+    lg: '0 6px 12px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.06)',
+    xl: '0 12px 24px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.06)',
+  },
+  elevation: {
+    none: '0',
+    sm: '1',
+    md: '2',
+    lg: '4',
+    xl: '8',
   },
   opacity: {
     disabled: '0.4',
     subtle: '0.6',
     medium: '0.8',
     strong: '0.9',
+    glass: '0.95',
   },
   zIndex: {
     base: '0',
@@ -139,7 +155,7 @@ const facebookDesign: DesignConfig = {
   },
 };
 
-// WhatsApp's design system - Functional and conversational with mobile-first spacing
+// WhatsApp's design system - Material Design with subtle curves
 const whatsappDesign: DesignConfig = {
   name: 'whatsapp',
   spacing: {
@@ -161,7 +177,7 @@ const whatsappDesign: DesignConfig = {
     fontSize: {
       xs: '12',
       sm: '14',
-      base: '16', // WhatsApp's base font size
+      base: '16',
       lg: '18',
       xl: '20',
       '2xl': '24',
@@ -175,28 +191,36 @@ const whatsappDesign: DesignConfig = {
     iconSize: '24',
     inputHeight: '48',
     buttonHeight: '48',
-    avatarSize: '48', // WhatsApp's larger avatars
+    avatarSize: '40',
   },
   radius: {
     none: '0',
-    sm: '4',
-    md: '8',
-    lg: '12',
-    xl: '16',
+    sm: '2',
+    md: '4',
+    lg: '8',
+    xl: '12',
     full: '9999',
   },
   shadow: {
     none: '0 0 0 rgba(0,0,0,0)',
-    sm: '0 1px 3px rgba(0,0,0,0.12)',
-    md: '0 2px 4px rgba(0,0,0,0.12)',
-    lg: '0 4px 6px rgba(0,0,0,0.12)',
-    xl: '0 8px 12px rgba(0,0,0,0.12)',
+    sm: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+    md: '0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12)',
+    lg: '0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10)',
+    xl: '0 20px 40px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.10)',
+  },
+  elevation: {
+    none: '0',
+    sm: '2',
+    md: '4',
+    lg: '8',
+    xl: '16',
   },
   opacity: {
-    disabled: '0.4',
+    disabled: '0.38',
     subtle: '0.6',
-    medium: '0.8',
-    strong: '0.9',
+    medium: '0.7',
+    strong: '0.87',
+    glass: '0.92',
   },
   zIndex: {
     base: '0',
@@ -248,24 +272,32 @@ const draculaDesign: DesignConfig = {
   },
   radius: {
     none: '0',
-    sm: '4',
-    md: '8',
-    lg: '12',
-    xl: '16',
+    sm: '8',
+    md: '12',
+    lg: '20',
+    xl: '28',
     full: '9999',
   },
   shadow: {
     none: '0 0 0 rgba(0,0,0,0)',
-    sm: '0 2px 4px rgba(0,0,0,0.2)',
-    md: '0 4px 8px rgba(0,0,0,0.2)',
-    lg: '0 8px 16px rgba(0,0,0,0.2)',
-    xl: '0 12px 24px rgba(0,0,0,0.2)',
+    sm: '0 2px 4px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.3)',
+    md: '0 4px 8px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.3)',
+    lg: '0 8px 16px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.3)',
+    xl: '0 16px 32px rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.3)',
+  },
+  elevation: {
+    none: '0',
+    sm: '2',
+    md: '4',
+    lg: '8',
+    xl: '16',
   },
   opacity: {
     disabled: '0.4',
     subtle: '0.6',
     medium: '0.8',
     strong: '0.9',
+    glass: '0.95',
   },
   zIndex: {
     base: '0',
@@ -325,16 +357,24 @@ const spotifyDesign: DesignConfig = {
   },
   shadow: {
     none: '0 0 0 rgba(0,0,0,0)',
-    sm: '0 2px 4px rgba(0,0,0,0.1)',
-    md: '0 4px 6px rgba(0,0,0,0.1)',
-    lg: '0 8px 12px rgba(0,0,0,0.1)',
-    xl: '0 12px 16px rgba(0,0,0,0.1)',
+    sm: '0 2px 4px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1)',
+    md: '0 4px 8px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1)',
+    lg: '0 8px 16px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
+    xl: '0 16px 32px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1)',
+  },
+  elevation: {
+    none: '0',
+    sm: '1',
+    md: '2',
+    lg: '4',
+    xl: '8',
   },
   opacity: {
     disabled: '0.4',
     subtle: '0.6',
     medium: '0.8',
     strong: '0.9',
+    glass: '0.95',
   },
   zIndex: {
     base: '0',
@@ -394,16 +434,24 @@ const ghiblistudioDesign: DesignConfig = {
   },
   shadow: {
     none: '0 0 0 rgba(0,0,0,0)',
-    sm: '0 4px 8px rgba(0,0,0,0.1)',
-    md: '0 8px 16px rgba(0,0,0,0.1)',
-    lg: '0 12px 24px rgba(0,0,0,0.1)',
-    xl: '0 16px 32px rgba(0,0,0,0.1)',
+    sm: '0 4px 8px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1)',
+    md: '0 8px 16px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
+    lg: '0 12px 24px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1)',
+    xl: '0 16px 32px rgba(0,0,0,0.1), 0 12px 24px rgba(0,0,0,0.1)',
+  },
+  elevation: {
+    none: '0',
+    sm: '2',
+    md: '4',
+    lg: '8',
+    xl: '16',
   },
   opacity: {
     disabled: '0.4',
     subtle: '0.6',
     medium: '0.8',
     strong: '0.9',
+    glass: '0.95',
   },
   zIndex: {
     base: '0',
@@ -455,6 +503,83 @@ const redblackDesign: DesignConfig = {
   },
   radius: {
     none: '0',
+    sm: '2',
+    md: '4',
+    lg: '8',
+    xl: '12',
+    full: '9999',
+  },
+  shadow: {
+    none: '0 0 0 rgba(0,0,0,0)',
+    sm: '0 2px 4px rgba(255,0,0,0.1), 0 1px 2px rgba(255,0,0,0.2)',
+    md: '0 4px 8px rgba(255,0,0,0.2), 0 2px 4px rgba(255,0,0,0.3)',
+    lg: '0 8px 16px rgba(255,0,0,0.3), 0 4px 8px rgba(255,0,0,0.4)',
+    xl: '0 16px 32px rgba(255,0,0,0.4), 0 8px 16px rgba(255,0,0,0.5)',
+  },
+  elevation: {
+    none: '0',
+    sm: '2',
+    md: '4',
+    lg: '8',
+    xl: '16',
+  },
+  opacity: {
+    disabled: '0.4',
+    subtle: '0.6',
+    medium: '0.8',
+    strong: '0.9',
+    glass: '0.95',
+  },
+  zIndex: {
+    base: '0',
+    dropdown: '1000',
+    sticky: '1020',
+    overlay: '1030',
+    modal: '1040',
+    toast: '1050',
+  },
+};
+
+// Material Design system - Following Material Design 3 guidelines
+const materialDesign: DesignConfig = {
+  name: 'material',
+  spacing: {
+    gap: '8',
+    margin: {
+      text: '8',
+      card: '16',
+      formGroup: '24',
+      section: '32',
+      item: '16',
+    },
+    padding: {
+      item: '16',
+      card: '16',
+      input: '16',
+      button: '16',
+      section: '24',
+    },
+    fontSize: {
+      xs: '12',
+      sm: '14',
+      base: '16',
+      lg: '20',
+      xl: '24',
+      '2xl': '34',
+      '3xl': '45',
+    },
+    lineHeight: {
+      normal: '1.5',
+      relaxed: '1.75',
+      loose: '2',
+    },
+    iconSize: '24',
+    inputHeight: '56',
+    buttonHeight: '40',
+    avatarSize: '40',
+  },
+  radius: {
+    none: '0',
     sm: '4',
     md: '8',
     lg: '12',
@@ -463,16 +588,24 @@ const redblackDesign: DesignConfig = {
   },
   shadow: {
     none: '0 0 0 rgba(0,0,0,0)',
-    sm: '0 2px 4px rgba(255,0,0,0.1)',
-    md: '0 4px 8px rgba(255,0,0,0.2)',
-    lg: '0 8px 16px rgba(255,0,0,0.3)',
-    xl: '0 12px 24px rgba(255,0,0,0.4)',
+    sm: '0 1px 2px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.15)',
+    md: '0 4px 8px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.15)',
+    lg: '0 6px 10px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15)',
+    xl: '0 8px 12px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15)',
+  },
+  elevation: {
+    none: '0',
+    sm: '1',
+    md: '2',
+    lg: '3',
+    xl: '4',
   },
   opacity: {
-    disabled: '0.4',
+    disabled: '0.38',
     subtle: '0.6',
-    medium: '0.8',
-    strong: '0.9',
+    medium: '0.74',
+    strong: '0.87',
+    glass: '0.95',
   },
   zIndex: {
     base: '0',
@@ -492,6 +625,7 @@ export const designs = {
   spotify: spotifyDesign,
   ghiblistudio: ghiblistudioDesign,
   redblack: redblackDesign,
+  material: materialDesign,
 } as const;
 
 interface DesignContextType {

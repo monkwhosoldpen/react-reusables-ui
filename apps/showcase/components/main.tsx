@@ -85,35 +85,36 @@ const styles = StyleSheet.create<Styles>({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    marginVertical: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  itemSelected: {
-    backgroundColor: 'rgba(128,128,128,0.05)',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    backgroundColor: '#E8EEF2',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 0,
+    marginVertical: 0.5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 1,
+    borderWidth: 0,
+  },
+  itemSelected: {
+    backgroundColor: 'rgba(128,128,128,0.1)',
+  },
+  avatar: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+    backgroundColor: '#E8EEF2',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   avatarText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
     color: '#1E293B',
   },
   itemContent: {
@@ -122,33 +123,36 @@ const styles = StyleSheet.create<Styles>({
   },
   itemTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontWeight: '400',
+    marginBottom: 3,
     color: '#1E293B',
   },
   itemSubtitle: {
     fontSize: 14,
     color: '#64748B',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   timeStamp: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
     marginBottom: 4,
+    opacity: 0.8,
   },
   messageCount: {
-    minWidth: 24,
-    height: 24,
-    borderRadius: 12,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    backgroundColor: '#3B82F6',
+    paddingHorizontal: 6,
+    backgroundColor: '#25D366',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   messageCountText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '500',
   },
   fab: {
     position: 'absolute',
@@ -160,11 +164,11 @@ const styles = StyleSheet.create<Styles>({
     backgroundColor: '#3B82F6',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 16,
   },
   emptyState: {
     flex: 1,
@@ -187,9 +191,15 @@ const styles = StyleSheet.create<Styles>({
     width: '100%',
     maxWidth: 400,
     padding: 24,
-    borderRadius: 16,
+    borderRadius: 8,
     alignItems: 'center',
     gap: 16,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
   },
   loginTitle: {
     fontSize: 24,
@@ -211,6 +221,11 @@ const styles = StyleSheet.create<Styles>({
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   loginButtonText: {
     fontSize: 16,
@@ -234,14 +249,14 @@ const styles = StyleSheet.create<Styles>({
   },
   card: {
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 8,
     marginTop: 24,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   sectionTitle: {
     fontSize: 24,
@@ -264,6 +279,11 @@ const styles = StyleSheet.create<Styles>({
     borderRadius: 12,
     marginTop: 12,
     backgroundColor: '#3B82F6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   buttonText: {
     fontSize: 16,
@@ -274,7 +294,7 @@ const styles = StyleSheet.create<Styles>({
 });
 
 export function MainScreen({ initialData }: MainScreenProps) {
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, themeName } = useColorScheme();
   const { design } = useDesign();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -429,14 +449,14 @@ export function MainScreen({ initialData }: MainScreenProps) {
       <>
         {isFirstPrivateChannel && (
           <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
-            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text, opacity: 0.6 }]}>
+            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text, opacity: Number(design.opacity.subtle) }]}>
               PRIVATE CHANNELS
             </Text>
           </View>
         )}
         {isFirstPublicChannel && (
           <View style={[styles.sectionHeader, { backgroundColor: colorScheme.colors.background }]}>
-            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text, opacity: 0.6 }]}>
+            <Text style={[styles.sectionHeaderText, { color: colorScheme.colors.text, opacity: Number(design.opacity.subtle) }]}>
               PUBLIC CHANNELS
             </Text>
           </View>
@@ -447,10 +467,25 @@ export function MainScreen({ initialData }: MainScreenProps) {
             styles.item,
             { 
               backgroundColor: colorScheme.colors.card,
+              borderColor: colorScheme.colors.border,
+              borderRadius: Number(design.radius.lg),
+              padding: Number(design.spacing.padding.item),
               shadowColor: colorScheme.colors.text,
-              shadowOpacity: 0.1,
+              shadowOffset: { width: 0, height: themeName === 'material' ? 1 : 0 },
+              shadowOpacity: themeName === 'material' ? 0.15 : Number(design.opacity.subtle),
+              shadowRadius: themeName === 'material' ? 4 : 0,
+              elevation: themeName === 'material' ? 1 : 0,
             },
-            selectedItem?.id === item.id && [styles.itemSelected, { backgroundColor: colorScheme.colors.notification }],
+            selectedItem?.id === item.id && [
+              styles.itemSelected, 
+              { 
+                backgroundColor: colorScheme.colors.notification,
+                shadowOffset: { width: 0, height: themeName === 'material' ? 2 : 0 },
+                shadowOpacity: themeName === 'material' ? 0.2 : 0.1,
+                shadowRadius: themeName === 'material' ? 8 : 0,
+                elevation: themeName === 'material' ? 2 : 0,
+              }
+            ],
           ]}
           onPress={() => {
             setSelectedItem(item);
@@ -460,9 +495,13 @@ export function MainScreen({ initialData }: MainScreenProps) {
           <View style={[
             styles.avatar, 
             { 
+              width: Number(design.spacing.avatarSize),
+              height: Number(design.spacing.avatarSize),
+              borderRadius: Number(design.radius.full) / 2,
               backgroundColor: colorScheme.colors.notification,
               shadowColor: colorScheme.colors.text,
-              shadowOpacity: 0.1,
+              shadowOpacity: Number(design.opacity.subtle),
+              elevation: Number(design.elevation.sm),
             }
           ]}>
             <Text style={[styles.avatarText, { color: colorScheme.colors.background }]}>
@@ -474,20 +513,29 @@ export function MainScreen({ initialData }: MainScreenProps) {
               <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
                 {item.username || 'Unknown'}
               </Text>
-              <Text style={[styles.timeStamp, { color: colorScheme.colors.text, opacity: 0.6 }]}>{formattedDate}</Text>
+              <Text style={[styles.timeStamp, { color: colorScheme.colors.text, opacity: Number(design.opacity.subtle) }]}>{formattedDate}</Text>
             </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               {lastMessage ? (
-                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.7 }]} numberOfLines={1}>
+                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: Number(design.opacity.medium) }]} numberOfLines={1}>
                   {lastMessage.message_text}
                 </Text>
               ) : (
-                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: 0.6 }]} numberOfLines={1}>
+                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, opacity: Number(design.opacity.subtle) }]} numberOfLines={1}>
                   No messages yet
                 </Text>
               )}
               {messageCount > 0 && (
-                <View style={[styles.messageCount, { backgroundColor: colorScheme.colors.primary }]}>
+                <View style={[
+                  styles.messageCount, 
+                  { 
+                    minWidth: Number(design.spacing.iconSize),
+                    height: Number(design.spacing.iconSize),
+                    borderRadius: Number(design.radius.full) / 2,
+                    backgroundColor: colorScheme.colors.primary,
+                    elevation: Number(design.elevation.sm),
+                  }
+                ]}>
                   <Text style={[styles.messageCountText, { color: colorScheme.colors.background }]}>
                     {messageCount}
                   </Text>
@@ -498,7 +546,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
         </TouchableOpacity>
       </>
     );
-  }, [selectedItem, colorScheme, router, tenantRequests]);
+  }, [selectedItem, colorScheme, router, tenantRequests, design, themeName]);
 
   if (authLoading) {
     return (
@@ -587,12 +635,22 @@ export function MainScreen({ initialData }: MainScreenProps) {
       </View>
 
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colorScheme.colors.primary }]}
+        style={[
+          styles.fab,
+          { 
+            width: Number(design.spacing.buttonHeight),
+            height: Number(design.spacing.buttonHeight),
+            borderRadius: Number(design.radius.full) / 2,
+            backgroundColor: colorScheme.colors.primary,
+            elevation: Number(design.elevation.lg),
+            shadowOpacity: Number(design.opacity.medium),
+          }
+        ]}
         onPress={() => router.push('/explore')}
       >
         <Text style={{
           color: colorScheme.colors.background,
-          fontSize: 24,
+          fontSize: Number(design.spacing.fontSize.xl),
           fontWeight: '600',
         }}>+</Text>
       </TouchableOpacity>

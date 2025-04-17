@@ -1,31 +1,57 @@
-import { Stack } from "expo-router";
-import React from "react";
-import { CommonHeader } from "~/components/CommonHeader";
+import type {
+  MaterialTopTabNavigationEventMap,
+  MaterialTopTabNavigationOptions,
+} from '@react-navigation/material-top-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import {
+  useTheme,
+  type ParamListBase,
+  type TabNavigationState,
+} from '@react-navigation/native';
+import { Stack, withLayoutContext } from 'expo-router';
+import { useWindowDimensions } from 'react-native';
+import { CommonHeader } from '~/components/CommonHeader';
 
-export default function ExploreLayout() {
-  const hasMounted = React.useRef(false);
+const { Navigator } = createMaterialTopTabNavigator();
 
+const MaterialTopTabs = withLayoutContext<
+  MaterialTopTabNavigationOptions,
+  typeof Navigator,
+  TabNavigationState<ParamListBase>,
+  MaterialTopTabNavigationEventMap
+>(Navigator);
+
+export default function MaterialTopTabsLayout() {
+  const { colors } = useTheme();
+  const { width } = useWindowDimensions();
   return (
     <>
-      <Stack
+      <CommonHeader showBackButton />
+      <Stack.Screen options={{ headerShadowVisible: false }} />
+      <MaterialTopTabs
         initialRouteName='index'
+        options={{}}
         screenOptions={{
-          header: ({ navigation, route, options }) => (
-            <CommonHeader
-              title="Explore"
-              showBackButton={navigation.canGoBack()}
-              onBackPress={() => navigation.goBack()}
-            />
-          ),
+          tabBarStyle: {
+            backgroundColor: colors.background,
+          },
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.text,
         }}
       >
-        <Stack.Screen
+        <MaterialTopTabs.Screen
           name='index'
           options={{
-            headerShown: true,
+            title: 'UI',
           }}
         />
-      </Stack>
+        <MaterialTopTabs.Screen
+          name='sample'
+          options={{
+            title: 'Sample',
+          }}
+        />
+      </MaterialTopTabs>
     </>
   );
 }
