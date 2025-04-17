@@ -1,419 +1,40 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, TextInput, Switch, Pressable, Animated, RefreshControl } from 'react-native';
+import { View, ScrollView, TextInput, Switch, Pressable, RefreshControl } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
 import { useFeedForm } from '~/lib/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
-import { useMockFeedItems } from '~/lib/hooks/useMockFeedItems';
-import { createClient } from '@supabase/supabase-js';
 import {
   FormDataType,
-  MediaLayout,
-  DisplayMode,
-  Visibility,
-  Metadata,
   PollData,
   QuizData,
   MediaItem,
   MediaType,
-  SurveyData,
-  Stats,
-  InteractiveContent,
-  FillRequirement
-} from '~/lib/enhanced-chat/types/superfeed';
-import { useRouter } from 'expo-router';
+  SurveyData} from '~/lib/enhanced-chat/types/superfeed';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { mockTenant } from '../../components/dashboard/mocktenant';
+import {
+  setupRealtimeSubscription,
+  DEFAULT_METADATA,
+  handlePollUpdate as updatePoll,
+  handleQuizUpdate as updateQuiz,
+  handleSurveyUpdate as updateSurvey,
+  handleMediaChange as updateMedia,
+  handleAddMedia as addMedia,
+  handleRemoveMedia as removeMedia,
+  generateRealisticContent,
+  createRichMock,
+  handleEditItem,
+  refreshFeed,
+  handleSubmit,
+  determineInteractiveType
+} from '~/lib/utils/feedData';
 
 // Initialize Supabase client with tenant's credentials
-const supabase = createClient(
-  mockTenant.tenant_supabase_url,
-  mockTenant.tenant_supabase_anon_key
-);
-
-const DEFAULT_VISIBILITY: Visibility = {
-  stats: true,
-  shareButtons: true,
-  header: true,
-  footer: true
-};
-
-const DEFAULT_METADATA: Metadata = {
-  maxHeight: 300,
-  isCollapsible: true,
-  displayMode: 'compact' as const,
-  visibility: DEFAULT_VISIBILITY,
-  mediaLayout: 'grid' as const,
-  requireAuth: false,
-  allowResubmit: false,
-};
-
-const DEFAULT_POLL: PollData = {
-  question: '',
-  options: ['', '']
-};
-
-const DEFAULT_QUIZ: QuizData = {
-  title: '',
-  description: '',
-  questions: [{
-    text: '',
-    options: ['', ''],
-    correct_option: 0
-  }]
-};
-
-const DEFAULT_SURVEY: SurveyData = {
-  title: '',
-  description: '',
-  questions: [{
-    text: '',
-    options: ['', '']
-  }]
-};
-
-const REALISTIC_CONTENT = {
-  small: [
-    "🎉 Just launched our new feature! Check it out and let us know what you think.",
-    "📢 Important update: System maintenance scheduled for tomorrow at 10 AM EST.",
-    "💡 Pro tip: Use keyboard shortcuts to boost your productivity!",
-    "🎯 Weekly goal achieved! Thanks to everyone who contributed.",
-  ],
-  long: [
-    "🚀 We're excited to announce the launch of our latest product update! This release includes several highly-requested features and performance improvements. We've completely redesigned the dashboard, added new analytics tools, and improved the overall user experience.\n\nKey highlights:\n• New dashboard layout\n• Advanced analytics\n• Improved performance\n• Better mobile support\n\nTry it out and share your feedback!",
-    "📋 Monthly Project Update\n\nWe've made significant progress this month:\n\n1. Completed the main infrastructure upgrade\n2. Launched three new integrations\n3. Reduced loading times by 40%\n4. Fixed 50+ reported issues\n\nNext steps:\n- Rolling out the new UI\n- Implementing user feedback\n- Expanding the API\n\nStay tuned for more updates!",
-  ]
-};
-
-const REALISTIC_MEDIA = {
-  image: [
-    {
-      type: 'image' as const,
-      url: 'https://picsum.photos/800/600',
-      caption: 'Our new office space in downtown',
-      dimensions: { width: 800, height: 600 }
-    },
-    {
-      type: 'image' as const,
-      url: 'https://picsum.photos/900/600',
-      caption: 'Team building event highlights',
-      dimensions: { width: 900, height: 600 }
-    },
-    {
-      type: 'image' as const,
-      url: 'https://picsum.photos/1200/800',
-      caption: 'Product launch event',
-      dimensions: { width: 1200, height: 800 }
-    },
-    {
-      type: 'image' as const,
-      url: 'https://picsum.photos/1000/1000',
-      caption: 'Behind the scenes at our design workshop',
-      dimensions: { width: 1000, height: 1000 }
-    },
-    {
-      type: 'image' as const,
-      url: 'https://picsum.photos/800/800',
-      caption: 'Meet our engineering team',
-      dimensions: { width: 800, height: 800 }
-    },
-    {
-      type: 'image' as const,
-      url: 'https://picsum.photos/1600/900',
-      caption: 'Our annual conference keynote',
-      dimensions: { width: 1600, height: 900 }
-    }
-  ],
-  video: [
-    {
-      type: 'video' as const,
-      url: 'https://example.com/product-demo.mp4',
-      thumbnail: 'https://picsum.photos/800/450',
-      caption: 'Product demo walkthrough',
-      duration: 180,
-      dimensions: { width: 1280, height: 720 }
-    },
-    {
-      type: 'video' as const,
-      url: 'https://example.com/feature-overview.mp4',
-      thumbnail: 'https://picsum.photos/1600/900',
-      caption: 'New features overview',
-      duration: 240,
-      dimensions: { width: 1920, height: 1080 }
-    },
-    {
-      type: 'video' as const,
-      url: 'https://example.com/tutorial.mp4',
-      thumbnail: 'https://picsum.photos/1200/675',
-      caption: 'Getting started tutorial',
-      duration: 300,
-      dimensions: { width: 1280, height: 720 }
-    },
-    {
-      type: 'video' as const,
-      url: 'https://example.com/team-update.mp4',
-      thumbnail: 'https://picsum.photos/1920/1080',
-      caption: 'Monthly team update',
-      duration: 420,
-      dimensions: { width: 1920, height: 1080 }
-    }
-  ]
-};
-
-const REALISTIC_POLLS = [
-  {
-    question: "What feature would you like to see next?",
-    options: [
-      "Dark mode support",
-      "Mobile app",
-      "API integration",
-      "Custom dashboards",
-      "Advanced analytics",
-      "Team collaboration tools",
-      "Automated workflows",
-      "Integration with Slack"
-    ]
-  },
-  {
-    question: "How often do you use our platform?",
-    options: [
-      "Multiple times a day",
-      "Once a day",
-      "2-3 times a week",
-      "Weekly",
-      "Monthly",
-      "Occasionally",
-      "Just getting started",
-      "Haven't used it yet"
-    ]
-  },
-  {
-    question: "Which integration is most important to you?",
-    options: [
-      "Google Workspace",
-      "Microsoft 365",
-      "Slack",
-      "Jira",
-      "GitHub",
-      "Salesforce",
-      "Notion",
-      "Trello"
-    ]
-  },
-  {
-    question: "What's your preferred way to learn about new features?",
-    options: [
-      "Video tutorials",
-      "Documentation",
-      "Live webinars",
-      "Blog posts",
-      "Email newsletters",
-      "Social media",
-      "In-app notifications",
-      "Community forums"
-    ]
-  }
-];
-
-const REALISTIC_QUIZZES = [
-  {
-    title: "Platform Features Quiz",
-    description: "Test your knowledge about our platform's features",
-    questions: [
-      {
-        text: "Which of these is NOT a feature of our platform?",
-        options: [
-          "Real-time analytics",
-          "Time travel",
-          "Custom reports",
-          "Team collaboration"
-        ],
-        correct_option: 1
-      },
-      {
-        text: "What's the maximum number of team members allowed?",
-        options: [
-          "10 members",
-          "50 members",
-          "100 members",
-          "Unlimited"
-        ],
-        correct_option: 3
-      },
-      {
-        text: "Which integration is available out of the box?",
-        options: [
-          "Slack",
-          "Discord",
-          "Teams",
-          "All of the above"
-        ],
-        correct_option: 3
-      }
-    ]
-  },
-  {
-    title: "Security Best Practices",
-    description: "Check your understanding of our security features",
-    questions: [
-      {
-        text: "What's the recommended password length?",
-        options: [
-          "6 characters",
-          "8 characters",
-          "12 characters",
-          "16 characters"
-        ],
-        correct_option: 2
-      },
-      {
-        text: "How often should you rotate API keys?",
-        options: [
-          "Never",
-          "Monthly",
-          "Quarterly",
-          "Yearly"
-        ],
-        correct_option: 2
-      }
-    ]
-  }
-];
-
-const REALISTIC_SURVEYS = [
-  {
-    title: "User Experience Survey",
-    description: "Help us improve our platform",
-    questions: [
-      {
-        text: "How satisfied are you with the new interface?",
-        options: [
-          "Very satisfied",
-          "Satisfied",
-          "Neutral",
-          "Dissatisfied",
-          "Very dissatisfied"
-        ]
-      },
-      {
-        text: "How likely are you to recommend us?",
-        options: [
-          "Definitely would recommend",
-          "Probably would recommend",
-          "Might recommend",
-          "Probably wouldn't recommend",
-          "Definitely wouldn't recommend"
-        ]
-      },
-      {
-        text: "Which area needs the most improvement?",
-        options: [
-          "User interface",
-          "Performance",
-          "Features",
-          "Documentation",
-          "Support",
-          "Pricing",
-          "Integrations"
-        ]
-      }
-    ]
-  },
-  {
-    title: "Feature Usage Survey",
-    description: "Tell us about your feature preferences",
-    questions: [
-      {
-        text: "Which feature do you use most often?",
-        options: [
-          "Dashboard analytics",
-          "Team collaboration",
-          "Project management",
-          "Integrations",
-          "API access",
-          "Custom reports"
-        ]
-      },
-      {
-        text: "How would you rate the onboarding experience?",
-        options: [
-          "Excellent",
-          "Good",
-          "Average",
-          "Below average",
-          "Poor"
-        ]
-      },
-      {
-        text: "What's your primary use case?",
-        options: [
-          "Personal projects",
-          "Small team collaboration",
-          "Enterprise management",
-          "Client projects",
-          "Education/Learning"
-        ]
-      }
-    ]
-  }
-];
-
-const REALISTIC_IMAGES = [
-  'https://picsum.photos/1200/675', // 16:9 ratio
-  'https://picsum.photos/800/800',  // Square
-  'https://picsum.photos/900/1200', // Portrait
-  'https://source.unsplash.com/random/1200x675/?technology',
-  'https://source.unsplash.com/random/800x800/?nature',
-  'https://source.unsplash.com/random/900x1200/?architecture',
-];
-
-const REALISTIC_VIDEOS = [
-  {
-    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    thumbnail: 'https://picsum.photos/1200/675',
-  },
-  {
-    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-    thumbnail: 'https://picsum.photos/1200/675',
-  },
-  {
-    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    thumbnail: 'https://picsum.photos/1200/675',
-  },
-];
-
-const PLACEHOLDER_IMAGES = [
-  'https://placehold.co/1200x675/4287f5/ffffff/png?text=Sample+Image+16:9',  // 16:9 ratio blue
-  'https://placehold.co/800x800/42f545/ffffff/png?text=Sample+Square',       // Square green
-  'https://placehold.co/900x1200/f54242/ffffff/png?text=Portrait+Image',     // Portrait red
-  'https://placehold.co/1600x900/f5a442/ffffff/png?text=Wide+Image',         // Wide orange
-  'https://placehold.co/400x400/9442f5/ffffff/png?text=Thumbnail',           // Thumbnail purple
-];
-
-const PLACEHOLDER_VIDEOS: MediaItem[] = [
-  {
-    type: 'video' as const,
-    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    thumbnail: 'https://placehold.co/1200x675/4287f5/ffffff/png?text=Video+Thumbnail+1',
-    duration: 180,
-    dimensions: { width: 1280, height: 720 },
-    caption: 'Big Buck Bunny'
-  },
-  {
-    type: 'video' as const,
-    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-    thumbnail: 'https://placehold.co/1200x675/42f545/ffffff/png?text=Video+Thumbnail+2',
-    duration: 240,
-    dimensions: { width: 1280, height: 720 },
-    caption: 'Elephant Dreams'
-  }
-];
 
 export default function FeedScreen() {
-  const { generateMockData } = useMockFeedItems();
-  const router = useRouter();
   const [isInteractive, setIsInteractive] = React.useState(false);
   const [includeMedia, setIncludeMedia] = React.useState(false);
   const [selectedInteractiveType, setSelectedInteractiveType] = React.useState<'survey' | 'quiz' | 'poll' | 'all'>('all');
@@ -430,166 +51,80 @@ export default function FeedScreen() {
   const {
     formData,
     handleFormDataChange,
-    createOrUpdateSuperFeedItem,
-    isSubmitting,
-    latestItem,
-    fetchLatestItem
-  } = useFeedForm({
+    isSubmitting  } = useFeedForm({
     user: { email: mockTenant.username }
   });
 
   // Fetch initial feed items
   React.useEffect(() => {
-    fetchFeedItems();
+    refreshFeedHandler();
   }, []);
 
   // Set up realtime subscription
   React.useEffect(() => {
-    const channel = supabase
-      .channel('superfeed_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'superfeed',
-          filter: `channel_username=eq.${mockTenant.username}`
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setFeedItems(prev => [payload.new as FormDataType, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setFeedItems(prev => 
-              prev.map(item => 
-                item.id === payload.new.id ? payload.new as FormDataType : item
-              )
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setFeedItems(prev => 
-              prev.filter(item => item.id !== payload.old.id)
-            );
-          }
-        }
-      )
-      .subscribe();
+    const cleanup = setupRealtimeSubscription(
+      (newItem) => setFeedItems(prev => [newItem, ...prev]),
+      (updatedItem) => setFeedItems(prev => 
+        prev.map(item => item.id === updatedItem.id ? updatedItem : item)
+      ),
+      (deletedId) => setFeedItems(prev => prev.filter(item => item.id !== deletedId))
+    );
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return cleanup;
   }, []);
 
-  const fetchFeedItems = async () => {
+  const refreshFeedHandler = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('superfeed')
-        .select('*')
-        .eq('channel_username', mockTenant.username)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setFeedItems(data || []);
+      const items = await refreshFeed();
+      setFeedItems(items);
     } catch (error) {
-      console.error('Error fetching feed items:', error);
+      console.error('Error refreshing feed:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const refreshFeed = () => {
-    fetchFeedItems();
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmitHandler = async () => {
     try {
-
-      const submissionData: FormDataType = {
-        ...formData,
-        type: 'all',
-        metadata: {
-          ...DEFAULT_METADATA,
-          ...formData.metadata,
-          timestamp: new Date().toISOString()
-        },
-        stats: formData.stats || {
-          views: 0,
-          likes: 0,
-          shares: 0,
-          responses: 0
-        }
-      };
-
-      const success = await createOrUpdateSuperFeedItem(submissionData);
-
+      const success = await handleSubmit(formData);
       if (success) {
         // Refresh feed after successful submission
-        refreshFeed();
-      } else {
+        refreshFeedHandler();
       }
     } catch (error) {
+      console.error('Error submitting feed item:', error);
     }
   };
 
   const handlePollUpdate = (updates: Partial<PollData>) => {
-    handleFormDataChange({
-      interactive_content: {
-        ...formData.interactive_content,
-        poll: {
-          ...DEFAULT_POLL,
-          ...formData.interactive_content?.poll,
-          ...updates
-        }
-      }
-    });
+    const changes = updatePoll(formData, updates);
+    handleFormDataChange(changes);
   };
 
   const handleQuizUpdate = (updates: Partial<QuizData>) => {
-    handleFormDataChange({
-      interactive_content: {
-        ...formData.interactive_content,
-        quiz: {
-          ...DEFAULT_QUIZ,
-          ...formData.interactive_content?.quiz,
-          ...updates
-        }
-      }
-    });
+    const changes = updateQuiz(formData, updates);
+    handleFormDataChange(changes);
   };
 
   const handleSurveyUpdate = (updates: Partial<SurveyData>) => {
-    handleFormDataChange({
-      interactive_content: {
-        ...formData.interactive_content,
-        survey: {
-          ...DEFAULT_SURVEY,
-          ...formData.interactive_content?.survey,
-          ...updates
-        }
-      }
-    });
+    const changes = updateSurvey(formData, updates);
+    handleFormDataChange(changes);
   };
 
   const handleMediaChange = (index: number, updates: Partial<MediaItem>) => {
-    const newMedia = [...(formData.media || [])];
-    newMedia[index] = { ...newMedia[index], ...updates };
-    handleFormDataChange({ media: newMedia });
+    const changes = updateMedia(formData, index, updates);
+    handleFormDataChange(changes);
   };
 
   const handleAddMedia = (type: MediaType) => {
-    const newMedia = [...(formData.media || [])];
-    newMedia.push({
-      type,
-      url: '',
-      caption: '',
-      ...(type === 'video' ? { thumbnail: '', duration: 0 } : {})
-    });
-    handleFormDataChange({ media: newMedia });
+    const changes = addMedia(formData, type);
+    handleFormDataChange(changes);
   };
 
   const handleRemoveMedia = (index: number) => {
-    const newMedia = [...(formData.media || [])];
-    newMedia.splice(index, 1);
-    handleFormDataChange({ media: newMedia });
+    const changes = removeMedia(formData, index);
+    handleFormDataChange(changes);
   };
 
   const renderInteractiveContent = () => {
@@ -598,10 +133,10 @@ export default function FeedScreen() {
     switch (selectedInteractiveType) {
       case 'poll':
         return (
-          <View style={styles.subsection}>
-            <Text style={styles.subsectionTitle}>Poll</Text>
+          <View className="mb-4 p-4 bg-card rounded-lg">
+            <Text className="text-lg font-bold mb-2 text-text">Poll</Text>
             <TextInput
-              style={styles.input}
+              className="border border-border rounded-md p-2 mb-2 text-text bg-background"
               value={formData.interactive_content?.poll?.question}
               onChangeText={(text) => handlePollUpdate({ question: text })}
               placeholder="Poll Question"
@@ -609,7 +144,7 @@ export default function FeedScreen() {
             {formData.interactive_content?.poll?.options.map((option, index) => (
               <TextInput
                 key={index}
-                style={styles.input}
+                className="border border-border rounded-md p-2 mb-2 text-text bg-background"
                 value={option}
                 onChangeText={(text) => {
                   const newOptions = [...(formData.interactive_content?.poll?.options || ['', ''])];
@@ -623,10 +158,10 @@ export default function FeedScreen() {
         );
       case 'quiz':
         return (
-          <View style={styles.subsection}>
-            <Text style={styles.subsectionTitle}>Quiz</Text>
+          <View className="mb-4 p-4 bg-card rounded-lg">
+            <Text className="text-lg font-bold mb-2 text-text">Quiz</Text>
             <TextInput
-              style={styles.input}
+              className="border border-border rounded-md p-2 mb-2 text-text bg-background"
               value={formData.interactive_content?.quiz?.title}
               onChangeText={(text) => handleQuizUpdate({ title: text })}
               placeholder="Quiz Title"
@@ -635,10 +170,10 @@ export default function FeedScreen() {
         );
       case 'survey':
         return (
-          <View style={styles.subsection}>
-            <Text style={styles.subsectionTitle}>Survey</Text>
+          <View className="mb-4 p-4 bg-card rounded-lg">
+            <Text className="text-lg font-bold mb-2 text-text">Survey</Text>
             <TextInput
-              style={styles.input}
+              className="border border-border rounded-md p-2 mb-2 text-text bg-background"
               value={formData.interactive_content?.survey?.title}
               onChangeText={(text) => handleSurveyUpdate({ title: text })}
               placeholder="Survey Title"
@@ -648,10 +183,10 @@ export default function FeedScreen() {
       case 'all':
         return (
           <>
-            <View style={styles.subsection}>
-              <Text style={styles.subsectionTitle}>Poll</Text>
+            <View className="mb-4 p-4 bg-card rounded-lg">
+              <Text className="text-lg font-bold mb-2 text-text">Poll</Text>
               <TextInput
-                style={styles.input}
+                className="border border-border rounded-md p-2 mb-2 text-text bg-background"
                 value={formData.interactive_content?.poll?.question}
                 onChangeText={(text) => handlePollUpdate({ question: text })}
                 placeholder="Poll Question"
@@ -659,7 +194,7 @@ export default function FeedScreen() {
               {formData.interactive_content?.poll?.options.map((option, index) => (
                 <TextInput
                   key={index}
-                  style={styles.input}
+                  className="border border-border rounded-md p-2 mb-2 text-text bg-background"
                   value={option}
                   onChangeText={(text) => {
                     const newOptions = [...(formData.interactive_content?.poll?.options || ['', ''])];
@@ -670,19 +205,19 @@ export default function FeedScreen() {
                 />
               ))}
             </View>
-            <View style={styles.subsection}>
-              <Text style={styles.subsectionTitle}>Quiz</Text>
+            <View className="mb-4 p-4 bg-card rounded-lg">
+              <Text className="text-lg font-bold mb-2 text-text">Quiz</Text>
               <TextInput
-                style={styles.input}
+                className="border border-border rounded-md p-2 mb-2 text-text bg-background"
                 value={formData.interactive_content?.quiz?.title}
                 onChangeText={(text) => handleQuizUpdate({ title: text })}
                 placeholder="Quiz Title"
               />
             </View>
-            <View style={styles.subsection}>
-              <Text style={styles.subsectionTitle}>Survey</Text>
+            <View className="mb-4 p-4 bg-card rounded-lg">
+              <Text className="text-lg font-bold mb-2 text-text">Survey</Text>
               <TextInput
-                style={styles.input}
+                className="border border-border rounded-md p-2 mb-2 text-text bg-background"
                 value={formData.interactive_content?.survey?.title}
                 onChangeText={(text) => handleSurveyUpdate({ title: text })}
                 placeholder="Survey Title"
@@ -697,34 +232,36 @@ export default function FeedScreen() {
     if (!includeMedia) return null;
 
     return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Media</Text>
-        <View style={styles.mediaButtons}>
+      <View className="mb-4 p-4 bg-card rounded-lg">
+        <Text className="text-lg font-bold mb-2 text-text">Media</Text>
+        <View className="flex-row gap-2 mb-4">
           <Button
             onPress={() => handleAddMedia('image')}
-            style={styles.mediaButton}
+            variant="default"
+            size="default"
           >
             <Text>Add Image</Text>
           </Button>
           <Button
             onPress={() => handleAddMedia('video')}
-            style={styles.mediaButton}
+            variant="default"
+            size="default"
           >
             <Text>Add Video</Text>
           </Button>
         </View>
 
         {/* Media Layout Selection */}
-        <View style={styles.mediaLayoutSection}>
-          <Text style={styles.subsectionTitle}>Layout Style</Text>
-          <View style={styles.mediaLayoutButtons}>
+        <View className="mb-4">
+          <Text className="text-lg font-bold mb-2 text-text">Layout Style</Text>
+          <View className="flex-row flex-wrap gap-2">
             {(['grid', 'carousel', 'list', 'collage', 'masonry', 'fullwidth'] as const).map((layout) => (
               <Pressable
                 key={layout}
-                style={[
-                  styles.layoutButton,
-                  formData.metadata?.mediaLayout === layout && styles.layoutButtonSelected
-                ]}
+                className={`
+                  flex-1 min-w-[100px] p-2 rounded-md border-2
+                  ${formData.metadata?.mediaLayout === layout ? 'bg-primary border-primary' : 'border-border'}
+                `}
                 onPress={() => handleFormDataChange({
                   metadata: {
                     ...DEFAULT_METADATA,
@@ -733,10 +270,10 @@ export default function FeedScreen() {
                   }
                 })}
               >
-                <Text style={[
-                  styles.layoutButtonText,
-                  formData.metadata?.mediaLayout === layout && styles.layoutButtonTextSelected
-                ]}>
+                <Text className={`
+                  text-center
+                  ${formData.metadata?.mediaLayout === layout ? 'text-background' : 'text-text'}
+                `}>
                   {layout.charAt(0).toUpperCase() + layout.slice(1)}
                 </Text>
               </Pressable>
@@ -745,28 +282,29 @@ export default function FeedScreen() {
         </View>
 
         {formData.media?.map((media, index) => (
-          <View key={index} style={styles.mediaItem}>
-            <View style={styles.mediaHeader}>
-              <Text style={styles.mediaType}>
+          <View key={index} className="mb-4 p-4 bg-card rounded-lg">
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-text">
                 {media.type === 'image' ? '🖼️ Image' : '🎥 Video'}
               </Text>
               <Button
                 onPress={() => handleRemoveMedia(index)}
-                style={styles.removeButton}
+                variant="destructive"
+                size="default"
               >
                 <Text>Remove</Text>
               </Button>
             </View>
 
             <TextInput
-              style={styles.input}
+              className="border border-border rounded-md p-2 mb-2 text-text bg-background"
               value={media.url}
               onChangeText={(text) => handleMediaChange(index, { url: text })}
               placeholder="Media URL"
             />
 
             <TextInput
-              style={styles.input}
+              className="border border-border rounded-md p-2 mb-2 text-text bg-background"
               value={media.caption}
               onChangeText={(text) => handleMediaChange(index, { caption: text })}
               placeholder="Caption"
@@ -775,13 +313,13 @@ export default function FeedScreen() {
             {media.type === 'video' && (
               <>
                 <TextInput
-                  style={styles.input}
+                  className="border border-border rounded-md p-2 mb-2 text-text bg-background"
                   value={media.thumbnail}
                   onChangeText={(text) => handleMediaChange(index, { thumbnail: text })}
                   placeholder="Thumbnail URL"
                 />
                 <TextInput
-                  style={styles.input}
+                  className="border border-border rounded-md p-2 mb-2 text-text bg-background"
                   value={media.duration?.toString()}
                   onChangeText={(text) => handleMediaChange(index, { duration: parseInt(text) || 0 })}
                   placeholder="Duration (seconds)"
@@ -795,34 +333,7 @@ export default function FeedScreen() {
     );
   };
 
-  const handleEditItem = (item: FormDataType) => {
-    handleFormDataChange({
-      ...item,
-      interactive_content: {
-        poll: item.interactive_content?.poll || DEFAULT_POLL,
-        quiz: item.interactive_content?.quiz || DEFAULT_QUIZ,
-        survey: item.interactive_content?.survey || DEFAULT_SURVEY
-      }
-    });
-
-    // Set appropriate form states based on item
-    setIsInteractive(!!item.interactive_content);
-    setIncludeMedia(item.media?.length > 0);
-
-    if (item.interactive_content) {
-      if (item.interactive_content.poll && !item.interactive_content.quiz && !item.interactive_content.survey) {
-        setSelectedInteractiveType('poll');
-      } else if (!item.interactive_content.poll && item.interactive_content.quiz && !item.interactive_content.survey) {
-        setSelectedInteractiveType('quiz');
-      } else if (!item.interactive_content.poll && !item.interactive_content.quiz && item.interactive_content.survey) {
-        setSelectedInteractiveType('survey');
-      } else {
-        setSelectedInteractiveType('all');
-      }
-    }
-  };
-
-  const generateRealisticContent = () => {
+  const generateRealisticContentHandler = () => {
     // Reset form to clean state
     setIncludeContent(true);
     setIncludeMedia(true);
@@ -830,37 +341,9 @@ export default function FeedScreen() {
     setSelectedInteractiveType('all');
     setContentType(Math.random() > 0.5 ? 'long' : 'small');
 
-    // Generate random content
-    const content = contentType === 'long'
-      ? REALISTIC_CONTENT.long[Math.floor(Math.random() * REALISTIC_CONTENT.long.length)]
-      : REALISTIC_CONTENT.small[Math.floor(Math.random() * REALISTIC_CONTENT.small.length)];
-
-    // Generate random media
-    const media = [
-      ...REALISTIC_MEDIA.image.slice(0, Math.floor(Math.random() * 2) + 1),
-      ...(Math.random() > 0.5 ? REALISTIC_MEDIA.video : [])
-    ];
-
-    // Pick random interactive content
-    const poll = REALISTIC_POLLS[Math.floor(Math.random() * REALISTIC_POLLS.length)];
-    const quiz = REALISTIC_QUIZZES[Math.floor(Math.random() * REALISTIC_QUIZZES.length)];
-    const survey = REALISTIC_SURVEYS[Math.floor(Math.random() * REALISTIC_SURVEYS.length)];
-
-    // Update form data
-    handleFormDataChange({
-      type: 'all',
-      content,
-      media,
-      metadata: {
-        ...DEFAULT_METADATA,
-        mediaLayout: ['grid', 'carousel', 'list'][Math.floor(Math.random() * 3)] as MediaLayout,
-      },
-      interactive_content: {
-        poll,
-        quiz,
-        survey
-      }
-    });
+    // Generate random content using the utility function
+    const newContent = generateRealisticContent(contentType);
+    handleFormDataChange(newContent);
 
     // Scroll form to top
     if (leftScrollRef.current) {
@@ -868,7 +351,7 @@ export default function FeedScreen() {
     }
   };
 
-  const createRichMock = async () => {
+  const createRichMockHandler = async () => {
     try {
       // Reset form to clean state
       setIncludeContent(true);
@@ -877,342 +360,63 @@ export default function FeedScreen() {
       setSelectedInteractiveType('all');
       setContentType('long');
 
-      // Generate rich markdown content
-      const content = `# 🚀 Tesla & SpaceX Update
-
-## Latest Achievements
-* Successfully launched **Starship SN20** 🛸
-* Tesla reached **2M cars** produced this year
-* Neuralink got FDA approval
-
-### Innovation Highlights
-1. New Gigafactory progress at 85%
-2. Solar roof installations up by 40%
-3. Mars mission planning in full swing
-
-> "The future of civilization is about becoming a multi-planetary species" 
-
-#### Technical Details
-* Battery efficiency: \`98.5%\`
-* Range improvement: \`+15%\`
-* Production rate: \`1,200/day\`
-
-Here's a [link to our latest blog post](https://example.com/blog)
-
----
-
-*Join us* in making the world **sustainable** and **multi-planetary**!
-
-\`\`\`
-Innovation = f(ambition × execution)
-\`\`\`
-
-##### Poll Results from Last Quarter
-| Initiative | Support |
-|------------|---------|
-| Mars Colony | 78% |
-| Neural Link | 65% |
-| Tesla Bot | 82% |`;
-
-      // Always create 4 media items for grid layout
-      const media: MediaItem[] = [
-        // First three items as images
-        ...PLACEHOLDER_IMAGES.slice(0, 3).map((url, index) => ({
-          type: 'image' as const,
-          url,
-          caption: `Innovation Snapshot ${index + 1}`,
-          dimensions: {
-            width: parseInt(url.split('x')[0].split('/').pop() || '800'),
-            height: parseInt(url.split('x')[1].split('/')[0] || '600')
-          }
-        })),
-        // Last item as video
-        PLACEHOLDER_VIDEOS[0]
-      ];
-
-      // Enhanced poll with tech topics
-      const poll = {
-        question: "Which technology should we prioritize next?",
-        options: [
-          "Mars colonization tech 🚀",
-          "Neural interface chips 🧠",
-          "Electric VTOL aircraft ✈️",
-          "Humanoid robots 🤖",
-          "Quantum computing 💻",
-          "Sustainable energy 🌞"
-        ]
-      };
-
-      // Enhanced quiz about tech and space
-      const quiz = {
-        title: "Space & Tech Knowledge Quiz",
-        description: "Test your knowledge about the future of technology",
-        questions: [
-          {
-            text: "What's the primary fuel used in Starship?",
-            options: [
-              "Liquid Methane",
-              "Hydrogen",
-              "Kerosene",
-              "Ion Propulsion"
-            ],
-            correct_option: 0
-          },
-          {
-            text: "What's the target range for Tesla's next-gen battery?",
-            options: [
-              "400 miles",
-              "500 miles",
-              "600 miles",
-              "700 miles"
-            ],
-            correct_option: 2
-          },
-          {
-            text: "When is the first crewed Mars mission planned?",
-            options: [
-              "2024",
-              "2026",
-              "2028",
-              "2030"
-            ],
-            correct_option: 1
-          }
-        ]
-      };
-
-      // Enhanced survey about future tech
-      const survey = {
-        title: "Future Technology Survey",
-        description: "Help shape the future of innovation",
-        questions: [
-          {
-            text: "How likely are you to use neural interface technology?",
-            options: [
-              "Very likely",
-              "Somewhat likely",
-              "Neutral",
-              "Unlikely",
-              "Very unlikely"
-            ]
-          },
-          {
-            text: "Which sustainable energy solution interests you most?",
-            options: [
-              "Solar Roof",
-              "Powerwall",
-              "Grid-scale battery",
-              "Solar panels",
-              "Wind turbines"
-            ]
-          },
-          {
-            text: "When would you consider moving to Mars?",
-            options: [
-              "As soon as possible",
-              "After first successful colony",
-              "After 10,000 people living there",
-              "Never",
-              "Need more information"
-            ]
-          }
-        ]
-      };
-
-      // Enhanced metadata with grid layout
-      const metadata = {
-        ...DEFAULT_METADATA,
-        mediaLayout: 'grid' as const,
-        maxHeight: 600,
-        isCollapsible: true,
-        displayMode: 'expanded' as const,
-        visibility: {
-          stats: true,
-          shareButtons: true,
-          header: true,
-          footer: true
-        },
-        requireAuth: false,
-        allowResubmit: true,
-        fillRequirement: 'optional' as const
-      };
-
-      // Random but higher stats for engagement
-      const stats = {
-        views: Math.floor(Math.random() * 1000000) + 500000, // 500k-1.5M views
-        likes: Math.floor(Math.random() * 100000) + 50000,   // 50k-150k likes
-        shares: Math.floor(Math.random() * 50000) + 25000,   // 25k-75k shares
-        responses: Math.floor(Math.random() * 10000) + 5000  // 5k-15k responses
-      };
-
-      // Update form data with enhanced content
+      // Generate rich content using the utility function
+      const newContent = createRichMock(formData);
       handleFormDataChange({
-        type: 'all',
-        content,
-        media,
-        metadata,
-        stats,
-        interactive_content: {
-          poll,
-          quiz,
-          survey
-        },
+        ...newContent,
         channel_username: mockTenant.username
       });
 
       // Submit to database
-      await handleSubmit();
+      await handleSubmitHandler();
 
     } catch (error) {
       console.error('Error creating rich mock:', error);
     }
   };
 
-  // Apply design system tokens
-  const containerStyle = {
-    flex: 1,
-    backgroundColor: colorScheme.colors.background,
-  };
+  const handleEditItemHandler = (item: FormDataType) => {
+    const newContent = handleEditItem(item);
+    handleFormDataChange(newContent);
 
-  const splitViewStyle = {
-    flex: 1,
-    flexDirection: 'row' as const,
-  };
-
-  const columnStyle = {
-    flex: 1,
-    padding: Number(design.spacing.padding.card),
-  };
-
-  const sectionStyle = {
-    marginBottom: Number(design.spacing.margin.section),
-    backgroundColor: colorScheme.colors.card,
-    padding: Number(design.spacing.padding.card),
-    borderRadius: Number(design.radius.lg),
-  };
-
-  const sectionTitleStyle = {
-    fontSize: Number(design.spacing.fontSize.lg),
-    fontWeight: 'bold' as const,
-    marginBottom: Number(design.spacing.margin.card),
-    color: colorScheme.colors.text,
-  };
-
-  const inputStyle = {
-    borderWidth: 1,
-    borderColor: colorScheme.colors.border,
-    borderRadius: Number(design.radius.md),
-    padding: Number(design.spacing.padding.input),
-    marginBottom: Number(design.spacing.margin.text),
-    color: colorScheme.colors.text,
-    backgroundColor: colorScheme.colors.background,
-  };
-
-  const rowStyle = {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
-    marginBottom: Number(design.spacing.margin.text),
-  };
-
-  const submitButtonStyle = {
-    marginTop: Number(design.spacing.margin.section),
-    backgroundColor: colorScheme.colors.primary,
-    padding: Number(design.spacing.padding.button),
-    borderRadius: Number(design.radius.md),
-  };
-
-  const previewHeaderStyle = {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
-    paddingVertical: Number(design.spacing.padding.item),
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colorScheme.colors.border,
-  };
-
-  const feedItemContainerStyle = {
-    marginBottom: Number(design.spacing.margin.section),
-    borderWidth: 1,
-    borderColor: colorScheme.colors.border,
-    borderRadius: Number(design.radius.lg),
-    overflow: 'hidden' as const,
-    backgroundColor: colorScheme.colors.card,
-  };
-
-  const editButtonStyle = {
-    margin: Number(design.spacing.margin.item),
-    backgroundColor: colorScheme.colors.primary,
-    padding: Number(design.spacing.padding.button),
-    borderRadius: Number(design.radius.md),
-  };
-
-  const emptyStateStyle = {
-    padding: Number(design.spacing.padding.section),
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-  };
-
-  const emptyStateTextStyle = {
-    fontSize: Number(design.spacing.fontSize.base),
-    color: colorScheme.colors.text,
-    opacity: Number(design.opacity.medium),
-  };
-
-  const loadingStateStyle = {
-    padding: Number(design.spacing.padding.section),
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-  };
-
-  const toolbarStyle = {
-    flexDirection: 'row' as const,
-    padding: Number(design.spacing.padding.card),
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colorScheme.colors.border,
-    backgroundColor: colorScheme.colors.card,
-  };
-
-  const createButtonStyle = {
-    backgroundColor: colorScheme.colors.primary,
-    padding: Number(design.spacing.padding.button),
-    borderRadius: Number(design.radius.md),
+    // Set appropriate form states based on item
+    setIsInteractive(!!item.interactive_content);
+    setIncludeMedia(item.media?.length > 0);
+    setSelectedInteractiveType(determineInteractiveType(item.interactive_content));
   };
 
   return (
-    <View style={containerStyle}>
+    <View className="flex-1 bg-background">
       {/* Toolbar */}
-      <View style={toolbarStyle}>
+      <View className="flex-row p-4 border-b border-border bg-card">
         <Button
-          onPress={generateRealisticContent}
-          style={createButtonStyle}
+          onPress={generateRealisticContentHandler}
         >
-          <Text style={{ color: colorScheme.colors.background }}>Create New</Text>
+          <Text className="text-background">Create New</Text>
         </Button>
         <Button
-          onPress={createRichMock}
-          style={[createButtonStyle, { marginLeft: Number(design.spacing.margin.item) }]}
+          onPress={createRichMockHandler}
         >
-          <Text style={{ color: colorScheme.colors.background }}>Create Rich</Text>
+          <Text className="text-background">Create Rich</Text>
         </Button>
       </View>
 
-      <View style={splitViewStyle}>
+      <View className="flex-1 flex-row">
         {/* Left side - Form */}
         <ScrollView 
-          style={columnStyle} 
+          className="flex-1 p-4"
           ref={leftScrollRef}
           contentContainerStyle={{
             paddingBottom: insets.bottom + Number(design.spacing.padding.card),
           }}
         >
-          {/* Specific Content Section */}
-          <View style={sectionStyle}>
-            <Text style={sectionTitleStyle}>Content</Text>
+          {/* Content Section */}
+          <View className="mb-6 bg-card p-4 rounded-lg">
+            <Text className="text-lg font-bold mb-4 text-text">Content</Text>
 
             {/* Content Toggle */}
-            <View style={rowStyle}>
-              <Text style={{ color: colorScheme.colors.text }}>Include Content</Text>
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-text">Include Content</Text>
               <Switch
                 value={includeContent}
                 onValueChange={setIncludeContent}
@@ -1221,26 +425,21 @@ Innovation = f(ambition × execution)
 
             {/* Content Type Selection */}
             {includeContent && (
-              <View style={{ marginTop: Number(design.spacing.margin.text) }}>
+              <View className="mt-2">
                 {(['small', 'long'] as const).map((type) => (
                   <Pressable
                     key={type}
-                    style={[rowStyle, { padding: Number(design.spacing.padding.item) }]}
+                    className="flex-row justify-between items-center p-2"
                     onPress={() => setContentType(type)}
                   >
-                    <Text style={{ color: colorScheme.colors.text }}>
+                    <Text className="text-text">
                       {type.charAt(0).toUpperCase() + type.slice(1)} Content
                     </Text>
-                    <View style={{
-                      width: Number(design.spacing.iconSize),
-                      height: Number(design.spacing.iconSize),
-                      borderRadius: Number(design.radius.full),
-                      borderWidth: 2,
-                      borderColor: colorScheme.colors.primary,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: contentType === type ? colorScheme.colors.primary : 'transparent',
-                    }} />
+                    <View className={`
+                      w-6 h-6 rounded-full border-2 border-primary
+                      items-center justify-center
+                      ${contentType === type ? 'bg-primary' : 'bg-transparent'}
+                    `} />
                   </Pressable>
                 ))}
               </View>
@@ -1249,10 +448,11 @@ Innovation = f(ambition × execution)
             {/* Content Input */}
             {includeContent && (
               <TextInput
-                style={[
-                  inputStyle,
-                  contentType === 'long' && { minHeight: 120 }
-                ]}
+                className={`
+                  border border-border rounded-md p-2 mb-2
+                  text-text bg-background
+                  ${contentType === 'long' ? 'min-h-[120px]' : ''}
+                `}
                 value={formData.content}
                 onChangeText={(text) => handleFormDataChange({ content: text })}
                 placeholder={`Enter your ${contentType} content`}
@@ -1263,9 +463,9 @@ Innovation = f(ambition × execution)
             )}
 
             {/* Form Settings */}
-            <View style={[sectionStyle, { marginTop: Number(design.spacing.margin.section) }]}>
-              <View style={rowStyle}>
-                <Text style={{ color: colorScheme.colors.text }}>Require Auth</Text>
+            <View className="mt-6 mb-6 bg-card p-4 rounded-lg">
+              <View className="flex-row justify-between items-center mb-4">
+                <Text className="text-text">Require Auth</Text>
                 <Switch
                   value={formData.metadata?.requireAuth ?? false}
                   onValueChange={(value) => handleFormDataChange({
@@ -1278,8 +478,8 @@ Innovation = f(ambition × execution)
                 />
               </View>
 
-              <View style={rowStyle}>
-                <Text style={{ color: colorScheme.colors.text }}>Allow Resubmit</Text>
+              <View className="flex-row justify-between items-center mb-4">
+                <Text className="text-text">Allow Resubmit</Text>
                 <Switch
                   value={formData.metadata?.allowResubmit ?? false}
                   onValueChange={(value) => handleFormDataChange({
@@ -1292,8 +492,8 @@ Innovation = f(ambition × execution)
                 />
               </View>
 
-              <View style={rowStyle}>
-                <Text style={{ color: colorScheme.colors.text }}>Make Content Collapsible</Text>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-text">Make Content Collapsible</Text>
                 <Switch
                   value={formData.metadata?.isCollapsible ?? true}
                   onValueChange={(value) => handleFormDataChange({
@@ -1308,8 +508,8 @@ Innovation = f(ambition × execution)
             </View>
 
             {/* Media Toggle */}
-            <View style={rowStyle}>
-              <Text style={{ color: colorScheme.colors.text }}>Include Media</Text>
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-text">Include Media</Text>
               <Switch
                 value={includeMedia}
                 onValueChange={setIncludeMedia}
@@ -1320,8 +520,8 @@ Innovation = f(ambition × execution)
             {renderMediaSection()}
 
             {/* Interactive Switch */}
-            <View style={rowStyle}>
-              <Text style={{ color: colorScheme.colors.text }}>Interactive Content</Text>
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-text">Interactive Content</Text>
               <Switch
                 value={isInteractive}
                 onValueChange={setIsInteractive}
@@ -1330,43 +530,37 @@ Innovation = f(ambition × execution)
 
             {/* Interactive Type Selection */}
             {isInteractive && (
-              <View style={{ marginTop: Number(design.spacing.margin.text) }}>
+              <View className="mt-2">
                 {(['all', 'poll', 'quiz', 'survey'] as const).map((type) => (
                   <Pressable
                     key={type}
-                    style={[rowStyle, { padding: Number(design.spacing.padding.item) }]}
+                    className="flex-row justify-between items-center p-2"
                     onPress={() => setSelectedInteractiveType(type)}
                   >
-                    <Text style={{ color: colorScheme.colors.text }}>
+                    <Text className="text-text">
                       {type.charAt(0).toUpperCase() + type.slice(1)}
                     </Text>
-                    <View style={{
-                      width: Number(design.spacing.iconSize),
-                      height: Number(design.spacing.iconSize),
-                      borderRadius: Number(design.radius.full),
-                      borderWidth: 2,
-                      borderColor: colorScheme.colors.primary,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: selectedInteractiveType === type ? colorScheme.colors.primary : 'transparent',
-                    }} />
+                    <View className={`
+                      w-6 h-6 rounded-full border-2 border-primary
+                      items-center justify-center
+                      ${selectedInteractiveType === type ? 'bg-primary' : 'bg-transparent'}
+                    `} />
                   </Pressable>
                 ))}
               </View>
             )}
 
             {/* Interactive Content Forms */}
-            <View style={{ marginTop: Number(design.spacing.margin.section) }}>
+            <View className="mt-6">
               {renderInteractiveContent()}
             </View>
           </View>
 
           <Button
-            onPress={handleSubmit}
+            onPress={() => handleSubmitHandler()}
             disabled={isSubmitting}
-            style={submitButtonStyle}
           >
-            <Text style={{ color: colorScheme.colors.background }}>
+            <Text className="text-background">
               {isSubmitting ? 'Submitting...' : 'Submit'}
             </Text>
           </Button>
@@ -1374,12 +568,12 @@ Innovation = f(ambition × execution)
 
         {/* Right side - Feed Items */}
         <ScrollView
-          style={columnStyle}
+          className="flex-1 p-4"
           ref={feedListRef}
           refreshControl={
             <RefreshControl 
               refreshing={isLoading} 
-              onRefresh={refreshFeed}
+              onRefresh={refreshFeedHandler}
               colors={[colorScheme.colors.primary]}
               tintColor={colorScheme.colors.primary}
             />
@@ -1388,35 +582,34 @@ Innovation = f(ambition × execution)
             paddingBottom: insets.bottom + Number(design.spacing.padding.card),
           }}
         >
-          <View style={previewHeaderStyle}>
-            <Text style={sectionTitleStyle}>Feed Items</Text>
+          <View className="flex-row justify-between items-center py-3 border-b border-border">
+            <Text className="text-lg font-bold text-text">Feed Items</Text>
           </View>
 
           {feedItems.map((item, index) => (
-            <View key={item.id || index} style={feedItemContainerStyle}>
+            <View key={item.id || index} className="mb-6 border border-border rounded-lg overflow-hidden bg-card">
               <FeedItem
                 data={item}
                 showHeader={true}
                 showFooter={true}
               />
               <Button
-                onPress={() => handleEditItem(item)}
-                style={editButtonStyle}
+                onPress={() => handleEditItemHandler(item)}
               >
-                <Text style={{ color: colorScheme.colors.background }}>Edit</Text>
+                <Text className="text-background">Edit</Text>
               </Button>
             </View>
           ))}
 
           {feedItems.length === 0 && !isLoading && (
-            <View style={emptyStateStyle}>
-              <Text style={emptyStateTextStyle}>No feed items found</Text>
+            <View className="p-6 items-center justify-center">
+              <Text className="text-base text-text opacity-50">No feed items found</Text>
             </View>
           )}
 
           {isLoading && (
-            <View style={loadingStateStyle}>
-              <Text style={{ color: colorScheme.colors.text }}>Loading feed items...</Text>
+            <View className="p-6 items-center justify-center">
+              <Text className="text-text">Loading feed items...</Text>
             </View>
           )}
         </ScrollView>
@@ -1424,219 +617,3 @@ Innovation = f(ambition × execution)
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  splitView: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  column: {
-    flex: 1,
-    padding: 0,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  interactiveSection: {
-    marginTop: 16,
-  },
-  subsection: {
-    marginBottom: 16,
-  },
-  subsectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  submitButton: {
-    marginTop: 16,
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  radioGroup: {
-    marginTop: 12,
-    marginBottom: 16,
-  },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#666',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'transparent',
-  },
-  radioSelected: {
-    backgroundColor: '#666',
-  },
-  refreshButton: {
-    marginLeft: 8,
-  },
-  mediaButtons: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  mediaButton: {
-    flex: 1,
-  },
-  mediaItem: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    padding: 12,
-    marginBottom: 12,
-  },
-  mediaHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  mediaType: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  removeButton: {
-    backgroundColor: '#dc2626',
-  },
-  feedItemContainer: {
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  editButton: {
-    margin: 8,
-  },
-  emptyState: {
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  loadingState: {
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  commonSettings: {
-    paddingTop: 8,
-  },
-  mediaLayoutSection: {
-    marginBottom: 16,
-  },
-  mediaLayoutButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 8,
-  },
-  layoutButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#fff',
-  },
-  layoutButtonSelected: {
-    backgroundColor: '#666',
-    borderColor: '#666',
-  },
-  layoutButtonText: {
-    color: '#666',
-  },
-  layoutButtonTextSelected: {
-    color: '#fff',
-  },
-  formSettings: {
-    marginTop: 16,
-    marginBottom: 24,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
-    backgroundColor: '#f8f8f8',
-  },
-  longInput: {
-    minHeight: 120,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#fff',
-  },
-  createButton: {
-    backgroundColor: '#0ea5e9',
-  },
-  bottomToolbar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: '50%', // Only cover the left column
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#eff3f4',
-    padding: 16,
-    elevation: 4,
-  },
-  generateButton: {
-    backgroundColor: '#1d9bf0',
-    paddingVertical: 12,
-    borderRadius: 9999,
-  },
-});

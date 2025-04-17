@@ -1,7 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { PreviewData } from '../enhanced-chat/types/superfeed';
 import { transformFeedItemToPreview } from '../enhanced-chat/utils/feed';
-import { supabase } from '../supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const tenant_supabase_url = "https://risbemjewosmlvzntjkd.supabase.co";
+const tenant_supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM";
+
 
 type RealtimeContextType = {
   feedItems: PreviewData[];
@@ -21,6 +25,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [feedItems, setFeedItems] = useState<PreviewData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const supabase = createClient(tenant_supabase_url, tenant_supabase_anon_key);
   const fetchFeedItems = async () => {
     setIsLoading(true);
     try {
