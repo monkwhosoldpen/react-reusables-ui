@@ -48,6 +48,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name='supermenu'
+        options={{
+          title: 'Supermenu',
+          tabBarIcon({ color, size }) {
+            return <Menu color={color} size={size} />;
+          },
+        }}
+      />
+      <Tabs.Screen
         name='alerts'
         options={{
           title: 'Alerts',
@@ -65,15 +74,7 @@ export default function TabsLayout() {
           },
         }}
       />
-      <Tabs.Screen
-        name='supermenu'
-        options={{
-          title: 'Supermenu',
-          tabBarIcon({ color, size }) {
-            return <Menu color={color} size={size} />;
-          },
-        }}
-      />
+
     </Tabs>
   );
 }
