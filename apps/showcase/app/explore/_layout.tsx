@@ -42,13 +42,13 @@ export default function MaterialTopTabsLayout() {
         <MaterialTopTabs.Screen
           name='index'
           options={{
-            title: 'UI',
+            title: 'All',
           }}
         />
         <MaterialTopTabs.Screen
           name='sample'
           options={{
-            title: 'Sample',
+            title: 'Popular',
           }}
         />
       </MaterialTopTabs>

@@ -186,12 +186,6 @@ export default function AlertsPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Notifications</Text>
-        </View>
-      </View>
 
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         <ScrollView 

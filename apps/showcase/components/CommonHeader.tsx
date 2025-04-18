@@ -129,7 +129,7 @@ export function CommonHeader({
                   {user?.username || title}
                 </Text>
                 <Text style={[styles.itemSubtitle, { color: colorScheme.colors.background, opacity: 0.8 }]}>
-                  {user?.username ? 'Welcome back' : 'Navigation'}
+                  {user?.username ? 'Welcome back' : ''}
                 </Text>
               </View>
             </View>
