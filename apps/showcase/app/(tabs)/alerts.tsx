@@ -217,7 +217,7 @@ export default function AlertsPage() {
       case 'approved':
         return <CheckCircle size={20} color={colorScheme.colors.primary} />;
       case 'rejected':
-        return <XCircle size={20} color={colorScheme.colors.error} />;
+        return <XCircle size={20} color={colorScheme.colors.primary} />;
       default:
         return <Bell size={20} color={colorScheme.colors.primary} />;
     }
