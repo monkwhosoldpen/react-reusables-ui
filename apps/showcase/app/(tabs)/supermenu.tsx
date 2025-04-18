@@ -181,11 +181,11 @@ export default function SuperMenu() {
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <TouchableOpacity style={[styles.item, { backgroundColor: colorScheme.colors.card }]}>
             <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.primary}1A` }]}>
-              <Ionicons name="qr-code-outline" size={24} color={colorScheme.colors.primary} />
+              <Ionicons name="document-text-outline" size={24} color={colorScheme.colors.primary} />
             </View>
             <View style={styles.itemContent}>
-              <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]}>Scan & Pay</Text>
-              <Text style={[styles.itemSubtitle, { color: subtitleColor }]}>Scan any QR code to pay</Text>
+              <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]}>Document Vault</Text>
+              <Text style={[styles.itemSubtitle, { color: subtitleColor }]}>Access your important documents</Text>
             </View>
             <MaterialIcons name="chevron-right" size={24} color={colorScheme.colors.text} style={{ opacity: 0.6 }} />
           </TouchableOpacity>
@@ -194,27 +194,26 @@ export default function SuperMenu() {
         {/* People Section */}
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>PEOPLE</Text>
+            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>ESSENTIAL SERVICES</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
             <TouchableOpacity style={{ alignItems: 'center', marginRight: 32 }}>
               <View style={[styles.avatar, { width: 56, height: 56, backgroundColor: `${colorScheme.colors.primary}1A`, borderColor: colorScheme.colors.primary, borderWidth: 1 }]}>
-                <MaterialIcons name="person-add" size={24} color={colorScheme.colors.primary} />
+                <MaterialIcons name="badge" size={24} color={colorScheme.colors.primary} />
               </View>
-              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, marginTop: 4 }]}>New</Text>
+              <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, marginTop: 4 }]}>Aadhaar</Text>
             </TouchableOpacity>
             {[
-              { name: "Rahul", initial: "R" },
-              { name: "Priya", initial: "P" },
-              { name: "Amit", initial: "A" },
-              { name: "Neha", initial: "N" },
-              { name: "Vikram", initial: "V" },
-            ].map((contact, index) => (
+              { icon: "how-to-vote", title: "Voter ID" },
+              { icon: "credit-card", title: "PAN" },
+              { icon: "passport", title: "Passport" },
+              { icon: "directions-car", title: "DL" },
+            ].map((service, index) => (
               <TouchableOpacity key={index} style={{ alignItems: 'center', marginRight: 32 }}>
                 <View style={[styles.avatar, { width: 56, height: 56, backgroundColor: colorScheme.colors.card }]}>
-                  <Text style={[styles.itemTitle, { color: colorScheme.colors.text, opacity: 0.6 }]}>{contact.initial}</Text>
+                  <MaterialIcons name={service.icon as any} size={30} color={colorScheme.colors.primary} />
                 </View>
-                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, marginTop: 4 }]}>{contact.name}</Text>
+                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, marginTop: 4 }]}>{service.title}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -223,14 +222,14 @@ export default function SuperMenu() {
         {/* Quick Actions Section */}
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>QUICK ACTIONS</Text>
+            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>CITIZEN SERVICES</Text>
           </View>
           <View style={{ backgroundColor: colorScheme.colors.card, borderRadius: 12, padding: 16 }}>
             {[
-              { icon: "account-balance", title: "To Bank Account", subtitle: "Transfer money securely" },
-              { icon: "phone-android", title: "To Mobile Number", subtitle: "Send to any mobile number" },
-              { icon: "person", title: "To Self Account", subtitle: "Transfer between your accounts" },
-              { icon: "account-balance-wallet", title: "Check Balance", subtitle: "View your account balance" },
+              { icon: "report-problem", title: "File Complaint", subtitle: "Report civic issues" },
+              { icon: "location-on", title: "Find Office", subtitle: "Locate government offices" },
+              { icon: "event", title: "Events", subtitle: "Community events & campaigns" },
+              { icon: "volunteer-activism", title: "Volunteer", subtitle: "Join civic initiatives" },
             ].map((action, index) => (
               <TouchableOpacity
                 key={index}
@@ -256,13 +255,13 @@ export default function SuperMenu() {
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Money Transfers</Text>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Patriotic Store</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {[
-                  { icon: "account-balance", title: "To Bank\nAccount" },
-                  { icon: "phone-android", title: "To Mobile\nNumber" },
-                  { icon: "person", title: "To Self\nAccount" },
-                  { icon: "bank-outline", title: "Check\nBalance" },
+                  { icon: "flag", title: "Flags" },
+                  { icon: "local-offer", title: "Stickers" },
+                  { icon: "shopping-bag", title: "T-Shirts" },
+                  { icon: "book", title: "Books" },
                 ].map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
                     <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
@@ -282,32 +281,17 @@ export default function SuperMenu() {
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Recharge & Pay Bills</Text>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>News & Updates</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {[
-                  { icon: "mobile-friendly", title: "Mobile\nRecharge" },
-                  { icon: "live-tv", title: "DTH" },
-                  { icon: "bolt", title: "Electricity" },
-                  { icon: "credit-card", title: "Credit Card\nBill" },
-                  { icon: "gas-cylinder", title: "Gas\nCylinder" },
-                  { icon: "water", title: "Water\nBill" },
-                  { icon: "wifi", title: "Broadband" },
-                  { icon: "more-horiz", title: "See All" },
+                  { icon: "newspaper", title: "National\nNews" },
+                  { icon: "public", title: "State\nNews" },
+                  { icon: "location-city", title: "Local\nNews" },
+                  { icon: "campaign", title: "Announcements" },
                 ].map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
-                    <View style={[
-                      styles.avatar, 
-                      { 
-                        width: 64, 
-                        height: 64, 
-                        backgroundColor: item.icon === 'more-horiz' ? colorScheme.colors.card : `${colorScheme.colors.primary}1A`
-                      }
-                    ]}>
-                      {item.icon === 'water' ? (
-                        <FontAwesome5 name={item.icon} size={26} color={colorScheme.colors.primary} />
-                      ) : (
-                        <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
-                      )}
+                    <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                      <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
                     </View>
                     <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, textAlign: 'center', marginTop: 8 }]}>
                       {item.title}
@@ -323,25 +307,25 @@ export default function SuperMenu() {
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Offers & Rewards</Text>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Civic Engagement</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
                 {[
                   { 
-                    icon: "gift-outline", 
-                    title: "Rewards", 
-                    subtitle: "Collect 250 points to get ₹50 cashback",
+                    icon: "poll", 
+                    title: "Public Polls", 
+                    subtitle: "Share your opinion on important issues",
                     color: colorScheme.colors.primary
                   },
                   { 
-                    icon: "local-offer", 
-                    title: "Offers", 
-                    subtitle: "20% off on your first transaction",
+                    icon: "forum", 
+                    title: "Townhall", 
+                    subtitle: "Connect with elected representatives",
                     color: colorScheme.colors.primary
                   },
                   { 
-                    icon: "card-giftcard", 
-                    title: "Refer & Earn", 
-                    subtitle: "Refer friends and get ₹100 per referral",
+                    icon: "school", 
+                    title: "Know Your Rights", 
+                    subtitle: "Learn about your constitutional rights",
                     color: colorScheme.colors.primary
                   },
                 ].map((offer, index) => (
@@ -384,13 +368,13 @@ export default function SuperMenu() {
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Travel & Entertainment</Text>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Education & Awareness</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {[
-                  { icon: "flight", title: "Flights" },
-                  { icon: "directions-bus", title: "Bus" },
-                  { icon: "train", title: "Trains" },
-                  { icon: "movie", title: "Movies" },
+                  { icon: "menu-book", title: "Constitution" },
+                  { icon: "gavel", title: "Laws" },
+                  { icon: "history", title: "History" },
+                  { icon: "quiz", title: "Quiz" },
                 ].map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
                     <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
@@ -410,17 +394,17 @@ export default function SuperMenu() {
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Insurance</Text>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Government Services</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {[
-                  { icon: "car-outline", title: "Car" },
-                  { icon: "motorbike", title: "Bike" },
+                  { icon: "receipt", title: "Certificates" },
+                  { icon: "account-balance", title: "Tax" },
+                  { icon: "local-police", title: "Police" },
                   { icon: "health-and-safety", title: "Health" },
-                  { icon: "home", title: "Home" },
                 ].map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
                     <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
-                      <MaterialCommunityIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
+                      <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
                     </View>
                     <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, textAlign: 'center', marginTop: 8 }]}>
                       {item.title}
@@ -445,11 +429,11 @@ export default function SuperMenu() {
                 }
               ]}>
                 <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.primary}1A` }]}>
-                  <MaterialIcons name="payment" size={30} color={colorScheme.colors.primary} />
+                  <MaterialIcons name="analytics" size={30} color={colorScheme.colors.primary} />
                 </View>
                 <View style={styles.itemContent}>
-                  <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]}>UPI-less Payments</Text>
-                  <Text style={[styles.itemSubtitle, { color: subtitleColor }]}>Pay without UPI PIN</Text>
+                  <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]}>Analytics Dashboard</Text>
+                  <Text style={[styles.itemSubtitle, { color: subtitleColor }]}>Track civic engagement and services</Text>
                 </View>
                 <MaterialIcons name="chevron-right" size={24} color={colorScheme.colors.text} style={{ opacity: 0.6 }} />
               </TouchableOpacity>
@@ -461,13 +445,13 @@ export default function SuperMenu() {
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Apps by PhonePe</Text>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Quick Links</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {[
-                  { icon: "store", title: "Store" },
-                  { icon: "trending-up", title: "Share\nMarket" },
-                  { icon: "location-on", title: "Pincode" },
-                  { icon: "attach-money", title: "Wealth" },
+                  { icon: "help", title: "Help" },
+                  { icon: "info", title: "About" },
+                  { icon: "settings", title: "Settings" },
+                  { icon: "contact-support", title: "Support" },
                 ].map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
                     <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
@@ -487,7 +471,7 @@ export default function SuperMenu() {
         <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <View style={{ paddingVertical: 24, borderRadius: 16, backgroundColor: colorScheme.colors.card }}>
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Sponsored Links</Text>
+              <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Featured Campaigns</Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 {[1, 2, 3].map((_, index) => (
                   <TouchableOpacity 

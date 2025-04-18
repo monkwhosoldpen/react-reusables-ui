@@ -48,9 +48,9 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name='components'
+        name='alerts'
         options={{
-          title: 'Components',
+          title: 'Alerts',
           tabBarIcon({ color, size }) {
             return <MenuSquare color={color} size={size} />;
           },

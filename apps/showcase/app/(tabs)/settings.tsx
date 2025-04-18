@@ -1,19 +1,14 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Text } from '~/components/ui/text';
-import { useColorScheme, type ThemeName } from '~/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
-import { type DesignType } from '~/lib/providers/theme/types';
-import { Switch } from '~/components/ui/switch';
-import { Button } from '~/components/ui/button';
-import { router } from 'expo-router';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { useColorScheme, type ThemeName } from '@/lib/providers/theme/ColorSchemeProvider';
+import { useDesign } from '@/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from "@expo/vector-icons";
+import { router } from 'expo-router';
 import { useAuth } from '~/lib/contexts/AuthContext';
+import { Switch } from '~/components/ui/switch';
 import LanguageChanger from '@/components/common/LanguageChanger';
-import { config } from '~/lib/config';
-import { FlashList } from '@shopify/flash-list';
 import { cn } from '~/lib/utils';
-import { ChevronDown } from '~/lib/icons/ChevronDown';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +18,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu';
+import { Button } from '~/components/ui/button';
+import { ChevronDown } from '~/lib/icons/ChevronDown';
 import { Muted } from '~/components/ui/typography';
+import { type DesignType } from '@/lib/providers/theme/types';
 
 const contentInsets = {
   left: 12,
@@ -35,6 +33,99 @@ export default function SettingsScreen() {
   const { colorScheme, themeName, updateTheme, isDarkMode, toggleDarkMode } = useColorScheme();
   const { design, updateDesign } = useDesign();
   const insets = useSafeAreaInsets();
+
+  // Helper function to determine if dark mode
+  const avatarBgColor = isDarkMode ? 'rgba(255,255,255,0.1)' : '#E8EEF2';
+  const subtitleColor = isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const timestampColor = isDarkMode ? 'rgba(255,255,255,0.5)' : '#64748B';
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colorScheme.colors.background,
+    },
+    header: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colorScheme.colors.border,
+      backgroundColor: colorScheme.colors.primary,
+    },
+    headerContent: {
+      width: '100%',
+      maxWidth: 1200,
+      alignSelf: 'center',
+    },
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: 'transparent',
+      borderRadius: 12,
+      marginVertical: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    itemSelected: {
+      backgroundColor: 'rgba(128,128,128,0.05)',
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+      backgroundColor: '#E8EEF2',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    itemContent: {
+      flex: 1,
+      marginRight: 12,
+    },
+    itemTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 4,
+      color: '#1E293B',
+    },
+    itemSubtitle: {
+      fontSize: 14,
+      color: '#64748B',
+      lineHeight: 20,
+    },
+    timeStamp: {
+      fontSize: 12,
+      color: '#94A3B8',
+      marginBottom: 4,
+    },
+    sectionHeader: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginTop: 8,
+      backgroundColor: 'transparent',
+    },
+    sectionHeaderText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#94A3B8',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    sectionTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      marginBottom: 8,
+      color: '#1E293B',
+    },
+  });
 
   const handleSignOut = async () => {
     await signOut();
@@ -51,139 +142,146 @@ export default function SettingsScreen() {
     }
   };
 
-  const settingsData = [
-    {
-      id: 'account',
-      title: 'Account',
-      content: user ? (
-        <>
-          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-            <View>
-              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-                Signed in as
-              </Text>
-              <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-                {user.email || 'Guest'}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: colorScheme.colors.notification }]}
-            onPress={handleSignOut}
-          >
-            <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
-              Sign Out
-            </Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-          <View>
-            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-              Not signed in
-            </Text>
-            <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-              Sign in to sync your preferences
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: colorScheme.colors.primary }]}
-            onPress={handleSignIn}
-          >
-            <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
-              Sign In
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ),
-    },
-    {
-      id: 'appearance',
-      title: 'Appearance',
-      content: (
-        <>
-          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-            <View>
-              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-                Dark Mode
-              </Text>
-              <Text style={[styles.settingDescription, { color: colorScheme.colors.text }]}>
-                Use dark theme
-              </Text>
-            </View>
-            <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
-          </View>
-          <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-            <View>
-              <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-                Theme
-              </Text>
-            </View>
-            <ThemeDropdownSelect defaultValue={themeName} onValueChange={handleThemeChange} />
-          </View>
-        </>
-      ),
-    },
-    {
-      id: 'language',
-      title: 'Language',
-      content: (
-        <View style={[styles.settingRow, { borderBottomColor: colorScheme.colors.border }]}>
-          <View>
-            <Text style={[styles.settingLabel, { color: colorScheme.colors.text }]}>
-              App Language
-            </Text>
-          </View>
-          <LanguageChanger variant="settings" />
-        </View>
-      ),
-    },
-    {
-      id: 'dashboard',
-      title: 'Dashboard',
-      content: (
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: colorScheme.colors.primary }]}
-          onPress={() => router.push('/dashboard')}
-        >
-          <Text style={[styles.buttonText, { color: colorScheme.colors.background }]}>
-            Open Dashboard
-          </Text>
-        </TouchableOpacity>
-      ),
-    },
-  ];
-
   return (
-    <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      <FlashList
-        data={settingsData}
-        estimatedItemSize={100}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: insets.top + 16,
-          paddingBottom: 16,
-        }}
-        renderItem={({ item, index }) => (
-          <View 
-            style={[
-              styles.section,
-              { 
-                backgroundColor: colorScheme.colors.card,
-                marginBottom: index === settingsData.length - 1 ? 24 : 16,
-              }
-            ]}
-          >
-            <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
-              {item.title}
-            </Text>
-            <View style={[styles.card, { backgroundColor: colorScheme.colors.background }]}>
-              {item.content}
+    <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+
+      <ScrollView 
+        style={{ flex: 1, backgroundColor: colorScheme.colors.background }}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        {/* Account Section */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>ACCOUNT</Text>
+          </View>
+          <View style={{ backgroundColor: colorScheme.colors.card, borderRadius: 12, padding: 16 }}>
+            {user ? (
+              <>
+                <View style={[styles.item, { borderBottomWidth: 1, borderBottomColor: `${colorScheme.colors.text}1A` }]}>
+                  <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                    <MaterialIcons name="person" size={24} color={colorScheme.colors.primary} />
+                  </View>
+                  <View style={styles.itemContent}>
+                    <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]}>
+                      Signed in as
+                    </Text>
+                    <Text style={[styles.itemSubtitle, { color: subtitleColor }]}>
+                      {user.email || 'Guest'}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={[styles.item, { backgroundColor: colorScheme.colors.notification }]}
+                  onPress={handleSignOut}
+                >
+                  <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.background}1A` }]}>
+                    <MaterialIcons name="logout" size={24} color={colorScheme.colors.background} />
+                  </View>
+                  <View style={styles.itemContent}>
+                    <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
+                      Sign Out
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity
+                style={[styles.item, { backgroundColor: colorScheme.colors.primary }]}
+                onPress={handleSignIn}
+              >
+                <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.background}1A` }]}>
+                  <MaterialIcons name="login" size={24} color={colorScheme.colors.background} />
+                </View>
+                <View style={styles.itemContent}>
+                  <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
+                    Sign In
+                  </Text>
+                  <Text style={[styles.itemSubtitle, { color: colorScheme.colors.background, opacity: 0.8 }]}>
+                    Sign in to sync your preferences
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Appearance Section */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>APPEARANCE</Text>
+          </View>
+          <View style={{ backgroundColor: colorScheme.colors.card, borderRadius: 12, padding: 16 }}>
+            <View style={[styles.item, { borderBottomWidth: 1, borderBottomColor: `${colorScheme.colors.text}1A` }]}>
+              <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                <MaterialIcons name="dark-mode" size={24} color={colorScheme.colors.primary} />
+              </View>
+              <View style={styles.itemContent}>
+                <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]}>
+                  Dark Mode
+                </Text>
+                <Text style={[styles.itemSubtitle, { color: subtitleColor }]}>
+                  Use dark theme
+                </Text>
+              </View>
+              <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+            </View>
+            <View style={styles.item}>
+              <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                <MaterialIcons name="palette" size={24} color={colorScheme.colors.primary} />
+              </View>
+              <View style={styles.itemContent}>
+                <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]}>
+                  Theme
+                </Text>
+              </View>
+              <ThemeDropdownSelect defaultValue={themeName} onValueChange={handleThemeChange} />
             </View>
           </View>
-        )}
-      />
-    </View>
+        </View>
+
+        {/* Language Section */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>LANGUAGE</Text>
+          </View>
+          <View style={{ backgroundColor: colorScheme.colors.card, borderRadius: 12, padding: 16 }}>
+            <View style={styles.item}>
+              <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.primary}1A` }]}>
+                <MaterialIcons name="language" size={24} color={colorScheme.colors.primary} />
+              </View>
+              <View style={styles.itemContent}>
+                <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]}>
+                  App Language
+                </Text>
+              </View>
+              <LanguageChanger variant="settings" />
+            </View>
+          </View>
+        </View>
+
+        {/* Dashboard Section */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>DASHBOARD</Text>
+          </View>
+          <View style={{ backgroundColor: colorScheme.colors.card, borderRadius: 12, padding: 16 }}>
+            <TouchableOpacity
+              style={[styles.item, { backgroundColor: colorScheme.colors.primary }]}
+              onPress={() => router.push('/dashboard')}
+            >
+              <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.background}1A` }]}>
+                <MaterialIcons name="dashboard" size={24} color={colorScheme.colors.background} />
+              </View>
+              <View style={styles.itemContent}>
+                <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
+                  Open Dashboard
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -325,60 +423,3 @@ function ThemeDropdownSelect({
     </DropdownMenu>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 16,
-  },
-  section: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    opacity: 0.6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 12,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  card: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    margin: 8,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-  },
-  settingLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  settingDescription: {
-    fontSize: 14,
-    opacity: 0.6,
-    marginTop: 2,
-  },
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    margin: 12,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
