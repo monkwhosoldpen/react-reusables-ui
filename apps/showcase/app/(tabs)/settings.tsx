@@ -125,6 +125,21 @@ export default function SettingsScreen() {
       marginBottom: 8,
       color: '#1E293B',
     },
+    signOutButton: {
+      backgroundColor: colorScheme.colors.notification,
+      padding: 12,
+      borderRadius: Number(design.radius.md),
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: Number(design.spacing.padding.item),
+    },
+    signOutButtonText: {
+      color: colorScheme.colors.background,
+      fontSize: Number(design.spacing.fontSize.base),
+      fontWeight: '600',
+      marginLeft: Number(design.spacing.padding.item),
+    },
   });
 
   const handleSignOut = async () => {
@@ -171,17 +186,11 @@ export default function SettingsScreen() {
                   </View>
                 </View>
                 <TouchableOpacity
-                  style={[styles.item, { backgroundColor: colorScheme.colors.notification }]}
+                  style={styles.signOutButton}
                   onPress={handleSignOut}
                 >
-                  <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.background}1A` }]}>
-                    <MaterialIcons name="logout" size={24} color={colorScheme.colors.background} />
-                  </View>
-                  <View style={styles.itemContent}>
-                    <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
-                      Sign Out
-                    </Text>
-                  </View>
+                  <MaterialIcons name="logout" size={20} color={colorScheme.colors.background} />
+                  <Text style={styles.signOutButtonText}>Sign Out</Text>
                 </TouchableOpacity>
               </>
             ) : (
