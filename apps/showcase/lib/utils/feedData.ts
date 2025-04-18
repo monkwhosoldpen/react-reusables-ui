@@ -114,7 +114,7 @@ export const handleRemoveMedia = (formData: FormDataType, index: number): Partia
 
 export const prepareSubmissionData = (formData: FormDataType): FormDataType => ({
   ...formData,
-  type: 'all',
+  type: 'poll',
   metadata: {
     ...DEFAULT_METADATA,
     ...formData.metadata,
@@ -542,7 +542,7 @@ export const generateRealisticContent = (contentType: 'small' | 'long'): Partial
   const survey = REALISTIC_SURVEYS[Math.floor(Math.random() * REALISTIC_SURVEYS.length)];
 
   return {
-    type: 'all',
+    type: 'poll',
     content,
     media,
     metadata: {
@@ -718,7 +718,7 @@ Innovation = f(ambition × execution)
   };
 
   return {
-    type: 'all',
+    type: 'poll',
     content,
     media,
     metadata,
@@ -761,15 +761,9 @@ export const handleSubmit = async (formData: FormDataType): Promise<boolean> => 
   }
 };
 
-export const determineInteractiveType = (interactiveContent?: InteractiveContent): 'poll' | 'quiz' | 'survey' | 'all' => {
-  if (!interactiveContent) return 'all';
-  
-  if (interactiveContent.poll && !interactiveContent.quiz && !interactiveContent.survey) {
-    return 'poll';
-  } else if (!interactiveContent.poll && interactiveContent.quiz && !interactiveContent.survey) {
-    return 'quiz';
-  } else if (!interactiveContent.poll && !interactiveContent.quiz && interactiveContent.survey) {
-    return 'survey';
-  }
-  return 'all';
+export const determineInteractiveType = (interactiveContent?: InteractiveContent): 'poll' | 'quiz' | 'survey' => {
+  if (interactiveContent?.poll) return 'poll';
+  if (interactiveContent?.quiz) return 'quiz';
+  if (interactiveContent?.survey) return 'survey';
+  return 'poll'; // Default to poll if no interactive content
 };

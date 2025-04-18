@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '~/lib/supabase';
 import { useAuth } from '~/lib/contexts/AuthContext';
 import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
@@ -25,95 +25,127 @@ function isInteractiveResponse(data: unknown): data is InteractiveResponse {
 }
 
 export function useInteractiveContent(feedItem: FormDataType) {
-  const { user } = useAuth();
+  const { user, isAuthenticated, refreshAuth } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [userResponse, setUserResponse] = useState<InteractiveResponse | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
+
+  const checkAuthAndRetry = async (operation: () => Promise<any>) => {
+    try {
+      if (!isAuthenticated) {
+        await refreshAuth();
+        if (!isAuthenticated) {
+          throw new Error('Authentication required');
+        }
+      }
+      return await operation();
+    } catch (err) {
+      if (retryCount < MAX_RETRIES) {
+        setRetryCount(prev => prev + 1);
+        return checkAuthAndRetry(operation);
+      }
+      throw err;
+    }
+  };
 
   const checkUserResponse = useCallback(async () => {
     if (!user || !feedItem.id) return null;
 
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('superfeed_responses')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('feed_item_id', feedItem.id)
-        .single();
-
-      if (error) throw error;
+      setError(null);
       
-      if (isInteractiveResponse(data)) {
-        setUserResponse(data);
+      const response = await checkAuthAndRetry(async () => {
+        const { data, error } = await supabase
+          .from('superfeed_responses')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('feed_item_id', feedItem.id)
+          .single();
+
+        if (error) throw error;
         return data;
+      });
+
+      if (isInteractiveResponse(response)) {
+        setUserResponse(response);
+        return response;
       }
       return null;
     } catch (err) {
-      console.error('Error checking user response:', err);
+      setError(err instanceof Error ? err : new Error('Failed to check user response'));
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, [user, feedItem.id]);
+  }, [user, feedItem.id, isAuthenticated]);
 
-  const submitResponse = useCallback(async (responseData: any, responseType: 'poll' | 'quiz' | 'survey') => {
-    if (!user) {
-      setError(new Error('Please sign in to interact with this content'));
-      return null;
-    }
-
-    if (!feedItem.id) {
-      setError(new Error('Invalid feed item'));
-      return null;
+  const submitResponse = async (response: any) => {
+    if (isSubmitting) {
+      throw new Error('Already submitting response');
     }
 
     try {
-      setIsLoading(true);
+      setIsSubmitting(true);
       setError(null);
 
-      const { data, error } = await supabase
-        .from('superfeed_responses')
-        .upsert({
-          user_id: user.id,
-          feed_item_id: feedItem.id,
-          response_type: responseType,
-          response_data: responseData,
-        })
-        .select()
-        .single();
+      const result = await checkAuthAndRetry(async () => {
+        const currentStats = feedItem.stats || {
+          views: 0,
+          likes: 0,
+          shares: 0,
+          responses: 0
+        };
 
-      if (error) throw error;
+        const updatedStats = {
+          ...currentStats,
+          responses: currentStats.responses + 1
+        };
 
-      // Update stats
-      await supabase
-        .from('superfeed')
-        .update({
-          stats: {
-            ...feedItem.stats,
-            responses: (feedItem.stats?.responses || 0) + 1
-          }
-        })
-        .eq('id', feedItem.id);
+        const { data: updatedFeedItem, error } = await supabase
+          .from('superfeed')
+          .update({ 
+            stats: updatedStats,
+            interactive_content: {
+              ...feedItem.interactive_content,
+              responses: [...(feedItem.interactive_content?.responses || []), response]
+            }
+          })
+          .eq('id', feedItem.id)
+          .select()
+          .single();
 
-      if (isInteractiveResponse(data)) {
-        setUserResponse(data);
-        return data;
-      }
-      throw new Error('Invalid response data received from server');
+        if (error) throw error;
+        return updatedFeedItem;
+      });
+
+      setUserResponse(response as InteractiveResponse);
+      return result;
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to submit response');
-      setError(error);
-      throw error;
+      setError(err instanceof Error ? err : new Error('Failed to submit response'));
+      throw err;
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
-  }, [user, feedItem]);
+  };
+
+  // Add cleanup on unmount
+  useEffect(() => {
+    return () => {
+      setIsLoading(false);
+      setIsSubmitting(false);
+      setError(null);
+    };
+  }, []);
 
   return {
     isLoading,
     error,
     userResponse,
+    isSubmitting,
     checkUserResponse,
     submitResponse,
     isAuthenticated: !!user,

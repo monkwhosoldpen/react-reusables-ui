@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { mockTenant } from '~/components/dashboard/mocktenant';
+import { supabase } from '@/lib/supabase';
 import { 
   FormDataType, 
   FeedItemType, 
@@ -8,13 +7,7 @@ import {
   Stats, 
   InteractiveContent, 
   FillRequirement 
-} from '~/lib/enhanced-chat/types/superfeed';
-
-// Initialize Supabase client with tenant's credentials
-const supabase = createClient(
-  mockTenant.tenant_supabase_url,
-  mockTenant.tenant_supabase_anon_key
-);
+} from '@/lib/enhanced-chat/types/superfeed';
 
 interface UseFeedFormProps {
   user: { email: string };
@@ -58,7 +51,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
   const [formData, setFormData] = useState<FormDataType>(() => {
     // Initialize with proper defaults and validation
     const baseData = initialData || {
-      type: 'all',
+      type: 'poll' as FeedItemType,
       content: '',
       media: [],
       channel_username: user.email,
@@ -93,7 +86,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
     return {
       ...baseData,
       // Ensure required fields have defaults
-      type: baseData.type || 'all',
+      type: baseData.type || 'poll',
       content: baseData.content || '',
       media: Array.isArray(baseData.media) ? baseData.media : [],
       channel_username: baseData.channel_username || user.email,
@@ -134,7 +127,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
     };
   });
 
-  const [activeTab, setActiveTab] = useState<FeedItemType>(formData.type || 'all');
+  const [activeTab, setActiveTab] = useState<FeedItemType>(formData.type || 'poll');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -165,6 +158,37 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
           ...updates.stats
         };
       }
+
+      // Ensure interactive content fields are never undefined
+      if (updates.interactive_content) {
+        sanitizedUpdates.interactive_content = {
+          poll: {
+            question: updates.interactive_content.poll?.question || '',
+            options: updates.interactive_content.poll?.options || ['', '']
+          },
+          quiz: {
+            title: updates.interactive_content.quiz?.title || '',
+            questions: updates.interactive_content.quiz?.questions || [{
+              text: '',
+              options: ['', ''],
+              correct_option: 0
+            }]
+          },
+          survey: {
+            title: updates.interactive_content.survey?.title || '',
+            questions: updates.interactive_content.survey?.questions || [{
+              text: '',
+              options: ['', '']
+            }]
+          }
+        };
+      }
+
+      // Ensure string fields are never undefined
+      if ('content' in updates) sanitizedUpdates.content = updates.content || '';
+      if ('caption' in updates) sanitizedUpdates.caption = updates.caption || '';
+      if ('message' in updates) sanitizedUpdates.message = updates.message || '';
+      if ('channel_username' in updates) sanitizedUpdates.channel_username = updates.channel_username || prev.channel_username;
 
       return {
         ...prev,
@@ -199,7 +223,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       if (data && typeof data === 'object') {
         // Transform the raw data to ensure it matches FormDataType
         const transformedData: FormDataType = {
-          type: (data.type as FeedItemType) || 'all',
+          type: (data.type as FeedItemType) || 'poll',
           content: typeof data.content === 'string' ? data.content : '',
           media: Array.isArray(data.media) ? data.media : [],
           caption: typeof data.caption === 'string' ? data.caption : undefined,
@@ -235,12 +259,9 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       setIsSubmitting(true);
       setError(null);
 
-      // Ensure required fields are set
-      if (!data.type) {
-        data.type = 'all'; // Set default type if not provided
-      }
-      if (!data.content) {
-        data.content = ''; // Set empty content if not provided
+      // Validate required fields
+      if (!data.type || !data.content) {
+        throw new Error('Type and content are required fields');
       }
 
       // Prepare the data for submission

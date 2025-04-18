@@ -6,6 +6,8 @@ import { FormDataType, PollData, QuizData, SurveyData } from '~/lib/enhanced-cha
 import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
 import { LinearGradient } from 'expo-linear-gradient';
 import Markdown from 'react-native-markdown-display';
+import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 
 interface FeedItemProps {
   data: FormDataType;
@@ -14,6 +16,9 @@ interface FeedItemProps {
 }
 
 export function FeedItem({ data, showHeader = true, showFooter = true }: FeedItemProps) {
+  const { colorScheme, themeName } = useColorScheme();
+  const { design } = useDesign();
+
   const {
     isLoading,
     error,
@@ -47,7 +52,10 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     }
 
     try {
-      await submitResponse({ options: selectedPollOptions }, 'poll');
+      await submitResponse({ 
+        type: 'poll',
+        options: selectedPollOptions 
+      });
       setShowResults(true);
     } catch (err) {
     }
@@ -65,7 +73,11 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         const score = quiz.questions.reduce((acc, q, index) => {
           return acc + (quizAnswers[index] === q.correct_option ? 1 : 0);
         }, 0);
-        await submitResponse({ answers: quizAnswers, score }, 'quiz');
+        await submitResponse({ 
+          type: 'quiz',
+          answers: quizAnswers, 
+          score 
+        });
         setShowResults(true);
       }
     } catch (err) {
@@ -79,7 +91,10 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     }
 
     try {
-      await submitResponse({ answers: surveyAnswers }, 'survey');
+      await submitResponse({ 
+        type: 'survey',
+        answers: surveyAnswers 
+      });
       setShowResults(true);
     } catch (err) {
     }
@@ -177,58 +192,71 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     </View>
   );
 
-  const renderQuiz = (quiz: QuizData) => (
-    <View style={styles.interactiveContent}>
-      <Text style={styles.quizTitle}>{quiz.title}</Text>
-      {error && (
-        <Text style={styles.errorText}>{error.message}</Text>
-      )}
-      {quiz.questions.map((question, qIndex) => (
-        <View key={qIndex} style={styles.questionContainer}>
-          <Text style={styles.questionText}>{question.text}</Text>
-          {question.options.map((option, oIndex) => (
-            <Button
-              key={oIndex}
-              variant={quizAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
-              onPress={() => setQuizAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
-              style={styles.optionButton}
-              disabled={isLoading || (showResults && !isAuthenticated)}
-            >
-              <Text>{option}</Text>
-              {showResults && (
-                <Text style={styles.resultText}>
-                  {oIndex === question.correct_option ? '✅' : '❌'}
-                </Text>
-              )}
-            </Button>
-          ))}
-        </View>
-      ))}
-      {!showResults && (
-        <Button 
-          variant="default" 
-          onPress={handleQuizSubmit} 
-          style={styles.submitButton}
-          disabled={isLoading || Object.keys(quizAnswers).length !== quiz.questions.length}
-        >
-          <Text>{isLoading ? 'Submitting...' : 'Submit Answers'}</Text>
-        </Button>
-      )}
-      {showResults && (
-        <Button 
-          variant="default" 
-          onPress={() => setShowResults(false)} 
-          style={styles.submitButton}
-          disabled={isLoading}
-        >
-          <Text>Try Again</Text>
-        </Button>
-      )}
-      {data.metadata?.requireAuth && !isAuthenticated && (
-        <Text style={styles.authRequiredText}>Sign in to participate in this quiz</Text>
-      )}
-    </View>
-  );
+  const renderQuiz = (quiz: QuizData) => {
+    console.log('Rendering quiz:', quiz);
+    console.log('Quiz questions:', quiz.questions);
+    console.log('Quiz title:', quiz.title);
+    return (
+      <View style={styles.interactiveContent}>
+        <Text style={styles.quizTitle}>{quiz.title}</Text>
+        {error && (
+          <Text style={styles.errorText}>{error.message}</Text>
+        )}
+        {quiz.questions.map((question, qIndex) => {
+          console.log('Rendering question:', question);
+          console.log('Question text:', question.text);
+          console.log('Question options:', question.options);
+          return (
+            <View key={qIndex} style={styles.questionContainer}>
+              <Text style={styles.questionText}>{question.text}</Text>
+              {question.options.map((option, oIndex) => {
+                console.log('Rendering option:', option);
+                return (
+                  <Button
+                    key={oIndex}
+                    variant={quizAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
+                    onPress={() => setQuizAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
+                    style={styles.optionButton}
+                    disabled={isLoading || (showResults && !isAuthenticated)}
+                  >
+                    <Text>{option}</Text>
+                    {showResults && (
+                      <Text style={styles.resultText}>
+                        {oIndex === question.correct_option ? '✅' : '❌'}
+                      </Text>
+                    )}
+                  </Button>
+                );
+              })}
+            </View>
+          );
+        })}
+        {!showResults && (
+          <Button 
+            variant="default" 
+            onPress={handleQuizSubmit} 
+            style={styles.submitButton}
+            disabled={isLoading || Object.keys(quizAnswers).length !== quiz.questions.length}
+          >
+            <Text>{isLoading ? 'Submitting...' : 'Submit Answers'}</Text>
+          </Button>
+        )}
+        {showResults && (
+          <Button 
+            variant="default" 
+            onPress={() => setShowResults(false)} 
+            style={styles.submitButton}
+            disabled={isLoading}
+          >
+            <Text>Try Again</Text>
+          </Button>
+        )}
+        {data.metadata?.requireAuth && !isAuthenticated && (
+          <Text style={styles.authRequiredText}>Sign in to participate in this quiz</Text>
+        )}
+      </View>
+    );
+  };
 
   const renderSurvey = (survey: SurveyData) => (
     <View style={styles.interactiveContent}>
@@ -270,6 +298,448 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       )}
     </View>
   );
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colorScheme.colors.card,
+      borderRadius: Number(design.radius.lg),
+      borderWidth: 1,
+      borderColor: colorScheme.colors.border,
+      margin: Number(design.spacing.padding.card),
+      overflow: 'hidden'
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingHorizontal: Number(design.spacing.padding.card),
+      paddingVertical: Number(design.spacing.padding.item),
+    },
+    headerLeft: {
+      flex: 1,
+      flexDirection: 'row',
+      gap: Number(design.spacing.padding.item),
+    },
+    avatar: {
+      width: Number(design.spacing.avatarSize),
+      height: Number(design.spacing.avatarSize),
+      borderRadius: Number(design.radius.full) / 2,
+      backgroundColor: colorScheme.colors.notification,
+      overflow: 'hidden',
+    },
+    avatarImage: {
+      width: '100%',
+      height: '100%',
+    },
+    headerText: {
+      flex: 1,
+    },
+    nameContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: Number(design.spacing.padding.item),
+    },
+    username: {
+      fontSize: Number(design.spacing.fontSize.base),
+      fontWeight: '700',
+      color: colorScheme.colors.text,
+    },
+    verifiedBadge: {
+      fontSize: Number(design.spacing.fontSize.sm),
+      color: colorScheme.colors.primary,
+    },
+    timestamp: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+    },
+    moreButton: {
+      padding: Number(design.spacing.padding.item),
+      marginTop: -Number(design.spacing.padding.item),
+      marginRight: -Number(design.spacing.padding.item),
+    },
+    moreButtonText: {
+      fontSize: Number(design.spacing.fontSize.xl),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+      letterSpacing: -1,
+      marginTop: -Number(design.spacing.padding.item),
+    },
+    content: {
+      position: 'relative',
+    },
+    contentWrapper: {
+      padding: Number(design.spacing.padding.card),
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    interactiveFeaturesContainer: {
+      gap: Number(design.spacing.padding.card),
+      padding: Number(design.spacing.padding.card),
+      paddingTop: 0,
+    },
+    interactiveContent: {
+      marginTop: Number(design.spacing.margin.item),
+      width: '100%',
+    },
+    collapsible: {
+      overflow: 'hidden'
+    },
+    contentText: {
+      fontSize: Number(design.spacing.fontSize.base),
+      lineHeight: Number(design.spacing.lineHeight.normal),
+      color: colorScheme.colors.text,
+    },
+    mediaContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Number(design.spacing.padding.item),
+      marginTop: Number(design.spacing.margin.item),
+    },
+    mediaItem: {
+      borderRadius: Number(design.radius.md),
+      overflow: 'hidden',
+      backgroundColor: colorScheme.colors.notification,
+    },
+    singleMediaItem: {
+      width: '100%',
+      aspectRatio: 16/9,
+    },
+    doubleMediaItem: {
+      width: '49%',
+      aspectRatio: 1,
+    },
+    tripleMediaItem: {
+      width: '32%',
+      aspectRatio: 1,
+    },
+    tripleMainItem: {
+      width: '100%',
+      aspectRatio: 16/9,
+      marginBottom: Number(design.spacing.margin.item),
+    },
+    tripleSecondaryItem: {
+      width: '49%',
+      aspectRatio: 1,
+    },
+    quadMediaItem: {
+      width: '49%',
+      aspectRatio: 1,
+    },
+    lastQuadItem: {
+      width: '100%',
+      aspectRatio: 2,
+    },
+    mediaImage: {
+      width: '100%',
+      height: '100%',
+    },
+    mediaCaption: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      color: colorScheme.colors.background,
+      padding: Number(design.spacing.padding.item),
+      fontSize: Number(design.spacing.fontSize.sm),
+    },
+    footer: {
+      paddingHorizontal: Number(design.spacing.padding.item),
+      paddingVertical: Number(design.spacing.padding.item),
+      borderTopWidth: 1,
+      borderTopColor: colorScheme.colors.border,
+    },
+    metrics: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      maxWidth: 425,
+    },
+    metricItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Number(design.spacing.padding.item),
+      paddingVertical: Number(design.spacing.padding.item),
+      paddingHorizontal: Number(design.spacing.padding.item),
+      borderRadius: Number(design.radius.full),
+    },
+    metricIcon: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+    },
+    metricNumber: {
+      fontSize: Number(design.spacing.fontSize.sm),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+      minWidth: 16,
+    },
+    shareButton: {
+      marginLeft: 'auto',
+    },
+    errorText: {
+      color: colorScheme.colors.primary,
+      fontSize: Number(design.spacing.fontSize.sm),
+      marginBottom: Number(design.spacing.margin.item),
+      textAlign: 'center',
+    },
+    authRequiredText: {
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+      fontSize: Number(design.spacing.fontSize.sm),
+      marginTop: Number(design.spacing.margin.item),
+      textAlign: 'center',
+    },
+    pollQuestion: {
+      fontSize: Number(design.spacing.fontSize.base),
+      fontWeight: '700',
+      color: colorScheme.colors.text,
+      marginBottom: Number(design.spacing.margin.item),
+    },
+    pollOption: {
+      minHeight: 40,
+      marginBottom: Number(design.spacing.margin.item),
+      borderWidth: 1,
+      borderColor: colorScheme.colors.border,
+      borderRadius: Number(design.radius.sm),
+      overflow: 'hidden',
+    },
+    pollOptionSelected: {
+      borderColor: colorScheme.colors.primary,
+      backgroundColor: colorScheme.colors.notification,
+    },
+    pollOptionResult: {
+      borderColor: colorScheme.colors.border,
+    },
+    pollOptionProgress: {
+      position: 'relative',
+      padding: Number(design.spacing.padding.item),
+      backgroundColor: colorScheme.colors.notification,
+    },
+    pollOptionText: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      zIndex: 1,
+    },
+    pollOptionTextSelected: {
+      color: colorScheme.colors.primary,
+    },
+    pollPercentage: {
+      position: 'absolute',
+      right: Number(design.spacing.padding.item),
+      top: Number(design.spacing.padding.item),
+      fontSize: Number(design.spacing.fontSize.base),
+      fontWeight: '700',
+      color: colorScheme.colors.text,
+    },
+    pollFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: Number(design.spacing.margin.item),
+    },
+    pollSubmitButton: {
+      backgroundColor: colorScheme.colors.primary,
+      borderRadius: Number(design.radius.full),
+      paddingHorizontal: Number(design.spacing.padding.item),
+      paddingVertical: Number(design.spacing.padding.item),
+      minWidth: 80,
+    },
+    pollSubmitText: {
+      color: colorScheme.colors.background,
+      fontSize: Number(design.spacing.fontSize.sm),
+      fontWeight: '600',
+    },
+    pollVoteCount: {
+      fontSize: Number(design.spacing.fontSize.sm),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+    },
+    quizTitle: {
+      fontSize: Number(design.spacing.fontSize.lg),
+      fontWeight: '700',
+      color: colorScheme.colors.text,
+      marginBottom: Number(design.spacing.margin.item),
+    },
+    surveyTitle: {
+      fontSize: Number(design.spacing.fontSize.xl),
+      fontWeight: '600',
+      marginBottom: Number(design.spacing.margin.item)
+    },
+    questionContainer: {
+      marginBottom: Number(design.spacing.margin.item),
+      backgroundColor: colorScheme.colors.notification,
+      borderRadius: Number(design.radius.lg),
+      padding: Number(design.spacing.padding.card),
+    },
+    questionText: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      marginBottom: Number(design.spacing.margin.item),
+      fontWeight: '600',
+    },
+    optionButton: {
+      marginBottom: Number(design.spacing.margin.item),
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colorScheme.colors.background,
+      borderWidth: 1,
+      borderColor: colorScheme.colors.border,
+      borderRadius: Number(design.radius.sm),
+      paddingVertical: Number(design.spacing.padding.item),
+      paddingHorizontal: Number(design.spacing.padding.card),
+    },
+    submitButton: {
+      backgroundColor: colorScheme.colors.primary,
+      borderRadius: Number(design.radius.full),
+      paddingVertical: Number(design.spacing.padding.item),
+      marginTop: Number(design.spacing.margin.item),
+    },
+    resultText: {
+      marginLeft: Number(design.spacing.margin.item),
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+    },
+    thankYouText: {
+      textAlign: 'center',
+      marginTop: Number(design.spacing.margin.item),
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.primary,
+      fontWeight: '600',
+    },
+    collapsed: {
+      overflow: 'hidden',
+    },
+    contentOverlay: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 120,
+      justifyContent: 'flex-end',
+      paddingBottom: Number(design.spacing.padding.item),
+      zIndex: 2,
+    },
+    collapseButtonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingHorizontal: Number(design.spacing.padding.card),
+      width: '100%',
+    },
+    overlayCollapseButton: {
+      backgroundColor: colorScheme.colors.background,
+      paddingVertical: Number(design.spacing.padding.item),
+      paddingHorizontal: Number(design.spacing.padding.item),
+      borderRadius: Number(design.radius.full),
+      borderWidth: 1,
+      borderColor: colorScheme.colors.border,
+      zIndex: 2,
+      elevation: Number(design.elevation.sm),
+    },
+    overlayCollapseButtonText: {
+      fontSize: Number(design.spacing.fontSize.sm),
+      color: colorScheme.colors.text,
+      fontWeight: '700',
+    },
+    showLessContainer: {
+      paddingVertical: Number(design.spacing.padding.item),
+      borderTopWidth: 1,
+      borderTopColor: colorScheme.colors.border,
+    },
+    showLessButton: {
+      paddingVertical: Number(design.spacing.padding.item),
+      paddingHorizontal: Number(design.spacing.padding.item),
+      borderRadius: Number(design.radius.full),
+      backgroundColor: colorScheme.colors.notification,
+      borderWidth: 1,
+      borderColor: colorScheme.colors.border,
+    },
+    showLessButtonText: {
+      fontSize: Number(design.spacing.fontSize.sm),
+      color: colorScheme.colors.text,
+      fontWeight: '500',
+    },
+    markdownContainer: {
+      overflow: 'hidden',
+    },
+  });
+
+  const markdownStyles = StyleSheet.create({
+    body: {
+      color: colorScheme.colors.text,
+      fontSize: Number(design.spacing.fontSize.base),
+      lineHeight: Number(design.spacing.lineHeight.normal),
+    },
+    heading1: {
+      fontSize: Number(design.spacing.fontSize['3xl']),
+      fontWeight: 'bold',
+      marginVertical: Number(design.spacing.margin.item),
+      color: colorScheme.colors.text,
+    },
+    heading2: {
+      fontSize: Number(design.spacing.fontSize.xl),
+      fontWeight: 'bold',
+      marginVertical: Number(design.spacing.margin.item),
+      color: colorScheme.colors.text,
+    },
+    heading3: {
+      fontSize: Number(design.spacing.fontSize.lg),
+      fontWeight: 'bold',
+      marginVertical: Number(design.spacing.margin.item),
+      color: colorScheme.colors.text,
+    },
+    link: {
+      color: colorScheme.colors.primary,
+      textDecorationLine: 'underline',
+    },
+    listItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    listItemNumber: {
+      fontWeight: 'bold',
+      marginRight: Number(design.spacing.margin.item),
+    },
+    listItemBullet: {
+      fontWeight: 'bold',
+      marginRight: Number(design.spacing.margin.item),
+    },
+    strong: {
+      fontWeight: 'bold',
+    },
+    em: {
+      fontStyle: 'italic',
+    },
+    blockquote: {
+      borderLeftWidth: 4,
+      borderLeftColor: colorScheme.colors.border,
+      paddingLeft: Number(design.spacing.padding.item),
+      marginVertical: Number(design.spacing.margin.item),
+    },
+    code_inline: {
+      backgroundColor: colorScheme.colors.notification,
+      paddingHorizontal: Number(design.spacing.padding.item),
+      paddingVertical: Number(design.spacing.padding.item),
+      borderRadius: Number(design.radius.sm),
+      fontFamily: 'monospace',
+    },
+    code_block: {
+      backgroundColor: colorScheme.colors.notification,
+      padding: Number(design.spacing.padding.item),
+      borderRadius: Number(design.radius.md),
+      marginVertical: Number(design.spacing.margin.item),
+      fontFamily: 'monospace',
+    },
+    hr: {
+      backgroundColor: colorScheme.colors.border,
+      height: 1,
+      marginVertical: Number(design.spacing.margin.item),
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -371,15 +841,15 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         {!isCollapsed && (
           <>
             <View style={styles.interactiveFeaturesContainer}>
-              {(data.type === 'all' || data.type === 'poll') && data.interactive_content?.poll && (
+              {(data.type === 'poll') && data.interactive_content?.poll && (
                 renderPoll(data.interactive_content.poll)
               )}
               
-              {(data.type === 'all' || data.type === 'quiz') && data.interactive_content?.quiz && (
+              {(data.type === 'quiz') && data.interactive_content?.quiz && (
                 renderQuiz(data.interactive_content.quiz)
               )}
               
-              {(data.type === 'all' || data.type === 'survey') && data.interactive_content?.survey && (
+              {(data.type === 'survey') && data.interactive_content?.survey && (
                 renderSurvey(data.interactive_content.survey)
               )}
             </View>
@@ -428,439 +898,4 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       )}
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#eee',
-    margin: 16,
-    overflow: 'hidden'
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  headerLeft: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#eff3f4',
-    overflow: 'hidden',
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-  },
-  headerText: {
-    flex: 1,
-  },
-  nameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 4,
-  },
-  username: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0f1419',
-  },
-  verifiedBadge: {
-    fontSize: 14,
-    color: '#1d9bf0',
-  },
-  timestamp: {
-    fontSize: 15,
-    color: '#536471',
-  },
-  moreButton: {
-    padding: 8,
-    marginTop: -8,
-    marginRight: -8,
-  },
-  moreButtonText: {
-    fontSize: 20,
-    color: '#536471',
-    letterSpacing: -1,
-    marginTop: -8,
-  },
-  content: {
-    position: 'relative',
-  },
-  contentWrapper: {
-    padding: 16,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  interactiveFeaturesContainer: {
-    gap: 16,
-    padding: 16,
-    paddingTop: 0,
-  },
-  interactiveContent: {
-    marginTop: 12,
-    width: '100%',
-  },
-  collapsible: {
-    overflow: 'hidden'
-  },
-  contentText: {
-    fontSize: 15,
-    lineHeight: 20,
-    color: '#0f1419',
-  },
-  mediaContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    marginTop: 12,
-  },
-  mediaItem: {
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
-  },
-  singleMediaItem: {
-    width: '100%',
-    aspectRatio: 16/9,
-  },
-  doubleMediaItem: {
-    width: '49%',
-    aspectRatio: 1,
-  },
-  tripleMediaItem: {
-    width: '32%',
-    aspectRatio: 1,
-  },
-  tripleMainItem: {
-    width: '100%',
-    aspectRatio: 16/9,
-    marginBottom: 4,
-  },
-  tripleSecondaryItem: {
-    width: '49%',
-    aspectRatio: 1,
-  },
-  quadMediaItem: {
-    width: '49%',
-    aspectRatio: 1,
-  },
-  lastQuadItem: {
-    width: '100%',
-    aspectRatio: 2,
-  },
-  mediaImage: {
-    width: '100%',
-    height: '100%',
-  },
-  mediaCaption: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    color: '#fff',
-    padding: 4,
-    fontSize: 12,
-  },
-  footer: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderTopWidth: 1,
-    borderTopColor: '#eff3f4',
-  },
-  metrics: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    maxWidth: 425,
-  },
-  metricItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 9999,
-  },
-  metricIcon: {
-    fontSize: 16,
-    color: '#536471',
-  },
-  metricNumber: {
-    fontSize: 13,
-    color: '#536471',
-    minWidth: 16, // Ensures alignment when numbers change
-  },
-  shareButton: {
-    marginLeft: 'auto',
-  },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 14,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  authRequiredText: {
-    color: '#6b7280',
-    fontSize: 14,
-    marginTop: 12,
-    textAlign: 'center',
-  },
-  pollQuestion: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0f1419',
-    marginBottom: 12,
-  },
-  pollOption: {
-    minHeight: 40,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#cfd9de',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  pollOptionSelected: {
-    borderColor: '#1d9bf0',
-    backgroundColor: '#e8f5fd',
-  },
-  pollOptionResult: {
-    borderColor: '#eff3f4',
-  },
-  pollOptionProgress: {
-    position: 'relative',
-    padding: 12,
-    backgroundColor: '#f7f9f9',
-  },
-  pollOptionText: {
-    fontSize: 15,
-    color: '#0f1419',
-    zIndex: 1,
-  },
-  pollOptionTextSelected: {
-    color: '#1d9bf0',
-  },
-  pollPercentage: {
-    position: 'absolute',
-    right: 12,
-    top: 12,
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0f1419',
-  },
-  pollFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 12,
-  },
-  pollSubmitButton: {
-    backgroundColor: '#0f1419',
-    borderRadius: 9999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    minWidth: 80,
-  },
-  pollSubmitText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  pollVoteCount: {
-    fontSize: 13,
-    color: '#536471',
-  },
-  quizTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#0f1419',
-    marginBottom: 16,
-  },
-  surveyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16
-  },
-  questionContainer: {
-    marginBottom: 16,
-    backgroundColor: '#f7f9f9',
-    borderRadius: 16,
-    padding: 16,
-  },
-  questionText: {
-    fontSize: 15,
-    color: '#0f1419',
-    marginBottom: 12,
-    fontWeight: '600',
-  },
-  optionButton: {
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#cfd9de',
-    borderRadius: 4,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  submitButton: {
-    backgroundColor: '#0f1419',
-    borderRadius: 9999,
-    paddingVertical: 12,
-    marginTop: 16,
-  },
-  resultText: {
-    marginLeft: 8,
-    fontSize: 15,
-    color: '#536471',
-  },
-  thankYouText: {
-    textAlign: 'center',
-    marginTop: 16,
-    fontSize: 15,
-    color: '#00ba7c',
-    fontWeight: '600',
-  },
-  collapsed: {
-    overflow: 'hidden',
-  },
-  contentOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 120,
-    justifyContent: 'flex-end',
-    paddingBottom: 12,
-    zIndex: 2,
-  },
-  collapseButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 16,
-    width: '100%',
-  },
-  overlayCollapseButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: '#eff3f4',
-    zIndex: 2,
-    elevation: 3,
-  },
-  overlayCollapseButtonText: {
-    fontSize: 14,
-    color: '#0f1419',
-    fontWeight: '700',
-  },
-  showLessContainer: {
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#eff3f4',
-  },
-  showLessButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-    backgroundColor: '#f7f9f9',
-    borderWidth: 1,
-    borderColor: '#eff3f4',
-  },
-  showLessButtonText: {
-    fontSize: 14,
-    color: '#0f1419',
-    fontWeight: '500',
-  },
-  markdownContainer: {
-    overflow: 'hidden',
-  },
-});
-
-const markdownStyles = StyleSheet.create({
-  body: {
-    color: '#0f1419',
-    fontSize: 15,
-    lineHeight: 20,
-  },
-  heading1: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginVertical: 12,
-    color: '#0f1419',
-  },
-  heading2: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginVertical: 10,
-    color: '#0f1419',
-  },
-  heading3: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 8,
-    color: '#0f1419',
-  },
-  link: {
-    color: '#1d9bf0',
-    textDecorationLine: 'underline',
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  listItemNumber: {
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  listItemBullet: {
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  strong: {
-    fontWeight: 'bold',
-  },
-  em: {
-    fontStyle: 'italic',
-  },
-  blockquote: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#cfd9de',
-    paddingLeft: 12,
-    marginVertical: 8,
-  },
-  code_inline: {
-    backgroundColor: '#f7f9f9',
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 4,
-    fontFamily: 'monospace',
-  },
-  code_block: {
-    backgroundColor: '#f7f9f9',
-    padding: 12,
-    borderRadius: 8,
-    marginVertical: 8,
-    fontFamily: 'monospace',
-  },
-  hr: {
-    backgroundColor: '#cfd9de',
-    height: 1,
-    marginVertical: 16,
-  },
-}); 
+} 

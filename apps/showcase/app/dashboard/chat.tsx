@@ -8,6 +8,7 @@ import { mockTenant } from '../../components/dashboard/mocktenant';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { ChannelMessage } from '~/lib/types/channel.types';
+import FeedScreen from './feed';
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -21,25 +22,25 @@ function ChatList({ title, description, username }: { title: string; description
     error,
     channelDetails,
     messages
-  } = useChannelMessages({ 
+  } = useChannelMessages({
     username,
   });
 
   const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { 
+    return date.toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   };
 
   const renderMessage = (message: ChannelMessage) => {
     const isCurrentUser = message.username === username;
-    
+
     return (
-      <View 
-        key={message.id} 
+      <View
+        key={message.id}
         style={[
           styles.messageWrapper,
           isCurrentUser ? styles.sentMessageWrapper : styles.receivedMessageWrapper
@@ -48,8 +49,8 @@ function ChatList({ title, description, username }: { title: string; description
         <View
           style={[
             styles.messageBubble,
-            isCurrentUser ? 
-              { backgroundColor: colorScheme.colors.primary } : 
+            isCurrentUser ?
+              { backgroundColor: colorScheme.colors.primary } :
               { backgroundColor: colorScheme.colors.card },
             isCurrentUser ? styles.sentBubble : styles.receivedBubble
           ]}
@@ -59,7 +60,7 @@ function ChatList({ title, description, username }: { title: string; description
               {message.username || 'Anonymous'}
             </Text>
           )}
-          <Text 
+          <Text
             style={[
               styles.messageText,
               { color: isCurrentUser ? '#fff' : colorScheme.colors.text }
@@ -67,7 +68,7 @@ function ChatList({ title, description, username }: { title: string; description
           >
             {message.message_text}
           </Text>
-          <Text 
+          <Text
             style={[
               styles.timestamp,
               { color: isCurrentUser ? 'rgba(255,255,255,0.7)' : colorScheme.colors.text }
@@ -81,7 +82,7 @@ function ChatList({ title, description, username }: { title: string; description
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
       contentContainerStyle={styles.scrollContent}
     >
@@ -135,38 +136,23 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const [selectedChannel, setSelectedChannel] = useState<typeof mockTenant.related_channels[0] | null>(null);
 
-  const handleChannelSelect = (channel: typeof mockTenant.related_channels[0]) => {
-    console.log('Selected channel:', {
-      username: channel.username,
-      is_agent: channel.is_agent,
-      is_premium: channel.is_premium,
-      is_public: channel.is_public
-    });
-    setSelectedChannel(channel);
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
       {/* Sidebar */}
-      <View style={[styles.sidebar, { backgroundColor: colorScheme.colors.card }]}>
+      <View style={[styles.sidebar, { borderRightColor: colorScheme.colors.border }]}>
         <ScrollView style={styles.sidebarScroll}>
-          {mockTenant.related_channels.map((channel) => (
+          {mockTenant.related_channels?.map((channel) => (
             <TouchableOpacity
               key={channel.username}
               style={[
                 styles.sidebarItem,
                 selectedChannel?.username === channel.username && styles.selectedSidebarItem,
-                { backgroundColor: selectedChannel?.username === channel.username ? colorScheme.colors.primary : 'transparent' }
+                { borderBottomColor: colorScheme.colors.border }
               ]}
-              onPress={() => handleChannelSelect(channel)}
+              onPress={() => setSelectedChannel(channel)}
             >
-              <Text
-                style={[
-                  styles.sidebarText,
-                  { color: selectedChannel?.username === channel.username ? '#fff' : colorScheme.colors.text }
-                ]}
-              >
-                {channel.username.replace('janedoe_', '').replace(/_/g, ' ')}
+              <Text style={[styles.sidebarText, { color: colorScheme.colors.text }]}>
+                {channel.username}
               </Text>
             </TouchableOpacity>
           ))}
@@ -176,11 +162,9 @@ export default function ChatScreen() {
       {/* Main Content */}
       <View style={styles.mainContent}>
         {selectedChannel ? (
-          <ChatList 
-            title={selectedChannel.username.replace('janedoe_', '').replace(/_/g, ' ')}
-            description={`Channel type: ${selectedChannel.is_agent ? 'Agent' : 'Regular'} | Premium: ${selectedChannel.is_premium ? 'Yes' : 'No'} | Public: ${selectedChannel.is_public ? 'Yes' : 'No'}`}
-            username={selectedChannel.username}
-          />
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            <FeedScreen username={selectedChannel.username} />
+          </View>
         ) : (
           <View style={styles.placeholder}>
             <Text style={[styles.placeholderText, { color: colorScheme.colors.text }]}>
@@ -201,7 +185,6 @@ const styles = StyleSheet.create({
   sidebar: {
     width: 200,
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#ccc',
   },
   sidebarScroll: {
     flex: 1,
@@ -209,7 +192,6 @@ const styles = StyleSheet.create({
   sidebarItem: {
     padding: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
   },
   selectedSidebarItem: {
     borderLeftWidth: 4,
