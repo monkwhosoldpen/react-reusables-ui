@@ -86,7 +86,7 @@ export function ChannelHeader({ username, channelDetails, onBack }: ChannelHeade
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={styles.leftSection}>
             <TouchableOpacity 
-              onPress={onBack || (() => router.push('/route'))}
+              onPress={onBack || (() => router.push('/'))}
               style={styles.backButton}
             >
               <ChevronLeft 

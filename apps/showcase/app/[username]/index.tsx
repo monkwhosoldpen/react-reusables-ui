@@ -162,7 +162,7 @@ export default function ChannelPage() {
       <ChannelHeader
         username={usernameStr}
         channelDetails={channel}
-        onBack={() => router.push('/route')}
+        onBack={() => router.push('/')}
       />
       <View className="flex-1 flex-row">
         {/* Sidebar */}
