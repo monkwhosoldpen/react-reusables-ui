@@ -16,6 +16,7 @@ import { useDesign } from '@/lib/providers/theme/DesignSystemProvider';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from "@expo/vector-icons";
+import { CommonHeader } from '@/components/CommonHeader';
 
 export default function ExplorePage() {
   const { user } = useAuth();
@@ -289,7 +290,7 @@ export default function ExplorePage() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      
+      <CommonHeader title="Explore" showBackButton={true} />
       <ScrollView 
         style={{ flex: 1, backgroundColor: colorScheme.colors.background }}
         contentContainerStyle={{ paddingBottom: 20 }}
