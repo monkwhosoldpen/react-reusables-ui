@@ -413,32 +413,46 @@ export default function Index() {
   const [initialized, setInitialized] = useState(false);
   const [userData, setUserData] = useState<any>(null);
 
+  console.log('[Index] Component mounted, user:', user?.id, 'loading:', loading);
+
   // Initialize IndexedDB and check cache
   useEffect(() => {
     const initialize = async () => {
+      console.log('[Index] Starting initialization');
       try {
         // Initialize IndexedDB first
+        console.log('[Index] Initializing IndexedDB');
         await indexedDB.initialize();
+        console.log('[Index] IndexedDB initialized successfully');
         setDbInitialized(true);
 
         // Then check for cached user
+        console.log('[Index] Checking for cached users');
         const users = await indexedDB.getAllUsers();
+        console.log('[Index] Found cached users:', users.length);
         if (users.length > 0) {
+          console.log('[Index] Setting cached user:', users[0].id);
           setCachedUser(users[0]);
         }
 
         // If we have a user, preload their data
         if (user?.id) {
+          console.log('[Index] Preloading data for user:', user.id);
           const [follows, requests] = await Promise.all([
             indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id),
             indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id)
           ]);
+          console.log('[Index] Preloaded data:', {
+            follows: follows.length,
+            requests: requests.length
+          });
           setUserData({ follows, requests });
           setDataLoaded(true);
         }
       } catch (error) {
-        console.error('Error during initialization:', error);
+        console.error('[Index] Error during initialization:', error);
       } finally {
+        console.log('[Index] Initialization complete');
         setInitialized(true);
       }
     };
@@ -449,23 +463,30 @@ export default function Index() {
   // Update cached user and load data when auth state changes
   useEffect(() => {
     const loadUserData = async () => {
+      console.log('[Index] Auth state changed, user:', user?.id);
       if (user) {
+        console.log('[Index] Setting cached user:', user.id);
         setCachedUser(user);
         if (user.id) {
           try {
+            console.log('[Index] Loading user data');
             const [follows, requests] = await Promise.all([
               indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id),
               indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id)
             ]);
+            console.log('[Index] Loaded user data:', {
+              follows: follows.length,
+              requests: requests.length
+            });
             setUserData({ follows, requests });
             setDataLoaded(true);
           } catch (error) {
-            console.error('Error loading user data:', error);
+            console.error('[Index] Error loading user data:', error);
             setDataLoaded(false);
           }
         }
       } else {
-        // Clear cached user and data when user logs out
+        console.log('[Index] Clearing cached user and data');
         setCachedUser(null);
         setDataLoaded(false);
         setUserData(null);
@@ -477,6 +498,7 @@ export default function Index() {
 
   // Show blank screen until initialization is complete
   if (!initialized) {
+    console.log('[Index] Rendering initialization screen');
     return (
       <View style={{ 
         flex: 1, 
@@ -523,15 +545,22 @@ export default function Index() {
 
   // Show MainScreen if we have either a cached user or current user, and data is loaded
   if ((cachedUser || user) && dbInitialized && dataLoaded) {
+    console.log('[Index] Rendering MainScreen with data:', {
+      cachedUser: cachedUser?.id,
+      currentUser: user?.id,
+      dataLoaded
+    });
     return <MainScreen initialData={userData} />;
   }
 
   // If no user and not loading, show landing
   if (!loading) {
+    console.log('[Index] Rendering Landing page');
     return <Landing />;
   }
 
   // During loading with no cache, show a blank screen with app background
+  console.log('[Index] Rendering loading screen');
   return (
     <View style={{ 
       flex: 1, 

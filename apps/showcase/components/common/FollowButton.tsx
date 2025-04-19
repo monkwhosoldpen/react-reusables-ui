@@ -39,6 +39,8 @@ export function FollowButton({
   const { colorScheme, isDarkMode } = useColorScheme();
   const { design } = useDesign();
   
+  console.log('[FollowButton] Component mounted for username:', username, 'initialFollowing:', initialFollowing);
+  
   // Use local state to track following status and loading state
   const [following, setFollowing] = useState(initialFollowing ?? false);
   const [loading, setLoading] = useState(false);
@@ -55,24 +57,30 @@ export function FollowButton({
   // Load initial following status from AuthContext
   useEffect(() => {
     const loadFollowStatus = async () => {
+      console.log('[FollowButton] Loading follow status for:', username);
       // If initialFollowing is provided, use that
-    if (initialFollowing !== undefined) {
-      setFollowing(initialFollowing);
+      if (initialFollowing !== undefined) {
+        console.log('[FollowButton] Using initialFollowing value:', initialFollowing);
+        setFollowing(initialFollowing);
         return;
       }
       
       // Only check follow status if user is logged in
       if (user) {
+        console.log('[FollowButton] User logged in, checking follow status');
         setLoading(true);
         try {
           const isFollowed = await isFollowingChannel(username);
-      setFollowing(isFollowed);
+          console.log('[FollowButton] Follow status result:', isFollowed);
+          setFollowing(isFollowed);
         } catch (err) {
-          console.error('Error checking follow status:', err);
+          console.error('[FollowButton] Error checking follow status:', err);
         } finally {
           setLoading(false);
         }
-    }
+      } else {
+        console.log('[FollowButton] No user logged in, using default following state');
+      }
     };
     
     loadFollowStatus();
@@ -80,8 +88,10 @@ export function FollowButton({
   
   // Watch for user changes and trigger follow action if needed
   useEffect(() => {
+    console.log('[FollowButton] User changed:', user?.id, 'shouldFollowAfterLogin:', shouldFollowAfterLogin.current);
     // If user becomes available and we should follow after login
     if (user && shouldFollowAfterLogin.current) {
+      console.log('[FollowButton] Executing follow after login');
       // Reset the flag
       shouldFollowAfterLogin.current = false;
       
@@ -90,25 +100,32 @@ export function FollowButton({
         executeFollowAction();
       }, 300);
     }
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user]);
   
   const executeFollowAction = async () => {
-    console.log('Executing follow action');
-    if (!user) return;
+    console.log('[FollowButton] Executing follow action for:', username);
+    if (!user) {
+      console.log('[FollowButton] No user, cannot execute follow action');
+      return;
+    }
     
     setLoading(true);
     setFollowing(true);
     
     try {
+      console.log('[FollowButton] Waiting for auth state sync');
       // Wait for auth state to be fully synchronized
       await new Promise(resolve => setTimeout(resolve, 1000));
       // Refresh user info to ensure state is up to date
+      console.log('[FollowButton] Refreshing user info');
       await refreshUserInfo();
       // Now attempt to follow
+      console.log('[FollowButton] Attempting to follow channel');
       await followChannel(username);
+      console.log('[FollowButton] Successfully followed channel');
       toast.success(`Following @${username}`);
     } catch (error) {
-      console.error('Error following channel:', error);
+      console.error('[FollowButton] Error following channel:', error);
       toast.error(`Failed to follow channel`);
       setFollowing(false);
     } finally {
@@ -117,22 +134,23 @@ export function FollowButton({
   };
   
   const handleFollow = async () => {
-    if (!user) return;
+    console.log('[FollowButton] Handling follow for:', username);
+    if (!user) {
+      console.log('[FollowButton] No user, cannot follow');
+      return;
+    }
     
     setLoading(true);
     setFollowing(true); // Optimistic update
     
     try {
-      // Use AuthContext method to follow the channel
+      console.log('[FollowButton] Calling followChannel');
       await followChannel(username);
-      
-      // Show success message
-        toast.success(`Following @${username}`);
+      console.log('[FollowButton] Successfully followed channel');
+      toast.success(`Following @${username}`);
     } catch (error) {
-      console.error('Error following channel:', error);
+      console.error('[FollowButton] Error following channel:', error);
       toast.error(`Failed to follow channel`);
-      
-      // Revert optimistic update on error
       setFollowing(false);
     } finally {
       setLoading(false);
@@ -140,22 +158,23 @@ export function FollowButton({
   };
   
   const handleUnfollow = async () => {
-    if (!user) return;
+    console.log('[FollowButton] Handling unfollow for:', username);
+    if (!user) {
+      console.log('[FollowButton] No user, cannot unfollow');
+      return;
+    }
     
     setLoading(true);
     setFollowing(false); // Optimistic update
     
     try {
-      // Use AuthContext method to unfollow the channel
+      console.log('[FollowButton] Calling unfollowChannel');
       await unfollowChannel(username);
-      
-      // Show success message
+      console.log('[FollowButton] Successfully unfollowed channel');
       toast.success(`Unfollowed @${username}`);
     } catch (error) {
-      console.error('Error unfollowing channel:', error);
+      console.error('[FollowButton] Error unfollowing channel:', error);
       toast.error(`Failed to unfollow channel`);
-      
-      // Revert optimistic update on error
       setFollowing(true);
     } finally {
       setLoading(false);
@@ -168,12 +187,10 @@ export function FollowButton({
   }, [showLoginDialog]);
   
   const handleToggleFollow = async () => {
-    console.log('handleToggleFollow called, user:', user);
+    console.log('[FollowButton] Toggle follow clicked for:', username, 'user:', user?.id);
     if (!user) {
-      console.log('No user, opening login dialog');
-      // Set flag to follow after login
+      console.log('[FollowButton] No user, opening login dialog');
       shouldFollowAfterLogin.current = true;
-      // Show login dialog
       setShowLoginDialog(true);
       return;
     }

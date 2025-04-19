@@ -8,6 +8,7 @@ import { useColorScheme } from "@/lib/providers/theme/ColorSchemeProvider"
 import { useDesign } from "@/lib/providers/theme/DesignSystemProvider"
 import { StyleSheet, View, Text } from "react-native"
 import { MaterialIcons } from "@expo/vector-icons"
+import { router } from "expo-router"
 
 interface LoginDialogProps {
   isOpen: boolean
@@ -28,12 +29,44 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
     dialogContent: {
       backgroundColor: colorScheme.colors.background,
       borderRadius: Number(design.radius.lg),
-      padding: Number(design.spacing.padding.card),
       width: '100%',
       maxWidth: 400,
+      margin: 0,
+      padding: 0,
+    },
+    content: {
+      flex: 1,
+      padding: Number(design.spacing.padding.card),
     },
     header: {
       marginBottom: Number(design.spacing.padding.card),
+    },
+    sectionHeader: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: 'transparent',
+    },
+    sectionHeaderText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colorScheme.colors.text,
+      opacity: 0.7,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    iconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+      backgroundColor: `${colorScheme.colors.primary}1A`,
     },
     title: {
       fontSize: Number(design.spacing.fontSize.xl),
@@ -46,29 +79,6 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
       color: colorScheme.colors.text,
       opacity: 0.7,
       lineHeight: 24,
-    },
-    sectionHeader: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      marginTop: 8,
-      backgroundColor: 'transparent',
-    },
-    sectionHeaderText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: colorScheme.colors.text,
-      opacity: 0.7,
-      textTransform: 'uppercase',
-      letterSpacing: 1,
-    },
-    iconContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 12,
-      backgroundColor: `${colorScheme.colors.primary}1A`,
     },
   })
 
@@ -83,6 +93,7 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
       if (onLoginSuccess) {
         setTimeout(() => onLoginSuccess(), 100)
       }
+      router.replace('/(tabs)')
     } catch (err) {
       console.error('[LoginDialog] Email sign in error:', err);
       setError(err instanceof Error ? err.message : "An error occurred during login")
@@ -99,6 +110,7 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
       await signInAnonymously()
       console.log('[LoginDialog] Anonymous sign in successful');
       onOpenChange(false)
+      router.replace('/(tabs)')
     } catch (err) {
       console.error('[LoginDialog] Anonymous sign in error:', err);
       setError(err instanceof Error ? err.message : "An error occurred during anonymous login")
@@ -115,6 +127,7 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
       await signInAsGuest()
       console.log('[LoginDialog] Guest sign in successful');
       onOpenChange(false)
+      router.replace('/(tabs)')
     } catch (err) {
       console.error('[LoginDialog] Guest sign in error:', err);
       setError(err instanceof Error ? err.message : "An error occurred during guest login")
@@ -130,37 +143,37 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent style={styles.dialogContent}>
-        <DialogHeader style={styles.header}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>SIGN IN</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-            <View style={styles.iconContainer}>
-              <MaterialIcons name="login" size={24} color={colorScheme.colors.primary} />
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionHeaderText}>SIGN IN</Text>
             </View>
-            <View>
-              <DialogTitle style={styles.title}>
-                Sign in to follow channels
-              </DialogTitle>
-              <DialogDescription style={styles.description}>
-                You need to be signed in to follow channels and receive updates.
-              </DialogDescription>
+            <View style={styles.titleContainer}>
+              <View style={styles.iconContainer}>
+                <MaterialIcons name="login" size={24} color={colorScheme.colors.primary} />
+              </View>
+              <View>
+                <Text style={styles.title}>Welcome back</Text>
+                <Text style={styles.description}>
+                  Sign in to access your account and continue where you left off
+                </Text>
+              </View>
             </View>
           </View>
-        </DialogHeader>
 
-        <LoginCommon
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          error={error}
-          isLoading={isLoading}
-          handleSubmit={handleSubmit}
-          handleAnonymousSignIn={handleAnonymousSignIn}
-          handleGuestSignIn={handleGuestSignIn}
-          onCancel={handleCancel}
-        />
+          <LoginCommon
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            error={error}
+            isLoading={isLoading}
+            handleSubmit={handleSubmit}
+            handleAnonymousSignIn={handleAnonymousSignIn}
+            handleGuestSignIn={handleGuestSignIn}
+            onCancel={handleCancel}
+          />
+        </View>
       </DialogContent>
     </Dialog>
   )
