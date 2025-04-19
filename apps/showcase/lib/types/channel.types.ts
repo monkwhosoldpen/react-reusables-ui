@@ -36,6 +36,14 @@ export type Channel = {
   is_agent?: boolean;
   is_owner_db?: boolean;
   is_realtime?: boolean;
+  parent_channel?: {
+    username: string;
+    stateName?: string;
+    assemblyName?: string;
+    role?: string;
+    is_premium?: boolean;
+    is_realtime?: boolean;
+  };
   related_channels?: RelatedChannel[];
   related_channels_count?: number;
   products?: Product[];
