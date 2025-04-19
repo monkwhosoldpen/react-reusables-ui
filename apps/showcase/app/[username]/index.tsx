@@ -25,6 +25,39 @@ export default function ChannelPage() {
   const usernameStr = Array.isArray(username) ? username[0] : username || '';
   const { width: screenWidth } = useWindowDimensions();
   const { channelActivities } = useRealtime();
+  const prevActivitiesRef = useRef<typeof channelActivities>([]);
+  const processedMessagesRef = useRef<Set<string>>(new Set());
+  const isInitialLoadRef = useRef(true);
+
+  // Add logging for channel activities
+  useEffect(() => {
+    if (isInitialLoadRef.current) {
+      // Skip logging on initial load
+      isInitialLoadRef.current = false;
+      prevActivitiesRef.current = channelActivities;
+      return;
+    }
+
+    // Compare with previous activities to detect changes
+    channelActivities.forEach(activity => {
+      const prevActivity = prevActivitiesRef.current.find(a => a.username === activity.username);
+      
+      if (activity.last_message && 
+          (!prevActivity || prevActivity.last_message?.id !== activity.last_message?.id) &&
+          !processedMessagesRef.current.has(activity.last_message.id)) {
+        
+        console.log(`📨 New message in ${activity.username}:`);
+        console.log(`   Message: ${activity.last_message.message_text || 'No message text'}`);
+        console.log(`   Time: ${activity.last_message.created_at}`);
+        
+        // Mark this message as processed
+        processedMessagesRef.current.add(activity.last_message.id);
+      }
+    });
+
+    // Update previous activities
+    prevActivitiesRef.current = channelActivities;
+  }, [channelActivities]);
 
   // Calculate widths
   const sidebarWidth = Math.floor(screenWidth * 0.3);
