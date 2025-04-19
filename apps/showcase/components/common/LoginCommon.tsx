@@ -288,6 +288,26 @@ export default function LoginCommon({
                 </Text>
               </View>
             </Button>
+
+            <Button
+              onPress={() => {
+                setEmail('monkwhosolepen@email.com');
+                setPassword('password');
+                handleSubmit();
+              }}
+              disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
+              style={[styles.socialButton, { marginTop: 12, backgroundColor: colorScheme.colors.primary }]}
+              accessibilityLabel="Demo login button"
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {isEmailLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : null}
+                <Text style={[styles.socialButtonText, { color: '#FFFFFF' }]}>
+                  {isEmailLoading ? 'Signing in...' : 'Demo Login'}
+                </Text>
+              </View>
+            </Button>
           </View>
         </Animated.View>
       </ScrollView>

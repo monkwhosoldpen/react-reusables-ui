@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import { ChannelSidebar } from '@/components/channel-profile/ChannelSidebar';
 import { ChannelMessages } from '@/components/channel-profile/ChannelMessages';
-import { Channel, ChannelMessage } from '@/lib/types/channel.types';
+import { Channel } from '@/lib/types/channel.types';
 import { config } from '~/lib/config';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
@@ -16,12 +16,14 @@ import { Loader2 } from 'lucide-react';
 import { useLocalSearchParams } from 'expo-router';
 import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 import { useWindowDimensions } from 'react-native';
+import { useRealtime } from '~/lib/providers/RealtimeProvider';
 
 export default function ChannelPage() {
   const router = useRouter();
   const { username } = useLocalSearchParams();
   const usernameStr = Array.isArray(username) ? username[0] : username || '';
   const { width: screenWidth } = useWindowDimensions();
+  const { channelActivities } = useRealtime();
 
   // Calculate widths
   const sidebarWidth = Math.floor(screenWidth * 0.3);
