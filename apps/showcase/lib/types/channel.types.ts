@@ -2,66 +2,41 @@
  * Channel-related type definitions
  */
 
-// Basic product type for channel products
-export type Product = {
-  product_id: string;
-  product_description: string;
-  mrp: number;
-  selling_price: number;
-  image_url: string;
-}
-
-// Related channel type for channel relationships
-export type RelatedChannel = {
-  username: string;
-  owner_username?: string;
-  onboardingConfig?: any;
-  is_premium?: boolean;
-  is_update_only?: boolean;
-  is_public?: boolean;
-  is_agent?: boolean;
-  is_owner_db?: boolean;
-  is_realtime?: boolean;
-  tenant_supabase_url?: string;
-  tenant_supabase_anon_key?: string;
-}
-
 // Main channel type definition
 export type Channel = {
   username: string;
-  stateName?: string;
-  is_premium?: boolean;
-  is_update_only?: boolean;
-  is_public?: boolean;
-  is_agent?: boolean;
-  is_owner_db?: boolean;
-  is_realtime?: boolean;
-  parent_channel?: {
-    username: string;
-    stateName?: string;
-    assemblyName?: string;
-    role?: string;
-    is_premium?: boolean;
-    is_realtime?: boolean;
-  };
-  related_channels?: RelatedChannel[];
-  related_channels_count?: number;
-  products?: Product[];
-  products_count?: number;
-  parliamentaryConstituency?: string;
-  tenant_supabase_url?: string;
-  tenant_supabase_anon_key?: string;
-  custom_properties?: any;
-  owner_username?: string;
-  isFollowing?: boolean;
-  last_updated_at?: string;
-  last_message?: {
+  stateName: string;
+  is_premium: boolean;
+  is_update_only: boolean;
+  is_public: boolean;
+  is_agent: boolean;
+  is_owner_db: boolean;
+  is_realtime: boolean;
+  related_channels: Channel[];
+  related_channels_count: number;
+  products: any[];
+  products_count: number;
+  parliamentaryConstituency: string;
+  tenant_supabase_url: string;
+  tenant_supabase_anon_key: string;
+  custom_properties: any;
+  owner_username: string;
+  isFollowing: boolean;
+  last_updated_at: string;
+  last_message: {
     id: string;
-    message_text?: string;
-    text?: string;
+    message_text: string;
+    text: string;
     created_at: string;
   };
-  onboardingConfig?: any;
+  onboardingConfig: any;
+  parent_channel: Channel | null;
+}
+
+// Main channel type definition
+export type ChannelResponse = {
+  mainChannel: Channel | null;
+  parent_channel: Channel | null;
 }
 
 // Channel message type 
@@ -83,7 +58,7 @@ export interface ExtendedChannel extends Channel {
     created_at: string;
   };
   unreadCount?: number;
-  isFollowing?: boolean;
+  isFollowing: boolean;
   isApproved?: boolean;
 }
 
@@ -109,7 +84,6 @@ export interface ChannelActivity {
     message_text?: string;
     created_at: string;
   };
-  message_count: number;
   read?: boolean;
 }
 

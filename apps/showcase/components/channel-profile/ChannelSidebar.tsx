@@ -23,7 +23,7 @@ export function ChannelSidebar({
   const { colorScheme } = useColorScheme()
   const { width: screenWidth } = useWindowDimensions()
   const sidebarWidth = Math.floor(screenWidth * 0.3)
-  const isMobile = screenWidth < 768 // Assuming mobile breakpoint at 768px
+  const isMobile = screenWidth < 768
   const router = useRouter()
 
   const handleChannelPress = (channelUsername: string) => {
@@ -39,7 +39,7 @@ export function ChannelSidebar({
             <View className={`flex-col items-center p-1.5 rounded-lg m-0.5 ${
               selectedChannel === channelDetails.parent_channel.username ? 'bg-muted' : 'bg-card'
             }`}>
-              <View className="w-9 h-9 rounded-full bg-primary/20 items-center justify-center">
+              <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
                 <Users size={18} color={colorScheme.colors.primary} />
               </View>
               <Text className="text-[10px] text-center mt-0.5 font-medium">
@@ -51,7 +51,9 @@ export function ChannelSidebar({
         )}
 
         {/* Related Channels */}
-        {channelDetails.related_channels?.map((related) => (
+        {channelDetails.related_channels
+          ?.sort((a, b) => a.username.localeCompare(b.username))
+          .map((related) => (
           <Pressable key={related.username} onPress={() => handleChannelPress(related.username)}>
             <View className={`flex-col items-center p-1.5 rounded-lg m-0.5 ${
               selectedChannel === related.username ? 'bg-muted' : 'bg-card'
@@ -59,7 +61,12 @@ export function ChannelSidebar({
               <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
                 <Users size={18} color={colorScheme.colors.primary} />
               </View>
-              <Text className="text-[10px] text-center mt-0.5">{related.username}</Text>
+              <Text className="text-[10px] text-center mt-0.5">
+                {related.username}
+                {related.is_agent && (
+                  <Text className="text-[8px] text-muted-foreground"> (Agent)</Text>
+                )}
+              </Text>
             </View>
           </Pressable>
         ))}

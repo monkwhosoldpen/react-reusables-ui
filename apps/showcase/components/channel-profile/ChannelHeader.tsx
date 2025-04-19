@@ -14,9 +14,10 @@ import { MaterialIcons } from "@expo/vector-icons"
 interface ChannelHeaderProps {
   username: string
   channelDetails: Channel
+  onBack?: () => void
 }
 
-export function ChannelHeader({ username, channelDetails }: ChannelHeaderProps) {
+export function ChannelHeader({ username, channelDetails, onBack }: ChannelHeaderProps) {
   const { colorScheme } = useColorScheme()
   const { design } = useDesign()
   const { width } = useWindowDimensions()
@@ -85,7 +86,7 @@ export function ChannelHeader({ username, channelDetails }: ChannelHeaderProps) 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={styles.leftSection}>
             <TouchableOpacity 
-              onPress={() => router.back()}
+              onPress={onBack || (() => router.push('/route'))}
               style={styles.backButton}
             >
               <ChevronLeft 
@@ -94,23 +95,22 @@ export function ChannelHeader({ username, channelDetails }: ChannelHeaderProps) 
               />
             </TouchableOpacity>
             <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
-              {channelDetails.avatar ? (
-                <Image
-                  source={{ uri: channelDetails.avatar }}
-                  style={{ width: 40, height: 40, borderRadius: 20 }}
-                />
-              ) : (
-                <Text style={[styles.itemTitle, { color: colorScheme.colors.primary }]}>
-                  {username[0]?.toUpperCase() || '#'}
-                </Text>
-              )}
+              <Text style={[styles.itemTitle, { color: colorScheme.colors.primary }]}>
+                {username[0]?.toUpperCase() || '#'}
+              </Text>
             </View>
             <View>
-              <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
+              <Text style={[
+                styles.itemTitle, 
+                { 
+                  color: colorScheme.colors.background,
+                  ...(channelDetails.is_premium ? { color: '#FFC000' } : {})
+                }
+              ]}>
                 @{username}
               </Text>
               <Text style={[styles.itemSubtitle, { color: colorScheme.colors.background, opacity: 0.8 }]}>
-                {channelDetails.description || 'No description'}
+                {channelDetails.stateName || 'No state'}
               </Text>
             </View>
           </View>

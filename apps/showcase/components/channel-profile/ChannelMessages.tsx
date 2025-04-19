@@ -3,9 +3,11 @@
 import React from 'react'
 import { View, Text, ScrollView } from 'react-native'
 import { ChannelMessage, Channel } from '@/lib/types/channel.types'
-import { MessageCircle, AlertCircle } from 'lucide-react'
+import { MessageCircle, AlertCircle, Users } from 'lucide-react'
 import { groupMessagesByDate } from '~/lib/dateUtils'
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
+import { JoinButton } from '@/components/common/JoinButton'
+import { FollowButton } from '@/components/common/FollowButton'
 
 interface ChannelMessagesProps {
   messages: ChannelMessage[]
@@ -16,6 +18,7 @@ interface ChannelMessagesProps {
   onLoadMore?: () => void
   channelDetails: Channel
   onRefreshMessages?: () => void
+  username: string
 }
 
 export function ChannelMessages({
@@ -25,7 +28,8 @@ export function ChannelMessages({
   messagesEndRef,
   onLoadMore,
   channelDetails,
-  onRefreshMessages
+  onRefreshMessages,
+  username
 }: ChannelMessagesProps) {
   const { colorScheme } = useColorScheme();
 
@@ -51,15 +55,94 @@ export function ChannelMessages({
     });
   };
 
+  const ChannelProperty = ({ label, value }: { label: string; value: boolean }) => (
+    <View className="flex-row items-center gap-1 px-2 py-1 rounded bg-primary/10">
+      <Text className="text-[8px] text-primary">
+        {label}: {value ? 'Yes' : 'No'}
+      </Text>
+    </View>
+  );
+
   return (
     <View className="flex-1 p-4">
-      {/* Channel type indicator */}
-      <View className="flex-row items-center justify-between mb-4 p-2 rounded-lg border border-border">
-        <View className="flex-row items-center gap-2 p-2 rounded bg-primary/10">
-          <MessageCircle size={12} color={colorScheme.colors.primary} />
-          <Text className="text-xs text-primary">
-            {messages.length}
-          </Text>
+      <View className="flex-col gap-2 mb-4">
+        <View className="flex-col gap-2">
+
+          {/* Current Channel */}
+          <View className="flex-col items-center p-1.5 rounded-lg m-0.5 bg-card">
+            <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
+              <Users size={18} color={colorScheme.colors.primary} />
+            </View>
+            <Text className="text-[10px] text-center mt-0.5">
+              {username}
+              <Text className="text-[8px] text-muted-foreground"> (Current)</Text>
+            </Text>
+            <View className="flex-row flex-wrap gap-1 mt-1">
+              <ChannelProperty label="Agent" value={channelDetails.is_agent} />
+              <ChannelProperty label="Owner" value={channelDetails.is_owner_db} />
+              <ChannelProperty label="Premium" value={channelDetails.is_premium} />
+              <ChannelProperty label="Public" value={channelDetails.is_public} />
+              <ChannelProperty label="Realtime" value={channelDetails.is_realtime} />
+              <ChannelProperty label="Update Only" value={channelDetails.is_update_only} />
+            </View>
+          </View>
+
+          {/* Parent Channel */}
+          {channelDetails.parent_channel && (
+            <View className="flex-col items-center p-1.5 rounded-lg m-0.5 bg-card">
+              <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
+                <Users size={18} color={colorScheme.colors.primary} />
+              </View>
+              <Text className="text-[10px] text-center mt-0.5 font-medium">
+                {channelDetails.parent_channel.username}
+                <Text className="text-[8px] text-muted-foreground"> (Parent)</Text>
+              </Text>
+              <View className="flex-row flex-wrap gap-1 mt-1">
+                <ChannelProperty label="Agent" value={channelDetails.parent_channel.is_agent} />
+                <ChannelProperty label="Owner" value={channelDetails.parent_channel.is_owner_db} />
+                <ChannelProperty label="Premium" value={channelDetails.parent_channel.is_premium} />
+                <ChannelProperty label="Public" value={channelDetails.parent_channel.is_public} />
+                <ChannelProperty label="Realtime" value={channelDetails.parent_channel.is_realtime} />
+                <ChannelProperty label="Update Only" value={channelDetails.parent_channel.is_update_only} />
+              </View>
+            </View>
+          )}
+
+          {/* Related Channels Count */}
+          {channelDetails.related_channels && channelDetails.related_channels.length > 0 && (
+            <View className="flex-col items-center p-1.5 rounded-lg bg-card">
+              <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
+                <Users size={18} color={colorScheme.colors.primary} />
+              </View>
+              <Text className="text-[10px] text-center mt-0.5">
+                {channelDetails.related_channels.length} Related Channels
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Message count and Action button */}
+        <View className="flex-row items-center justify-between p-2 rounded-lg border border-border">
+          <View className="flex-row items-center gap-2 p-2 rounded bg-primary/10">
+            <MessageCircle size={12} color={colorScheme.colors.primary} />
+            <Text className="text-xs text-primary">
+              {messages.length}
+            </Text>
+          </View>
+          {channelDetails.is_public ? (
+            <FollowButton 
+              username={channelDetails.username}
+              size="sm"
+              showIcon={false}
+            />
+          ) : (
+            <JoinButton 
+              username={channelDetails.username}
+              channelDetails={channelDetails}
+              size="sm"
+              showIcon={false}
+            />
+          )}
         </View>
       </View>
 

@@ -5,6 +5,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider'
 import { cn } from '~/lib/utils'
+import {
+  essentialServices,
+  citizenServices,
+  patrioticStore,
+  newsAndUpdates,
+  civicEngagement,
+  educationAndAwareness,
+  governmentServices,
+  quickLinks
+} from '../../lib/constants/supermenu'
 
 export default function SuperMenu() {
   const insets = useSafeAreaInsets()
@@ -203,12 +213,7 @@ export default function SuperMenu() {
               </View>
               <Text style={[styles.itemSubtitle, { color: colorScheme.colors.text, marginTop: 4 }]}>Aadhaar</Text>
             </TouchableOpacity>
-            {[
-              { icon: "how-to-vote", title: "Voter ID" },
-              { icon: "credit-card", title: "PAN" },
-              { icon: "passport", title: "Passport" },
-              { icon: "directions-car", title: "DL" },
-            ].map((service, index) => (
+            {essentialServices.slice(1).map((service, index) => (
               <TouchableOpacity key={index} style={{ alignItems: 'center', marginRight: 32 }}>
                 <View style={[styles.avatar, { width: 56, height: 56, backgroundColor: colorScheme.colors.card }]}>
                   <MaterialIcons name={service.icon as any} size={30} color={colorScheme.colors.primary} />
@@ -225,12 +230,7 @@ export default function SuperMenu() {
             <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>CITIZEN SERVICES</Text>
           </View>
           <View style={{ backgroundColor: colorScheme.colors.card, borderRadius: 12, padding: 16 }}>
-            {[
-              { icon: "report-problem", title: "File Complaint", subtitle: "Report civic issues" },
-              { icon: "location-on", title: "Find Office", subtitle: "Locate government offices" },
-              { icon: "event", title: "Events", subtitle: "Community events & campaigns" },
-              { icon: "volunteer-activism", title: "Volunteer", subtitle: "Join civic initiatives" },
-            ].map((action, index) => (
+            {citizenServices.map((action, index) => (
               <TouchableOpacity
                 key={index}
                 style={[
@@ -257,12 +257,7 @@ export default function SuperMenu() {
             <View style={{ paddingHorizontal: 16 }}>
               <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Patriotic Store</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                {[
-                  { icon: "flag", title: "Flags" },
-                  { icon: "local-offer", title: "Stickers" },
-                  { icon: "shopping-bag", title: "T-Shirts" },
-                  { icon: "book", title: "Books" },
-                ].map((item, index) => (
+                {patrioticStore.map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
                     <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
                       <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
@@ -283,12 +278,7 @@ export default function SuperMenu() {
             <View style={{ paddingHorizontal: 16 }}>
               <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>News & Updates</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                {[
-                  { icon: "newspaper", title: "National\nNews" },
-                  { icon: "public", title: "State\nNews" },
-                  { icon: "location-city", title: "Local\nNews" },
-                  { icon: "campaign", title: "Announcements" },
-                ].map((item, index) => (
+                {newsAndUpdates.map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
                     <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
                       <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
@@ -309,33 +299,14 @@ export default function SuperMenu() {
             <View style={{ paddingHorizontal: 16 }}>
               <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Civic Engagement</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-                {[
-                  { 
-                    icon: "poll", 
-                    title: "Public Polls", 
-                    subtitle: "Share your opinion on important issues",
-                    color: colorScheme.colors.primary
-                  },
-                  { 
-                    icon: "forum", 
-                    title: "Townhall", 
-                    subtitle: "Connect with elected representatives",
-                    color: colorScheme.colors.primary
-                  },
-                  { 
-                    icon: "school", 
-                    title: "Know Your Rights", 
-                    subtitle: "Learn about your constitutional rights",
-                    color: colorScheme.colors.primary
-                  },
-                ].map((offer, index) => (
+                {civicEngagement.map((offer, index) => (
                   <TouchableOpacity key={index} style={{ marginRight: 16 }}>
                     <View style={{ 
                       width: 208, 
                       height: 128, 
                       borderRadius: 12, 
                       padding: 20,
-                      backgroundColor: offer.color,
+                      backgroundColor: colorScheme.colors.primary,
                       justifyContent: 'space-between'
                     }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -370,12 +341,7 @@ export default function SuperMenu() {
             <View style={{ paddingHorizontal: 16 }}>
               <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Education & Awareness</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                {[
-                  { icon: "menu-book", title: "Constitution" },
-                  { icon: "gavel", title: "Laws" },
-                  { icon: "history", title: "History" },
-                  { icon: "quiz", title: "Quiz" },
-                ].map((item, index) => (
+                {educationAndAwareness.map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
                     <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
                       <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
@@ -396,12 +362,7 @@ export default function SuperMenu() {
             <View style={{ paddingHorizontal: 16 }}>
               <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Government Services</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                {[
-                  { icon: "receipt", title: "Certificates" },
-                  { icon: "account-balance", title: "Tax" },
-                  { icon: "local-police", title: "Police" },
-                  { icon: "health-and-safety", title: "Health" },
-                ].map((item, index) => (
+                {governmentServices.map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
                     <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
                       <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />
@@ -447,12 +408,7 @@ export default function SuperMenu() {
             <View style={{ paddingHorizontal: 16 }}>
               <Text style={[styles.sectionTitle, { color: colorScheme.colors.text, marginBottom: 24 }]}>Quick Links</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                {[
-                  { icon: "help", title: "Help" },
-                  { icon: "info", title: "About" },
-                  { icon: "settings", title: "Settings" },
-                  { icon: "contact-support", title: "Support" },
-                ].map((item, index) => (
+                {quickLinks.map((item, index) => (
                   <TouchableOpacity key={index} style={{ alignItems: 'center', width: '22%', marginBottom: 32 }}>
                     <View style={[styles.avatar, { width: 64, height: 64, backgroundColor: `${colorScheme.colors.primary}1A` }]}>
                       <MaterialIcons name={item.icon as any} size={30} color={colorScheme.colors.primary} />

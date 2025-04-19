@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import { ChannelSidebar } from '@/components/channel-profile/ChannelSidebar';
 import { ChannelMessages } from '@/components/channel-profile/ChannelMessages';
-import { Channel } from '@/lib/types/channel.types';
+import { Channel, ChannelResponse } from '@/lib/types/channel.types';
 import { config } from '~/lib/config';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
@@ -17,6 +17,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 import { useWindowDimensions } from 'react-native';
 import { useRealtime } from '~/lib/providers/RealtimeProvider';
+import { AgentChat } from '~/components/agent-chat/AgentChat';
 
 export default function ChannelPage() {
   const router = useRouter();
@@ -54,9 +55,9 @@ export default function ChannelPage() {
             'Failed to fetch channel details');
         }
 
-        const data: Channel = await res.json();
+        const data: ChannelResponse = await res.json();
         if (isMounted) {
-          setChannel(data);
+          setChannel(data.mainChannel);
           setError(null);
         }
       } catch (err) {
@@ -81,7 +82,6 @@ export default function ChannelPage() {
     messages,
     isLoading: loadingMessages,
     error: messageError,
-    accessStatus: currentAccessStatus,
   } = useChannelMessages(channel ? { username: usernameStr } : { username: '' });
 
   if (loading) {
@@ -129,6 +129,7 @@ export default function ChannelPage() {
       <ChannelHeader
         username={usernameStr}
         channelDetails={channel}
+        onBack={() => router.push('/route')}
       />
       <View className="flex-1 flex-row">
         {/* Sidebar */}
@@ -143,13 +144,21 @@ export default function ChannelPage() {
         {/* Content Area */}
         <View style={{ width: contentWidth }} className="bg-background">
           <ScrollView className="p-4">
-            <ChannelMessages
-              messages={messages || []}
-              messagesLoading={loadingMessages}
-              messagesError={messageError}
-              messagesEndRef={messagesEndRef}
-              channelDetails={channel}
-            />
+            {channel.is_agent ? (
+              <AgentChat
+                username={usernameStr}
+                channelDetails={channel}
+              />
+            ) : (
+              <ChannelMessages
+                messages={messages || []}
+                messagesLoading={loadingMessages}
+                messagesError={messageError}
+                messagesEndRef={messagesEndRef}
+                channelDetails={channel}
+                username={usernameStr}
+              />
+            )}
           </ScrollView>
         </View>
       </View>

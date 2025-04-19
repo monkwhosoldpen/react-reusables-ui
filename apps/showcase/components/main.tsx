@@ -516,57 +516,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
         style={{ flex: 1, backgroundColor: colorScheme.colors.background }}
         contentContainerStyle={{ paddingBottom: 20 }}
       >
-        {/* Featured Channels Carousel */}
-        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
-          <Text style={[styles.sectionHeaderText, { color: subtitleColor, marginBottom: 16 }]}>
-            FEATURED CHANNELS
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingHorizontal: 16 }}>
-            {bannersData.map((channel, index) => (
-              <TouchableOpacity
-                key={index}
-                style={{ marginRight: 16 }}
-                onPress={() => router.push(`/${channel.title.toLowerCase().replace(/\s+/g, '-')}`)}
-              >
-                <View style={{
-                  width: 208,
-                  height: 102,
-                  borderRadius: 12,
-                  padding: 16,
-                  backgroundColor: colorScheme.colors.card,
-                  borderWidth: StyleSheet.hairlineWidth,
-                  borderColor: colorScheme.colors.border,
-                  justifyContent: 'space-between',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 2,
-                  elevation: 2
-                }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <MaterialIcons name={channel.icon as any} size={26} color={colorScheme.colors.primary} />
-                    <Text style={{
-                      fontSize: 18,
-                      fontWeight: '600',
-                      color: colorScheme.colors.text,
-                      marginLeft: 12
-                    }}>
-                      {channel.title}
-                    </Text>
-                  </View>
-                  <Text style={{
-                    fontSize: 14,
-                    color: subtitleColor,
-                    lineHeight: 20
-                  }}>
-                    {channel.subtitle}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
         {data.length === 0 ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
             <View style={{
