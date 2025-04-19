@@ -103,7 +103,7 @@ export default function ChannelPage() {
           There was a problem loading the channel.
         </Text>
         <Button onPress={() => router.back()}>
-          Go Back
+          <Text>Go Back</Text>
         </Button>
       </View>
     );
@@ -116,7 +116,7 @@ export default function ChannelPage() {
           Channel not found
         </Text>
         <Button onPress={() => router.back()}>
-          Go Back
+          <Text>Go Back</Text>
         </Button>
       </View>
     );

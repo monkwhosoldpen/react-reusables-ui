@@ -15,11 +15,13 @@ interface LoginDialogProps {
 }
 
 export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialogProps) {
-  const { signIn, signInAnonymously } = useAuth()
+  const { signIn, signInAnonymously, signInAsGuest } = useAuth()
   const { colorScheme } = useColorScheme()
   const { design } = useDesign()
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   const styles = StyleSheet.create({
     dialogContent: {
@@ -46,66 +48,60 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
     },
   })
 
-  const handleAnonymousSignIn = async () => {
+  const handleSubmit = async () => {
+    console.log('[LoginDialog] Starting email sign in with:', { email });
     setIsLoading(true)
     setError("")
-
     try {
-      await signInAnonymously()
-
-      // Close dialog first, then call success callback with a slight delay
+      await signIn(email, password)
+      console.log('[LoginDialog] Email sign in successful');
       onOpenChange(false)
       if (onLoginSuccess) {
         setTimeout(() => onLoginSuccess(), 100)
       }
     } catch (err) {
-      setError("Failed to sign in anonymously")
+      console.error('[LoginDialog] Email sign in error:', err);
+      setError(err instanceof Error ? err.message : "An error occurred during login")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const { signInAsGuest } = useAuth();
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const handleAnonymousSignIn = async () => {
+    console.log('[LoginDialog] Starting anonymous sign in');
+    setIsLoading(true)
+    setError("")
+    try {
+      await signInAnonymously()
+      console.log('[LoginDialog] Anonymous sign in successful');
+      onOpenChange(false)
+    } catch (err) {
+      console.error('[LoginDialog] Anonymous sign in error:', err);
+      setError(err instanceof Error ? err.message : "An error occurred during anonymous login")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleGuestSignIn = async () => {
-    setIsLoading(true);
-    setError('');
-
+    console.log('[LoginDialog] Starting guest sign in');
+    setIsLoading(true)
+    setError("")
     try {
-      await signInAsGuest();
+      await signInAsGuest()
+      console.log('[LoginDialog] Guest sign in successful');
       onOpenChange(false)
-      if (onLoginSuccess) {
-        setTimeout(() => onLoginSuccess(), 100)
-      }
     } catch (err) {
-      setError('Failed to sign in as guest');
+      console.error('[LoginDialog] Guest sign in error:', err);
+      setError(err instanceof Error ? err.message : "An error occurred during guest login")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
-
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    setError('');
-
-    try {
-      await signIn(email, password);
-      onOpenChange(false)
-      if (onLoginSuccess) {
-        setTimeout(() => onLoginSuccess(), 100)
-      }
-    } catch (err) {
-      setError('Invalid email or password');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }
 
   const handleCancel = () => {
-    onOpenChange(false);
-  };
+    onOpenChange(false)
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

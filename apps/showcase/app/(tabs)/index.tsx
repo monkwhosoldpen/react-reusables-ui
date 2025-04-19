@@ -318,13 +318,15 @@
 import { useAuth } from '@/lib/contexts/AuthContext';
 import LoginCommon from '@/components/common/LoginCommon';
 import { MainScreen } from "~/components/main";
-import { View, ScrollView, StyleSheet, ViewStyle } from 'react-native';
+import { View, StyleSheet, ViewStyle, ActivityIndicator, Animated, Text } from 'react-native';
 import { useTheme } from '~/lib/providers/theme/ThemeProvider';
 import { useState, useEffect } from 'react';
 import { indexedDB } from '@/lib/services/indexedDB';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function LoginWrapper() {
   const { signIn, signInAnonymously, signInAsGuest } = useAuth();
@@ -335,17 +337,15 @@ function LoginWrapper() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
-  // Apply design system tokens
-  const sectionStyle: ViewStyle = {
-    ...styles.section,
-    backgroundColor: colorScheme.colors.card,
-    padding: Number(design.spacing.padding.card),
-    borderRadius: Number(design.radius.lg),
-    maxWidth: 400,
-    width: '100%',
-    alignSelf: 'center' as const,
-  };
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -384,17 +384,8 @@ function LoginWrapper() {
   };
 
   return (
-    <ScrollView 
-      style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
-      contentContainerStyle={[
-        styles.contentContainer,
-        {
-          paddingBottom: insets.bottom + Number(design.spacing.padding.card),
-          paddingTop: insets.top + Number(design.spacing.padding.card),
-        }
-      ]}
-    >
-      <View style={sectionStyle}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme.colors.background }}>
+      <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
         <LoginCommon
           email={email}
           setEmail={setEmail}
@@ -407,25 +398,10 @@ function LoginWrapper() {
           handleGuestSignIn={handleGuestSignIn}
           onCancel={() => {}}
         />
-      </View>
-    </ScrollView>
+      </Animated.View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  section: {
-    marginBottom: 16,
-  },
-});
 
 export default function Index() {
   const { user, loading } = useAuth();
@@ -501,7 +477,46 @@ export default function Index() {
   // Show blank screen until initialization is complete
   if (!initialized) {
     return (
-      <View style={{ flex: 1, backgroundColor: theme.colorScheme.colors.background }} />
+      <View style={{ 
+        flex: 1, 
+        backgroundColor: theme.colorScheme.colors.background,
+        justifyContent: 'center', 
+        alignItems: 'center',
+        padding: 24
+      }}>
+        <View style={{
+          padding: 24,
+          borderRadius: 12,
+          backgroundColor: theme.colorScheme.colors.card,
+          width: '100%',
+          maxWidth: 400,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 12,
+          elevation: 4
+        }}>
+          <ActivityIndicator size="large" color={theme.colorScheme.colors.primary} />
+          <Text style={{ 
+            marginTop: 16, 
+            color: theme.colorScheme.colors.text,
+            fontSize: 20,
+            fontWeight: '700',
+            textAlign: 'center'
+          }}>
+            Initializing app...
+          </Text>
+          <Text style={{
+            marginTop: 8,
+            color: theme.colorScheme.colors.text,
+            opacity: 0.7,
+            fontSize: 16,
+            textAlign: 'center'
+          }}>
+            Please wait while we set things up
+          </Text>
+        </View>
+      </View>
     );
   }
 
@@ -521,6 +536,45 @@ export default function Index() {
 
   // During loading with no cache, show a blank screen with app background
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colorScheme.colors.background }} />
+    <View style={{ 
+      flex: 1, 
+      backgroundColor: theme.colorScheme.colors.background,
+      justifyContent: 'center', 
+      alignItems: 'center',
+      padding: 24
+    }}>
+      <View style={{
+        padding: 24,
+        borderRadius: 12,
+        backgroundColor: theme.colorScheme.colors.card,
+        width: '100%',
+        maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 4
+      }}>
+        <ActivityIndicator size="large" color={theme.colorScheme.colors.primary} />
+        <Text style={{ 
+          marginTop: 16, 
+          color: theme.colorScheme.colors.text,
+          fontSize: 20,
+          fontWeight: '700',
+          textAlign: 'center'
+        }}>
+          Loading...
+        </Text>
+        <Text style={{
+          marginTop: 8,
+          color: theme.colorScheme.colors.text,
+          opacity: 0.7,
+          fontSize: 16,
+          textAlign: 'center'
+        }}>
+          Getting your data ready
+        </Text>
+      </View>
+    </View>
   );
 }

@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
   StyleSheet,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { ThemeName, useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
@@ -29,8 +30,7 @@ interface MainScreenProps {
 
 export function MainScreen({ initialData }: MainScreenProps) {
   const { colorScheme, themeName } = useColorScheme();
-  const { design } = useDesign();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, userInfo } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -143,21 +143,24 @@ export function MainScreen({ initialData }: MainScreenProps) {
       textTransform: 'uppercase',
       letterSpacing: 1,
     },
+    sectionTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: '#1E293B',
+    },
   });
 
   // Initialize IndexedDB
   useEffect(() => {
     if (!initializationStarted.current) {
       initializationStarted.current = true;
-      console.log('Initializing IndexedDB on mount');
 
       indexedDB.initialize()
         .then(() => {
-          console.log('IndexedDB initialized successfully');
           setDbInitialized(true);
         })
         .catch(err => {
-          console.error('Error initializing IndexedDB:', err);
+          console.error('[MainScreen] Error initializing IndexedDB:', err);
         });
     }
   }, []);
@@ -191,7 +194,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
   // Load data when DB is initialized and user is available
   useEffect(() => {
     const loadData = async () => {
-      if (dbInitialized && user?.id && !isDataLoaded) {
+      if (dbInitialized && user?.id && userInfo && !isDataLoaded) {
         setIsLoading(true);
         try {
           const [follows, requests] = await Promise.all([
@@ -233,7 +236,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
           setTenantRequests(requestsWithActivity);
           setIsDataLoaded(true);
         } catch (error) {
-          console.error('Error loading data:', error);
+          console.error('[MainScreen] Error loading data:', error);
         } finally {
           setIsLoading(false);
         }
@@ -241,12 +244,14 @@ export function MainScreen({ initialData }: MainScreenProps) {
     };
 
     loadData();
-  }, [dbInitialized, user?.id, isDataLoaded]);
+  }, [dbInitialized, user?.id, userInfo, isDataLoaded]);
 
-  // Reset data loaded state when user changes
+  // Reset data loaded state when user or userInfo changes
   useEffect(() => {
-    setIsDataLoaded(false);
-  }, [user?.id]);
+    if (user?.id || userInfo) {
+      setIsDataLoaded(false);
+    }
+  }, [user?.id, userInfo]);
 
   // Handle window resize on web
   useEffect(() => {
@@ -268,7 +273,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
     const lastMessage = channelActivity?.last_message;
     const messageCount = channelActivity?.message_count || 0;
     const lastUpdated = channelActivity?.last_updated_at || item.updated_at || item.created_at;
-    
+
     const formattedDate = lastUpdated ? new Date(lastUpdated).toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
@@ -337,12 +342,34 @@ export function MainScreen({ initialData }: MainScreenProps) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
         <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: insets.top }}>
-          <View style={{ padding: 20, borderRadius: 16, backgroundColor: colorScheme.colors.card, marginTop: 24 }}>
-            <Text style={[styles.itemTitle, { color: colorScheme.colors.text, fontSize: 24 }]}>
+          <View style={{
+            padding: 24,
+            borderRadius: 12,
+            backgroundColor: colorScheme.colors.card,
+            marginTop: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 12,
+            elevation: 4
+          }}>
+            <ActivityIndicator size="large" color={colorScheme.colors.primary} style={{ alignSelf: 'center', marginBottom: 16 }} />
+            <Text style={[styles.itemTitle, {
+              color: colorScheme.colors.text,
+              fontSize: 24,
+              fontWeight: '700',
+              textAlign: 'center'
+            }]}>
               Loading...
             </Text>
-            <Text style={[styles.itemSubtitle, { color: subtitleColor, marginTop: 8 }]}>
-              Please wait while we initialize the app.
+            <Text style={[styles.itemSubtitle, {
+              color: colorScheme.colors.text,
+              opacity: 0.7,
+              marginTop: 8,
+              fontSize: 16,
+              textAlign: 'center'
+            }]}>
+              Please wait while we initialize the app
             </Text>
           </View>
         </View>
@@ -354,28 +381,58 @@ export function MainScreen({ initialData }: MainScreenProps) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
         <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: insets.top }}>
-          <View style={{ padding: 20, borderRadius: 16, backgroundColor: colorScheme.colors.card, marginTop: 24 }}>
-            <Text style={[styles.itemTitle, { color: colorScheme.colors.text, fontSize: 24 }]}>
+          <View style={{
+            padding: 24,
+            borderRadius: 12,
+            backgroundColor: colorScheme.colors.card,
+            marginTop: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 12,
+            elevation: 4
+          }}>
+            <Text style={[styles.itemTitle, {
+              color: colorScheme.colors.text,
+              fontSize: 24,
+              fontWeight: '700',
+              textAlign: 'center'
+            }]}>
               Welcome to NChat
             </Text>
-            <Text style={[styles.itemSubtitle, { color: subtitleColor, marginTop: 8 }]}>
-              Sign in to access your channels, follow users, and manage your tenant requests.
+            <Text style={[styles.itemSubtitle, {
+              color: colorScheme.colors.text,
+              opacity: 0.7,
+              marginTop: 8,
+              fontSize: 16,
+              textAlign: 'center'
+            }]}>
+              Sign in to access your channels and manage your requests
             </Text>
             <TouchableOpacity
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingVertical: 14,
-                paddingHorizontal: 20,
+                paddingVertical: 16,
+                paddingHorizontal: 24,
                 borderRadius: 12,
-                marginTop: 16,
+                marginTop: 24,
                 backgroundColor: colorScheme.colors.primary,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 12,
+                elevation: 4
               }}
               onPress={() => router.push('/login')}
             >
               <LogIn size={20} color="white" style={{ marginRight: 8 }} />
-              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
+              <Text style={{
+                color: '#FFFFFF',
+                fontSize: 16,
+                fontWeight: '700'
+              }}>
                 Sign In
               </Text>
             </TouchableOpacity>
@@ -389,12 +446,34 @@ export function MainScreen({ initialData }: MainScreenProps) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
         <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: insets.top }}>
-          <View style={{ padding: 20, borderRadius: 16, backgroundColor: colorScheme.colors.card, marginTop: 24 }}>
-            <Text style={[styles.itemTitle, { color: colorScheme.colors.text, fontSize: 24 }]}>
-              Loading...
+          <View style={{
+            padding: 24,
+            borderRadius: 12,
+            backgroundColor: colorScheme.colors.card,
+            marginTop: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 12,
+            elevation: 4
+          }}>
+            <ActivityIndicator size="large" color={colorScheme.colors.primary} style={{ alignSelf: 'center', marginBottom: 16 }} />
+            <Text style={[styles.itemTitle, {
+              color: colorScheme.colors.text,
+              fontSize: 24,
+              fontWeight: '700',
+              textAlign: 'center'
+            }]}>
+              Loading Your Data
             </Text>
-            <Text style={[styles.itemSubtitle, { color: subtitleColor, marginTop: 8 }]}>
-              Please wait while we load your data.
+            <Text style={[styles.itemSubtitle, {
+              color: colorScheme.colors.text,
+              opacity: 0.7,
+              marginTop: 8,
+              fontSize: 16,
+              textAlign: 'center'
+            }]}>
+              Please wait while we load your channels
             </Text>
           </View>
         </View>
@@ -402,20 +481,151 @@ export function MainScreen({ initialData }: MainScreenProps) {
     );
   }
 
+  const bannersData = [
+    {
+      icon: "forum",
+      title: "Community",
+      subtitle: "Join discussions with citizens",
+      color: colorScheme.colors.primary
+    },
+    {
+      icon: "event",
+      title: "Events Hub",
+      subtitle: "Discover local events and meetups",
+      color: colorScheme.colors.primary
+    },
+    {
+      icon: "groups",
+      title: "Interest Groups",
+      subtitle: "Connect with like-minded people",
+      color: colorScheme.colors.primary
+    },
+    {
+      icon: "campaign",
+      title: "Announcements",
+      subtitle: "Stay updated with important news",
+      color: colorScheme.colors.primary
+    },
+  ];
+
   const data = [...tenantRequests, ...followedChannels];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      
-      <ScrollView 
+      <ScrollView
         style={{ flex: 1, backgroundColor: colorScheme.colors.background }}
         contentContainerStyle={{ paddingBottom: 20 }}
       >
+        {/* Featured Channels Carousel */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <Text style={[styles.sectionHeaderText, { color: subtitleColor, marginBottom: 16 }]}>
+            FEATURED CHANNELS
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingHorizontal: 16 }}>
+            {bannersData.map((channel, index) => (
+              <TouchableOpacity
+                key={index}
+                style={{ marginRight: 16 }}
+                onPress={() => router.push(`/${channel.title.toLowerCase().replace(/\s+/g, '-')}`)}
+              >
+                <View style={{
+                  width: 208,
+                  height: 102,
+                  borderRadius: 12,
+                  padding: 16,
+                  backgroundColor: colorScheme.colors.card,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: colorScheme.colors.border,
+                  justifyContent: 'space-between',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 2,
+                  elevation: 2
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <MaterialIcons name={channel.icon as any} size={26} color={colorScheme.colors.primary} />
+                    <Text style={{
+                      fontSize: 18,
+                      fontWeight: '600',
+                      color: colorScheme.colors.text,
+                      marginLeft: 12
+                    }}>
+                      {channel.title}
+                    </Text>
+                  </View>
+                  <Text style={{
+                    fontSize: 14,
+                    color: subtitleColor,
+                    lineHeight: 20
+                  }}>
+                    {channel.subtitle}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
         {data.length === 0 ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-            <Text style={[styles.itemSubtitle, { color: subtitleColor, textAlign: 'center' }]}>
-              No channels or requests yet. Start by following some channels!
-            </Text>
+            <View style={{
+              padding: 24,
+              borderRadius: 12,
+              backgroundColor: colorScheme.colors.card,
+              width: '100%',
+              maxWidth: 400,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 12,
+              elevation: 4
+            }}>
+              <Text style={[styles.itemTitle, {
+                color: colorScheme.colors.text,
+                fontSize: 24,
+                fontWeight: '700',
+                textAlign: 'center'
+              }]}>
+                No Channels Yet
+              </Text>
+              <Text style={[styles.itemSubtitle, {
+                color: colorScheme.colors.text,
+                opacity: 0.7,
+                marginTop: 8,
+                fontSize: 16,
+                textAlign: 'center'
+              }]}>
+                Start by following some channels or creating new ones!
+              </Text>
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 16,
+                  paddingHorizontal: 24,
+                  borderRadius: 12,
+                  marginTop: 24,
+                  backgroundColor: colorScheme.colors.primary,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 12,
+                  elevation: 4
+                }}
+                onPress={() => router.push('/explore')}
+              >
+                <Plus size={20} color="white" style={{ marginRight: 8 }} />
+                <Text style={{
+                  color: '#FFFFFF',
+                  fontSize: 16,
+                  fontWeight: '700'
+                }}>
+                  Explore Channels
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
           <View style={{ paddingHorizontal: 16 }}>
@@ -441,10 +651,10 @@ export function MainScreen({ initialData }: MainScreenProps) {
           justifyContent: 'center',
           alignItems: 'center',
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 5,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 12,
+          elevation: 6
         }}
         onPress={() => router.push('/explore')}
       >

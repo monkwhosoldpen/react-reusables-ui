@@ -361,30 +361,30 @@ export function AuthHelper(): AuthHelperReturn {
               // Create simplified user info for state - extract just what's needed for UI
               const preferences = transformedData.userPreferences;
               
-              // Extract language from user_language array
-              const language = preferences.user_language?.length > 0 
+              // Extract language
+              const language = preferences?.user_language?.length > 0 
                 ? preferences.user_language[0].language 
                 : 'english';
               
               // Extract notification preference from user_notifications array
-              const notificationsEnabled = preferences.user_notifications?.length > 0 
+              const notificationsEnabled = preferences?.user_notifications?.length > 0 
                 ? preferences.user_notifications[0].notifications_enabled 
                 : false;
               
               // Extract user location from user_location array
-              const userLocation = preferences.user_location?.length > 0 
+              const userLocation = preferences?.user_location?.length > 0 
                 ? preferences.user_location[0] 
                 : null;
               
               // Extract tenant requests - handle both tenant_requests and tena fields
-              const tenantRequests = preferences.tenant_requests || preferences.tena || [];
+              const userTenantRequests = preferences?.tenant_requests || preferences?.tena || [];
 
               // Create final user info with extracted fields
               const updatedUserInfo = {
                 ...data.user,
                 language: language,
                 notifications_enabled: notificationsEnabled,
-                tenantRequests: tenantRequests,
+                tenantRequests: userTenantRequests,
                 userLocation: userLocation
               };
 
@@ -471,15 +471,18 @@ export function AuthHelper(): AuthHelperReturn {
 
   // Rest of the functions
   async function signIn(email: string, password: string) {
+    console.log('[AuthHelpers] Starting sign in with:', { email });
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      console.error("[Auth] Sign in error:", error);
+      console.error('[AuthHelpers] Sign in error:', error);
       throw error;
     }
     
     if (data.user) {
+      console.log('[AuthHelpers] Sign in successful, user:', data.user);
       try {
         // First save basic user data to IndexedDB
+        console.log('[AuthHelpers] Saving user to IndexedDB');
         await indexedDB.createUser({
           id: data.user.id,
           email: data.user.email ?? '',
@@ -490,9 +493,11 @@ export function AuthHelper(): AuthHelperReturn {
         });
 
         // Set user state first
+        console.log('[AuthHelpers] Setting user state');
         setUser(data.user);
 
         // Then fetch user info from API and save to IndexedDB
+        console.log('[AuthHelpers] Fetching user info from API');
         const response = await fetch(`${config.api.endpoints.myinfo}?userId=${data.user.id}`, {
           method: 'POST',
           headers: {
@@ -503,31 +508,50 @@ export function AuthHelper(): AuthHelperReturn {
           })
         });
         const apiData = await response.json();
+        console.log('[AuthHelpers] API response:', apiData);
 
         if (apiData.success) {
+          // Transform the API response into the expected format
+          const transformedData = {
+            ...apiData,
+            userPreferences: {
+              channels_messages: apiData.rawRecords?.channels_messages || [],
+              channels_activity: apiData.rawRecords?.channels_activity || [],
+              user_language: apiData.rawRecords?.user_language || [],
+              user_notifications: apiData.rawRecords?.user_notifications || [],
+              push_subscriptions: apiData.rawRecords?.push_subscriptions || [],
+              tenant_requests: apiData.rawRecords?.tenant_requests || [],
+              user_location: apiData.rawRecords?.user_location || [],
+              user_channel_follow: apiData.rawRecords?.user_channel_follow || [],
+              user_channel_last_viewed: apiData.rawRecords?.user_channel_last_viewed || []
+            }
+          };
+
+          console.log('[AuthHelpers] Transformed API data:', transformedData);
+
           // Save all raw API data to IndexedDB in one call
-          await indexedDB.saveRawApiData(data.user.id, apiData);
+          await indexedDB.saveRawApiData(data.user.id, transformedData);
           
           // Extract data for UI state
-          const preferences = apiData.userPreferences;
+          const preferences = transformedData.userPreferences;
           
           // Extract language
-          const language = preferences.user_language?.length > 0 
+          const language = preferences?.user_language?.length > 0 
             ? preferences.user_language[0].language 
             : 'english';
           
           // Extract notification settings
-          const notificationsEnabled = preferences.user_notifications?.length > 0 
+          const notificationsEnabled = preferences?.user_notifications?.length > 0 
             ? preferences.user_notifications[0].notifications_enabled 
             : false;
             
           // Extract user location
-          const userLocation = preferences.user_location?.length > 0 
+          const userLocation = preferences?.user_location?.length > 0 
             ? preferences.user_location[0] 
             : null;
           
           // Extract tenant requests - handle both possible fields
-          const tenantRequests = preferences.tenant_requests || preferences.tena || [];
+          const tenantRequests = preferences?.tenant_requests || preferences?.tena || [];
 
           // Create complete user info object from API response
           const updatedUserInfo = {
@@ -538,6 +562,8 @@ export function AuthHelper(): AuthHelperReturn {
             userLocation: userLocation
           };
 
+          console.log('[AuthHelpers] Updating userInfo state with:', updatedUserInfo);
+
           // Update cache
           userInfoCache.current[data.user.id] = {
             data: updatedUserInfo,
@@ -546,14 +572,18 @@ export function AuthHelper(): AuthHelperReturn {
 
           // Update state with API data
           setUserInfo(updatedUserInfo);
+          console.log('[AuthHelpers] userInfo state updated');
+        } else {
+          console.error('[AuthHelpers] API call failed:', apiData);
         }
       } catch (error) {
-        console.error("[Auth] Error during sign in process:", error);
+        console.error('[AuthHelpers] Error during sign in process:', error);
         // Even if API call fails, try to get data from IndexedDB
         try {
+          console.log('[AuthHelpers] Falling back to IndexedDB data');
           await fetchUserInfo(data.user.id);
         } catch (infoError) {
-          console.error("[Auth] Error fetching from IndexedDB:", infoError);
+          console.error('[AuthHelpers] Error fetching from IndexedDB:', infoError);
         }
       }
     }
