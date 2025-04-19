@@ -338,58 +338,6 @@ function ThemeDropdownSelect({
           </DropdownMenuItem>
           <DropdownMenuItem
             onPress={() => {
-              setValue('dracula');
-              onValueChange('dracula');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'dracula' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>Dracula</Text>
-            <Muted>Dark theme with purple accents</Muted>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('twitter');
-              onValueChange('twitter');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'twitter' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>Twitter</Text>
-            <Muted>Social media inspired theme</Muted>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('facebook');
-              onValueChange('facebook');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'facebook' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>Facebook</Text>
-            <Muted>Social media inspired theme</Muted>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('spotify');
-              onValueChange('spotify');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'spotify' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>Spotify</Text>
-            <Muted>Music streaming inspired theme</Muted>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onPress={() => {
               setValue('ghiblistudio');
               onValueChange('ghiblistudio');
             }}
@@ -413,19 +361,6 @@ function ThemeDropdownSelect({
           >
             <Text>Red-Black</Text>
             <Muted>High contrast theme</Muted>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('material');
-              onValueChange('material');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'material' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>Material</Text>
-            <Muted>Google's Material Design 3</Muted>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

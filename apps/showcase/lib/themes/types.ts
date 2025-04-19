@@ -1,4 +1,4 @@
-export interface ColorSchemeConfig {
+export type ColorSchemeConfig = {
   name: 'light' | 'dark';
   colors: {
     primary: string;
@@ -7,8 +7,10 @@ export interface ColorSchemeConfig {
     text: string;
     border: string;
     notification: string;
+    input: string;
+    muted: string;
   };
-}
+};
 
 export interface DesignConfig {
   name: string;

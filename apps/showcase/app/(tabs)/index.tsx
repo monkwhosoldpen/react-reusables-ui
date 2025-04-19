@@ -327,6 +327,7 @@ import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Landing } from '~/components/landing';
 
 function LoginWrapper() {
   const { signIn, signInAnonymously, signInAsGuest } = useAuth();
@@ -525,13 +526,9 @@ export default function Index() {
     return <MainScreen initialData={userData} />;
   }
 
-  // If no user and not loading, show login
+  // If no user and not loading, show landing
   if (!loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: theme.colorScheme.colors.background }}>
-        <LoginWrapper />
-      </View>
-    );
+    return <Landing />;
   }
 
   // During loading with no cache, show a blank screen with app background

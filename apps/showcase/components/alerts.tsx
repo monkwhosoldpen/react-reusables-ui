@@ -1,97 +1,18 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import { View, ScrollView, StyleSheet, SafeAreaView, ActivityIndicator, Animated, TouchableOpacity, Image } from 'react-native';
+import { View, ScrollView, StyleSheet, SafeAreaView, Animated, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
-import { Button } from '@/components/ui/button';
 import { useColorScheme } from '@/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '@/lib/providers/theme/DesignSystemProvider';
-import { Loader2, Bell, Heart, MessageCircle, Share2, UserPlus, CheckCircle, XCircle } from 'lucide-react';
+import { MessageCircle, Bell } from 'lucide-react';
 import { useLocalSearchParams } from 'expo-router';
 import { useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from "@expo/vector-icons";
-
-// Mock notification data
-const mockNotifications = [
-  {
-    id: '1',
-    type: 'post',
-    username: 'techchannel',
-    message: 'posted in',
-    channelName: 'Tech Updates',
-    timestamp: '2m ago',
-    postPreview: 'New React Native 0.73 released with major improvements...',
-    read: false
-  },
-  {
-    id: '2',
-    type: 'approved',
-    username: 'admin',
-    message: 'approved your request to join',
-    channelName: 'Mobile Dev',
-    timestamp: '5m ago',
-    read: false
-  },
-  {
-    id: '3',
-    type: 'post',
-    username: 'designchannel',
-    message: 'posted in',
-    channelName: 'UI/UX Tips',
-    timestamp: '15m ago',
-    postPreview: '10 essential Figma plugins for 2024...',
-    read: false
-  },
-  {
-    id: '4',
-    type: 'rejected',
-    username: 'admin',
-    message: 'rejected your request to join',
-    channelName: 'Premium Content',
-    timestamp: '1h ago',
-    read: true
-  },
-  {
-    id: '5',
-    type: 'post',
-    username: 'codingchannel',
-    message: 'posted in',
-    channelName: 'Programming Tips',
-    timestamp: '2h ago',
-    postPreview: 'Top 5 VS Code extensions for React developers...',
-    read: true
-  },
-  {
-    id: '6',
-    type: 'approved',
-    username: 'admin',
-    message: 'approved your request to join',
-    channelName: 'Web Development',
-    timestamp: '3h ago',
-    read: true
-  },
-  {
-    id: '7',
-    type: 'post',
-    username: 'aiupdates',
-    message: 'posted in',
-    channelName: 'AI News',
-    timestamp: '5h ago',
-    postPreview: 'Latest developments in GPT-4 and its applications...',
-    read: true
-  },
-  {
-    id: '8',
-    type: 'rejected',
-    username: 'admin',
-    message: 'rejected your request to join',
-    channelName: 'Private Beta',
-    timestamp: '1d ago',
-    read: true
-  }
-];
+import { useRealtime } from '@/lib/providers/RealtimeProvider';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function AlertsPage() {
   const router = useRouter();
@@ -100,6 +21,7 @@ export default function AlertsPage() {
   const { width: screenWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const { channelActivities } = useRealtime();
 
   // Theme and design
   const { colorScheme } = useColorScheme();
@@ -136,7 +58,7 @@ export default function AlertsPage() {
     notificationItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 12,
+      padding: 16,
       backgroundColor: colorScheme.colors.card,
       borderRadius: 12,
       marginVertical: 4,
@@ -151,9 +73,9 @@ export default function AlertsPage() {
       backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
     },
     avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: 12,
@@ -168,24 +90,19 @@ export default function AlertsPage() {
       flex: 1,
     },
     notificationText: {
-      fontSize: 14,
+      fontSize: 16,
       fontWeight: '600',
       color: colorScheme.colors.text,
-      marginBottom: 2,
+      marginBottom: 4,
     },
     notificationPreview: {
-      fontSize: 13,
+      fontSize: 14,
       color: subtitleColor,
-      lineHeight: 18,
+      lineHeight: 20,
     },
     timestamp: {
       fontSize: 12,
       color: timestampColor,
-    },
-    actionButton: {
-      padding: 8,
-      borderRadius: 20,
-      backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
     },
     sectionHeader: {
       paddingVertical: 12,
@@ -210,56 +127,70 @@ export default function AlertsPage() {
     }).start();
   }, []);
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'post':
-        return <MessageCircle size={20} color={colorScheme.colors.primary} />;
-      case 'approved':
-        return <CheckCircle size={20} color={colorScheme.colors.primary} />;
-      case 'rejected':
-        return <XCircle size={20} color={colorScheme.colors.primary} />;
-      default:
-        return <Bell size={20} color={colorScheme.colors.primary} />;
+  const getNotificationIcon = (activity: any) => {
+    if (activity.last_message?.message_text) {
+      return <MessageCircle size={24} color={colorScheme.colors.primary} />;
     }
+    return <Bell size={24} color={colorScheme.colors.primary} />;
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: colorScheme.colors.primary }]}>
+        <View style={styles.headerContent}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
+              <Text style={[styles.headerTitle, { color: colorScheme.colors.primary }]}>A</Text>
+            </View>
+            <View style={{ marginLeft: 12 }}>
+              <Text style={[styles.headerTitle, { color: colorScheme.colors.background }]}>Alerts</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={[styles.timestamp, { color: colorScheme.colors.background, opacity: 0.8 }]}>
+                  {channelActivities.length} active channels
+                </Text>
+                <MaterialIcons name="keyboard-arrow-down" size={22} color={colorScheme.colors.background} style={{ opacity: 0.8 }} />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
 
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         <ScrollView 
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
         >
-          {/* Today's Notifications */}
+          {/* Channel Activities Section */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>Today</Text>
+            <Text style={styles.sectionHeaderText}>Recent Activities</Text>
           </View>
 
-          {mockNotifications.map((notification) => (
+          {channelActivities.map((activity) => (
             <TouchableOpacity
-              key={notification.id}
+              key={activity.username}
               style={[
                 styles.notificationItem,
-                !notification.read && styles.notificationItemUnread
+                !activity.read && styles.notificationItemUnread
               ]}
               onPress={() => {}}
             >
               <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
-                {getNotificationIcon(notification.type)}
+                {getNotificationIcon(activity)}
               </View>
               <View style={styles.notificationContent}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                   <Text style={styles.notificationText} numberOfLines={1}>
-                    <Text style={{ fontWeight: '600' }}>{notification.username}</Text>{' '}
-                    {notification.message}{' '}
-                    <Text style={{ fontWeight: '600' }}>{notification.channelName}</Text>
+                    <Text style={{ fontWeight: '600' }}>{activity.username}</Text>
+                    {activity.last_message?.message_text ? ' posted a message' : ' has no recent activity'}
                   </Text>
-                  <Text style={styles.timestamp}>{notification.timestamp}</Text>
+                  <Text style={styles.timestamp}>
+                    {formatDistanceToNow(new Date(activity.last_updated_at), { addSuffix: true })}
+                  </Text>
                 </View>
-                {notification.postPreview && (
+                {activity.last_message?.message_text && (
                   <Text style={styles.notificationPreview} numberOfLines={1}>
-                    {notification.postPreview}
+                    {activity.last_message.message_text}
                   </Text>
                 )}
               </View>

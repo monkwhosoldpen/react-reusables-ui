@@ -10,6 +10,8 @@ export const whatsappLightModeColors: ColorSchemeConfig = {
     text: '#111B21',
     border: '#E9EDEF',
     notification: '#25D366',
+    input: '#FFFFFF',
+    muted: '#667781',
   },
 };
 
@@ -22,106 +24,8 @@ export const whatsappDarkModeColors: ColorSchemeConfig = {
     text: '#E9EDEF',
     border: '#2A3942',
     notification: '#25D366',
-  },
-};
-
-// Twitter Theme Colors
-export const twitterLightModeColors: ColorSchemeConfig = {
-  name: 'light',
-  colors: {
-    primary: '#1D9BF0',
-    background: '#FFFFFF',
-    card: '#F7F9F9',
-    text: '#0F1419',
-    border: '#EFF3F4',
-    notification: '#F91880',
-  },
-};
-
-export const twitterDarkModeColors: ColorSchemeConfig = {
-  name: 'dark',
-  colors: {
-    primary: '#1D9BF0',
-    background: '#000000',
-    card: '#16181C',
-    text: '#E7E9EA',
-    border: '#2F3336',
-    notification: '#F91880',
-  },
-};
-
-// Facebook Theme Colors
-export const facebookLightModeColors: ColorSchemeConfig = {
-  name: 'light',
-  colors: {
-    primary: '#1877F2',
-    background: '#F0F2F5',
-    card: '#FFFFFF',
-    text: '#050505',
-    border: '#CED0D4',
-    notification: '#F02849',
-  },
-};
-
-export const facebookDarkModeColors: ColorSchemeConfig = {
-  name: 'dark',
-  colors: {
-    primary: '#2374E1',
-    background: '#18191A',
-    card: '#242526',
-    text: '#E4E6EB',
-    border: '#3E4042',
-    notification: '#F02849',
-  },
-};
-
-// Dracula Theme Colors
-export const draculaLightModeColors: ColorSchemeConfig = {
-  name: 'light',
-  colors: {
-    primary: '#BD93F9',
-    background: '#F8F8F2',
-    card: '#FFFFFF',
-    text: '#282A36',
-    border: '#6272A4',
-    notification: '#FF79C6',
-  },
-};
-
-export const draculaDarkModeColors: ColorSchemeConfig = {
-  name: 'dark',
-  colors: {
-    primary: '#BD93F9',
-    background: '#282A36',
-    card: '#44475A',
-    text: '#F8F8F2',
-    border: '#6272A4',
-    notification: '#FF79C6',
-  },
-};
-
-// Spotify Theme Colors
-export const spotifyLightModeColors: ColorSchemeConfig = {
-  name: 'light',
-  colors: {
-    primary: '#1DB954',
-    background: '#FFFFFF',
-    card: '#F8F8F8',
-    text: '#191414',
-    border: '#E5E5E5',
-    notification: '#1DB954',
-  },
-};
-
-export const spotifyDarkModeColors: ColorSchemeConfig = {
-  name: 'dark',
-  colors: {
-    primary: '#1DB954',
-    background: '#121212',
-    card: '#181818',
-    text: '#FFFFFF',
-    border: '#282828',
-    notification: '#1DB954',
+    input: '#2A3942',
+    muted: '#8696A0',
   },
 };
 
@@ -135,6 +39,8 @@ export const ghiblistudioLightModeColors: ColorSchemeConfig = {
     text: '#2C3E50', // Deep blue-gray
     border: '#E0D8C0', // Warm beige
     notification: '#E6A8A8', // Soft pink
+    input: '#FFFFFF',
+    muted: '#7B8B6F',
   },
 };
 
@@ -147,6 +53,8 @@ export const ghiblistudioDarkModeColors: ColorSchemeConfig = {
     text: '#E0D8C0', // Warm beige
     border: '#3D3D3D',
     notification: '#E6A8A8', // Soft pink
+    input: '#2D2D2D',
+    muted: '#9DBF8E',
   },
 };
 
@@ -160,6 +68,8 @@ export const redblackLightModeColors: ColorSchemeConfig = {
     text: '#000000',
     border: '#E0E0E0',
     notification: '#FF0000', // Bright red
+    input: '#FFFFFF',
+    muted: '#666666',
   },
 };
 
@@ -172,31 +82,8 @@ export const redblackDarkModeColors: ColorSchemeConfig = {
     text: '#FFFFFF',
     border: '#333333',
     notification: '#FF0000', // Bright red
-  },
-};
-
-// Material Theme Colors
-export const materialLightModeColors: ColorSchemeConfig = {
-  name: 'light',
-  colors: {
-    primary: '#6750A4',
-    background: '#FFFBFE',
-    card: '#FFFFFF',
-    text: '#1C1B1F',
-    border: '#E7E0EC',
-    notification: '#B4A9FF',
-  },
-};
-
-export const materialDarkModeColors: ColorSchemeConfig = {
-  name: 'dark',
-  colors: {
-    primary: '#D0BCFF',
-    background: '#1C1B1F',
-    card: '#2B2930',
-    text: '#E6E1E5',
-    border: '#49454F',
-    notification: '#B4A9FF',
+    input: '#1A1A1A',
+    muted: '#999999',
   },
 };
 
@@ -206,24 +93,12 @@ export const themes = {
     light: whatsappLightModeColors,
     dark: whatsappDarkModeColors,
   },
-  twitter: {
-    light: twitterLightModeColors,
-    dark: twitterDarkModeColors,
+  ghiblistudio: {
+    light: ghiblistudioLightModeColors,
+    dark: ghiblistudioDarkModeColors,
   },
-  facebook: {
-    light: facebookLightModeColors,
-    dark: facebookDarkModeColors,
-  },
-  dracula: {
-    light: draculaLightModeColors,
-    dark: draculaDarkModeColors,
-  },
-  spotify: {
-    light: spotifyLightModeColors,
-    dark: spotifyDarkModeColors,
-  },
-  material: {
-    light: materialLightModeColors,
-    dark: materialDarkModeColors,
+  redblack: {
+    light: redblackLightModeColors,
+    dark: redblackDarkModeColors,
   },
 } as const;

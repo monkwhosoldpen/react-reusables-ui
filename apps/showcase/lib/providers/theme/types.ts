@@ -1,4 +1,4 @@
-export type DesignType = 'twitter' | 'facebook' | 'whatsapp' | 'dracula' | 'spotify' | 'ghiblistudio' | 'redblack' | 'material';
+export type DesignType = 'whatsapp' | 'ghiblistudio' | 'redblack';
 
 export interface DesignConfig {
   name: DesignType;

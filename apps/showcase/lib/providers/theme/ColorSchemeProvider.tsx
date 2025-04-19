@@ -5,20 +5,15 @@ import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
 import { Platform } from 'react-native';
 import { 
   whatsappDarkModeColors, whatsappLightModeColors,
-  draculaDarkModeColors, draculaLightModeColors,
-  twitterDarkModeColors, twitterLightModeColors,
-  facebookDarkModeColors, facebookLightModeColors,
-  spotifyDarkModeColors, spotifyLightModeColors,
   ghiblistudioDarkModeColors, ghiblistudioLightModeColors,
-  redblackDarkModeColors, redblackLightModeColors,
-  materialDarkModeColors, materialLightModeColors
+  redblackDarkModeColors, redblackLightModeColors
 } from '~/lib/themes';
 
 const COLOR_SCHEME_STORAGE_KEY = '@color-scheme';
 const THEME_STORAGE_KEY = '@theme-name';
 const DARK_MODE_STORAGE_KEY = '@dark-mode';
 
-export type ThemeName = 'whatsapp' | 'dracula' | 'twitter' | 'facebook' | 'spotify' | 'ghiblistudio' | 'redblack' | 'material';
+export type ThemeName = 'whatsapp' | 'ghiblistudio' | 'redblack';
 
 interface ColorSchemeContextType {
   colorScheme: ColorSchemeConfig;
@@ -49,22 +44,6 @@ const themes = {
     light: whatsappLightModeColors,
     dark: whatsappDarkModeColors,
   },
-  dracula: {
-    light: draculaLightModeColors,
-    dark: draculaDarkModeColors,
-  },
-  twitter: {
-    light: twitterLightModeColors,
-    dark: twitterDarkModeColors,
-  },
-  facebook: {
-    light: facebookLightModeColors,
-    dark: facebookDarkModeColors,
-  },
-  spotify: {
-    light: spotifyLightModeColors,
-    dark: spotifyDarkModeColors,
-  },
   ghiblistudio: {
     light: ghiblistudioLightModeColors,
     dark: ghiblistudioDarkModeColors,
@@ -72,10 +51,6 @@ const themes = {
   redblack: {
     light: redblackLightModeColors,
     dark: redblackDarkModeColors,
-  },
-  material: {
-    light: materialLightModeColors,
-    dark: materialDarkModeColors,
   },
 } as const;
 

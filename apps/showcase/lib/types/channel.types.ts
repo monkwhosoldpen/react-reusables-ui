@@ -84,6 +84,7 @@ export interface ChannelActivity {
     message_text?: string;
     created_at: string;
   };
+  message_count: number;
   read?: boolean;
 }
 

@@ -11,6 +11,7 @@ import { Card } from '~/components/ui/card';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function LoginCommon({
   email,
@@ -89,36 +90,9 @@ export default function LoginCommon({
       flex: 1,
       backgroundColor: colorScheme.colors.background,
     },
-    header: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colorScheme.colors.border,
-      backgroundColor: colorScheme.colors.primary,
-    },
-    headerContent: {
-      width: '100%',
-      maxWidth: 1200,
-      alignSelf: 'center',
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    itemTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-    },
-    itemSubtitle: {
-      fontSize: 14,
-      opacity: 0.8,
-    },
     card: {
       padding: 20,
-      borderRadius: 16,
+      borderRadius: Number(design.radius.lg),
       marginTop: 24,
       backgroundColor: colorScheme.colors.card,
       shadowColor: '#000',
@@ -128,26 +102,26 @@ export default function LoginCommon({
       elevation: 3,
     },
     sectionTitle: {
-      fontSize: 24,
+      fontSize: Number(design.spacing.fontSize.xl),
       fontWeight: '700',
       marginBottom: 8,
       color: colorScheme.colors.text,
     },
     settingDescription: {
-      fontSize: 16,
-      color: subtitleColor,
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.muted,
       marginBottom: 16,
       lineHeight: 24,
     },
     input: {
       height: 48,
-      borderRadius: 12,
+      borderRadius: Number(design.radius.md),
       paddingHorizontal: 16,
-      fontSize: 16,
+      fontSize: Number(design.spacing.fontSize.base),
       marginBottom: 16,
-      backgroundColor: inputBgColor,
+      backgroundColor: colorScheme.colors.input,
       borderWidth: 1,
-      borderColor: inputBorderColor,
+      borderColor: colorScheme.colors.border,
       color: colorScheme.colors.text,
     },
     button: {
@@ -156,14 +130,14 @@ export default function LoginCommon({
       justifyContent: 'center',
       paddingVertical: 14,
       paddingHorizontal: 20,
-      borderRadius: 12,
+      borderRadius: Number(design.radius.md),
       marginTop: 12,
       backgroundColor: colorScheme.colors.primary,
     },
     buttonText: {
-      fontSize: 16,
+      fontSize: Number(design.spacing.fontSize.base),
       fontWeight: '600',
-      color: '#FFFFFF',
+      color: colorScheme.colors.background,
       marginLeft: 8,
     },
     divider: {
@@ -177,140 +151,155 @@ export default function LoginCommon({
       justifyContent: 'center',
       paddingVertical: 14,
       paddingHorizontal: 20,
-      borderRadius: 12,
+      borderRadius: Number(design.radius.md),
       marginTop: 12,
-      backgroundColor: inputBgColor,
+      backgroundColor: colorScheme.colors.input,
       borderWidth: 1,
-      borderColor: inputBorderColor,
+      borderColor: colorScheme.colors.border,
     },
     socialButtonText: {
-      fontSize: 16,
+      fontSize: Number(design.spacing.fontSize.base),
       fontWeight: '600',
       color: colorScheme.colors.text,
       marginLeft: 8,
     },
     errorText: {
-      color: '#EF4444',
-      fontSize: 14,
+      color: colorScheme.colors.notification,
+      fontSize: Number(design.spacing.fontSize.sm),
       marginTop: 8,
+    },
+    iconContainer: {
+      width: 24,
+      height: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 8,
     },
   });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+    <Animated.View style={{ opacity: fadeAnim }}>
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>
+          Sign In
+        </Text>
+        <Text style={styles.settingDescription}>
+          Enter your credentials to access your account
+        </Text>
 
-      <ScrollView 
-        style={{ flex: 1, backgroundColor: colorScheme.colors.background }}
-        contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 20 }}
-      >
-        <Animated.View style={{ opacity: fadeAnim }}>
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>
-              Sign In
+        <Input
+          placeholder="Email"
+          placeholderTextColor={subtitleColor}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          style={styles.input}
+          editable={!isEmailLoading}
+          accessibilityLabel="Email input"
+        />
+
+        <Input
+          placeholder="Password"
+          placeholderTextColor={subtitleColor}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.input}
+          editable={!isEmailLoading}
+          accessibilityLabel="Password input"
+        />
+
+        {error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : null}
+
+        <Button
+          onPress={handleEmailSubmit}
+          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
+          style={styles.button}
+          accessibilityLabel="Sign in with email button"
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {isEmailLoading ? (
+              <ActivityIndicator size="small" color={colorScheme.colors.background} />
+            ) : (
+              <View style={styles.iconContainer}>
+                <MaterialIcons name="email" size={20} color={colorScheme.colors.background} />
+              </View>
+            )}
+            <Text style={styles.buttonText}>
+              {isEmailLoading ? 'Signing in...' : 'Sign in with Email'}
             </Text>
-            <Text style={styles.settingDescription}>
-              Enter your credentials to access your account
-            </Text>
-
-            <Input
-              placeholder="Email"
-              placeholderTextColor={subtitleColor}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              style={styles.input}
-              editable={!isEmailLoading}
-              accessibilityLabel="Email input"
-            />
-
-            <Input
-              placeholder="Password"
-              placeholderTextColor={subtitleColor}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              style={styles.input}
-              editable={!isEmailLoading}
-              accessibilityLabel="Password input"
-            />
-
-            {error ? (
-              <Text style={styles.errorText}>{error}</Text>
-            ) : null}
-
-            <Button
-              onPress={handleEmailSubmit}
-              disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
-              style={styles.button}
-              accessibilityLabel="Sign in with email button"
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {isEmailLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : null}
-                <Text style={styles.buttonText}>
-                  {isEmailLoading ? 'Signing in...' : 'Sign in with Email'}
-                </Text>
-              </View>
-            </Button>
-
-            <View style={styles.divider} />
-
-            <Button
-              onPress={handleAnonymousSubmit}
-              disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
-              style={styles.socialButton}
-              accessibilityLabel="Continue anonymously button"
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {isAnonymousLoading ? (
-                  <ActivityIndicator size="small" color={colorScheme.colors.text} />
-                ) : null}
-                <Text style={styles.socialButtonText}>
-                  {isAnonymousLoading ? 'Signing in...' : 'Continue Anonymously'}
-                </Text>
-              </View>
-            </Button>
-
-            <Button
-              onPress={handleGuestSubmit}
-              disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
-              style={styles.socialButton}
-              accessibilityLabel="Continue as guest button"
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {isGuestLoading ? (
-                  <ActivityIndicator size="small" color={colorScheme.colors.text} />
-                ) : null}
-                <Text style={styles.socialButtonText}>
-                  {isGuestLoading ? 'Signing in...' : 'Continue as Guest'}
-                </Text>
-              </View>
-            </Button>
-
-            <Button
-              onPress={() => {
-                setEmail('monkwhosoldpen@gmail.com');
-                setPassword('password');
-                handleSubmit();
-              }}
-              disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
-              style={[styles.socialButton, { marginTop: 12, backgroundColor: colorScheme.colors.primary }]}
-              accessibilityLabel="Demo login button"
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {isEmailLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : null}
-                <Text style={[styles.socialButtonText, { color: '#FFFFFF' }]}>
-                  {isEmailLoading ? 'Signing in...' : 'Demo Login'}
-                </Text>
-              </View>
-            </Button>
           </View>
-        </Animated.View>
-      </ScrollView>
-    </SafeAreaView>
+        </Button>
+
+        <View style={styles.divider} />
+
+        <Button
+          onPress={handleAnonymousSubmit}
+          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
+          style={styles.socialButton}
+          accessibilityLabel="Continue anonymously button"
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {isAnonymousLoading ? (
+              <ActivityIndicator size="small" color={colorScheme.colors.text} />
+            ) : (
+              <View style={styles.iconContainer}>
+                <MaterialIcons name="person" size={20} color={colorScheme.colors.text} />
+              </View>
+            )}
+            <Text style={styles.socialButtonText}>
+              {isAnonymousLoading ? 'Signing in...' : 'Continue Anonymously'}
+            </Text>
+          </View>
+        </Button>
+
+        <Button
+          onPress={handleGuestSubmit}
+          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
+          style={styles.socialButton}
+          accessibilityLabel="Continue as guest button"
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {isGuestLoading ? (
+              <ActivityIndicator size="small" color={colorScheme.colors.text} />
+            ) : (
+              <View style={styles.iconContainer}>
+                <MaterialIcons name="person-outline" size={20} color={colorScheme.colors.text} />
+              </View>
+            )}
+            <Text style={styles.socialButtonText}>
+              {isGuestLoading ? 'Signing in...' : 'Continue as Guest'}
+            </Text>
+          </View>
+        </Button>
+
+        <Button
+          onPress={() => {
+            setEmail('monkwhosoldpen@gmail.com');
+            setPassword('password');
+            handleSubmit();
+          }}
+          disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
+          style={[styles.socialButton, { marginTop: 12, backgroundColor: colorScheme.colors.primary }]}
+          accessibilityLabel="Demo login button"
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {isEmailLoading ? (
+              <ActivityIndicator size="small" color={colorScheme.colors.background} />
+            ) : (
+              <View style={styles.iconContainer}>
+                <MaterialIcons name="play-circle-outline" size={20} color={colorScheme.colors.background} />
+              </View>
+            )}
+            <Text style={[styles.socialButtonText, { color: colorScheme.colors.background }]}>
+              {isEmailLoading ? 'Signing in...' : 'Demo Login'}
+            </Text>
+          </View>
+        </Button>
+      </View>
+    </Animated.View>
   );
 }

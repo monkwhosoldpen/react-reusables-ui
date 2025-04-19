@@ -15,7 +15,7 @@ import {
   DialogPortal,
   DialogOverlay
 } from '@/components/ui/dialog';
-import LoginCommon from './LoginCommon';
+import LoginCommon from '@/components/common/LoginCommon';
 import { View, Text, StyleSheet } from 'react-native';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';

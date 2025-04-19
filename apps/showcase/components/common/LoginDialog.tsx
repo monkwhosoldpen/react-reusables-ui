@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import LoginCommon from "@/components/common/LoginCommon"
 import { useColorScheme } from "@/lib/providers/theme/ColorSchemeProvider"
 import { useDesign } from "@/lib/providers/theme/DesignSystemProvider"
-import { StyleSheet } from "react-native"
+import { StyleSheet, View, Text } from "react-native"
+import { MaterialIcons } from "@expo/vector-icons"
 
 interface LoginDialogProps {
   isOpen: boolean
@@ -26,25 +27,48 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
   const styles = StyleSheet.create({
     dialogContent: {
       backgroundColor: colorScheme.colors.background,
-      borderColor: colorScheme.colors.border,
       borderRadius: Number(design.radius.lg),
       padding: Number(design.spacing.padding.card),
       width: '100%',
       maxWidth: 400,
     },
-    dialogHeader: {
+    header: {
       marginBottom: Number(design.spacing.padding.card),
     },
-    dialogTitle: {
+    title: {
       fontSize: Number(design.spacing.fontSize.xl),
-      fontWeight: '600',
+      fontWeight: '700',
       color: colorScheme.colors.text,
       marginBottom: Number(design.spacing.padding.item),
     },
-    dialogDescription: {
+    description: {
       fontSize: Number(design.spacing.fontSize.base),
       color: colorScheme.colors.text,
       opacity: 0.7,
+      lineHeight: 24,
+    },
+    sectionHeader: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginTop: 8,
+      backgroundColor: 'transparent',
+    },
+    sectionHeaderText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colorScheme.colors.text,
+      opacity: 0.7,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    iconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+      backgroundColor: `${colorScheme.colors.primary}1A`,
     },
   })
 
@@ -106,13 +130,23 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent style={styles.dialogContent}>
-        <DialogHeader style={styles.dialogHeader}>
-          <DialogTitle style={styles.dialogTitle}>
-            Sign in to follow channels
-          </DialogTitle>
-          <DialogDescription style={styles.dialogDescription}>
-            You need to be signed in to follow channels and receive updates.
-          </DialogDescription>
+        <DialogHeader style={styles.header}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionHeaderText}>SIGN IN</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+            <View style={styles.iconContainer}>
+              <MaterialIcons name="login" size={24} color={colorScheme.colors.primary} />
+            </View>
+            <View>
+              <DialogTitle style={styles.title}>
+                Sign in to follow channels
+              </DialogTitle>
+              <DialogDescription style={styles.description}>
+                You need to be signed in to follow channels and receive updates.
+              </DialogDescription>
+            </View>
+          </View>
         </DialogHeader>
 
         <LoginCommon

@@ -1,9 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Menu, Settings } from 'lucide-react-native';
-import { ModalToggle } from '~/components/ModalToggle';
-import { ThemeToggle } from '~/components/ThemeToggle';
 import { LayoutPanelLeft } from '~/lib/icons/LayoutPanelLeft';
-import { MenuSquare } from '~/lib/icons/MenuSquare';
 import { CommonHeader } from '~/components/CommonHeader';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
@@ -29,12 +26,21 @@ export default function TabsLayout() {
           borderTopWidth: StyleSheet.hairlineWidth,
           height: 60,
           paddingBottom: 4,
+          elevation: 3,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
         },
         tabBarActiveTintColor: colorScheme.colors.primary,
         tabBarInactiveTintColor: colorScheme.colors.text,
         tabBarLabelStyle: {
           fontSize: Number(design.spacing.fontSize.xs),
           marginBottom: 0,
+          fontWeight: '600',
+        },
+        tabBarIconStyle: {
+          marginBottom: -4,
         },
       }}
     >
@@ -53,15 +59,6 @@ export default function TabsLayout() {
           title: 'Supermenu',
           tabBarIcon({ color, size }) {
             return <Menu color={color} size={size} />;
-          },
-        }}
-      />
-      <Tabs.Screen
-        name='alerts'
-        options={{
-          title: 'Alerts',
-          tabBarIcon({ color, size }) {
-            return <MenuSquare color={color} size={size} />;
           },
         }}
       />

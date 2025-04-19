@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/contexts/AuthContext"
 import { toast } from "sonner"
 import { UserPlus, ArrowRight, Check, Loader2 } from 'lucide-react-native'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import LoginCommon from './LoginCommon'
+import LoginCommon from '@/components/common/LoginCommon'
 import { View, Text, StyleSheet } from 'react-native'
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider'
