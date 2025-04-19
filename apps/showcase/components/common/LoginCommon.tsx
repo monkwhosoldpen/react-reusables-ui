@@ -291,7 +291,7 @@ export default function LoginCommon({
 
             <Button
               onPress={() => {
-                setEmail('monkwhosoldpen@email.com');
+                setEmail('monkwhosoldpen@gmail.com');
                 setPassword('password');
                 handleSubmit();
               }}
