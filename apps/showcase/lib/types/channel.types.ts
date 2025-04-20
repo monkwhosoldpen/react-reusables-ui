@@ -10,6 +10,7 @@ export type Channel = {
   is_update_only: boolean;
   is_public: boolean;
   is_agent: boolean;
+  is_enhanced_chat: boolean;
   is_owner_db: boolean;
   is_realtime: boolean;
   related_channels: Channel[];

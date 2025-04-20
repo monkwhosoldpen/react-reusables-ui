@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { ChannelSidebar } from '@/components/channel-profile/ChannelSidebar';
 import { ChannelMessages } from '@/components/channel-profile/ChannelMessages';
 import { ChannelDebugInfo } from '@/components/channel-profile/ChannelDebugInfo';
-import ChannelInfoSection from './ChannelInfoSection';
 import { Channel, ChannelResponse } from '@/lib/types/channel.types';
 import { config } from '~/lib/config';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
@@ -20,6 +19,7 @@ import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 import { useWindowDimensions } from 'react-native';
 import { useRealtime } from '~/lib/providers/RealtimeProvider';
 import { AgentChat } from '~/components/agent-chat/AgentChat';
+import ChannelInfoSection from './ChannelInfoSection';
 
 export default function ChannelPage() {
   const router = useRouter();
@@ -43,11 +43,11 @@ export default function ChannelPage() {
     // Compare with previous activities to detect changes
     channelActivities.forEach(activity => {
       const prevActivity = prevActivitiesRef.current.find(a => a.username === activity.username);
-      
-      if (activity.last_message && 
-          (!prevActivity || prevActivity.last_message?.id !== activity.last_message?.id) &&
-          !processedMessagesRef.current.has(activity.last_message.id)) {
-        
+
+      if (activity.last_message &&
+        (!prevActivity || prevActivity.last_message?.id !== activity.last_message?.id) &&
+        !processedMessagesRef.current.has(activity.last_message.id)) {
+
         // Mark this message as processed
         processedMessagesRef.current.add(activity.last_message.id);
       }
@@ -184,25 +184,20 @@ export default function ChannelPage() {
                 username={usernameStr}
                 channelDetails={channel}
               />
-              {channel.is_agent ? (
-                <AgentChat
-                  username={usernameStr}
-                  channelDetails={channel}
-                />
-              ) : (
-                <ChannelMessages
-                  messages={messages || []}
-                  messagesLoading={loadingMessages}
-                  messagesError={messageError}
-                  messagesEndRef={messagesEndRef}
-                  channelDetails={channel}
-                  username={usernameStr}
-                />
-              )}
             </ChannelInfoSection>
+
+            <ChannelMessages
+              messages={messages || []}
+              messagesLoading={loadingMessages}
+              messagesError={messageError}
+              messagesEndRef={messagesEndRef}
+              channelDetails={channel}
+              username={usernameStr}
+            />
+
           </ScrollView>
         </View>
       </View>
-    </View>
+    </View >
   );
 }

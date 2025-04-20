@@ -59,6 +59,7 @@ export function ChannelDebugInfo({ username, channelDetails }: ChannelDebugInfoP
                 <ChannelProperty label="Public" value={channelDetails.is_public} />
                 <ChannelProperty label="Realtime" value={channelDetails.is_realtime} />
                 <ChannelProperty label="Update Only" value={channelDetails.is_update_only} />
+                <ChannelProperty label="Enhanced Chat" value={channelDetails.is_enhanced_chat} />
               </View>
             </View>
 
@@ -79,6 +80,7 @@ export function ChannelDebugInfo({ username, channelDetails }: ChannelDebugInfoP
                   <ChannelProperty label="Public" value={channelDetails.parent_channel.is_public} />
                   <ChannelProperty label="Realtime" value={channelDetails.parent_channel.is_realtime} />
                   <ChannelProperty label="Update Only" value={channelDetails.parent_channel.is_update_only} />
+                  <ChannelProperty label="Enhanced Chat" value={channelDetails.parent_channel.is_enhanced_chat} />
                 </View>
               </View>
             )}
