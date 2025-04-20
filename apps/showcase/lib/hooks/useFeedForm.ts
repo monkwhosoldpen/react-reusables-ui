@@ -159,37 +159,6 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
         };
       }
 
-      // Ensure interactive content fields are never undefined
-      if (updates.interactive_content) {
-        sanitizedUpdates.interactive_content = {
-          poll: {
-            question: updates.interactive_content.poll?.question || '',
-            options: updates.interactive_content.poll?.options || ['', '']
-          },
-          quiz: {
-            title: updates.interactive_content.quiz?.title || '',
-            questions: updates.interactive_content.quiz?.questions || [{
-              text: '',
-              options: ['', ''],
-              correct_option: 0
-            }]
-          },
-          survey: {
-            title: updates.interactive_content.survey?.title || '',
-            questions: updates.interactive_content.survey?.questions || [{
-              text: '',
-              options: ['', '']
-            }]
-          }
-        };
-      }
-
-      // Ensure string fields are never undefined
-      if ('content' in updates) sanitizedUpdates.content = updates.content || '';
-      if ('caption' in updates) sanitizedUpdates.caption = updates.caption || '';
-      if ('message' in updates) sanitizedUpdates.message = updates.message || '';
-      if ('channel_username' in updates) sanitizedUpdates.channel_username = updates.channel_username || prev.channel_username;
-
       return {
         ...prev,
         ...sanitizedUpdates,
@@ -212,7 +181,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('superfeed')
+        .from('channels_messages')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -224,7 +193,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
         // Transform the raw data to ensure it matches FormDataType
         const transformedData: FormDataType = {
           type: (data.type as FeedItemType) || 'poll',
-          content: typeof data.content === 'string' ? data.content : '',
+          content: typeof data.message_text === 'string' ? data.message_text : '',
           media: Array.isArray(data.media) ? data.media : [],
           caption: typeof data.caption === 'string' ? data.caption : undefined,
           message: typeof data.message === 'string' ? data.message : undefined,
@@ -237,7 +206,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
             ...data.stats as Stats
           } : DEFAULT_STATS,
           interactive_content: typeof data.interactive_content === 'object' ? data.interactive_content as InteractiveContent : {},
-          channel_username: typeof data.channel_username === 'string' ? data.channel_username : user.email,
+          channel_username: typeof data.username === 'string' ? data.username : user.email,
           id: typeof data.id === 'string' ? data.id : undefined,
           created_at: typeof data.created_at === 'string' ? data.created_at : undefined,
           updated_at: typeof data.updated_at === 'string' ? data.updated_at : undefined,
@@ -267,8 +236,8 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       // Prepare the data for submission
       const submissionData = {
         type: data.type,
-        channel_username: data.channel_username || user.email,
-        content: data.content.trim(),
+        username: data.channel_username || user.email,
+        message_text: data.content.trim(),
         caption: data.caption?.trim(),
         message: data.message?.trim(),
         media: Array.isArray(data.media) ? data.media : [],
@@ -287,7 +256,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       };
 
       const { error: upsertError } = await supabase
-        .from('superfeed')
+        .from('channels_messages')
         .upsert(submissionData);
 
       if (upsertError) throw upsertError;

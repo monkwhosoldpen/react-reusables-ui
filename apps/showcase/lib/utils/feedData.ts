@@ -1,11 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { FormDataType, MediaLayout, Visibility, Metadata, PollData, QuizData, SurveyData, Stats, MediaItem, MediaType, InteractiveContent } from '~/lib/enhanced-chat/types/superfeed';
-import { mockTenant } from '../../components/dashboard/mocktenant';
 
-// Initialize Supabase client with tenant's credentials
+// Initialize Supabase client with environment variables
 const supabase = createClient(
-  mockTenant.tenant_supabase_url,
-  mockTenant.tenant_supabase_anon_key
+  process.env.EXPO_PUBLIC_SUPABASE_URL || '',
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || ''
 );
 
 export const DEFAULT_VISIBILITY: Visibility = {
@@ -123,12 +122,12 @@ export const prepareSubmissionData = (formData: FormDataType): FormDataType => (
   stats: formData.stats || DEFAULT_STATS
 });
 
-export const fetchFeedItems = async (): Promise<FormDataType[]> => {
+export const fetchFeedItems = async (username: string): Promise<FormDataType[]> => {
   try {
     const { data, error } = await supabase
-      .from('superfeed')
+      .from('channels_messages')
       .select('*')
-      .eq('channel_username', mockTenant.username)
+      .eq('username', username)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -139,13 +138,15 @@ export const fetchFeedItems = async (): Promise<FormDataType[]> => {
   }
 };
 
-export const createFeedItem = async (item: FormDataType): Promise<FormDataType | null> => {
+export const createFeedItem = async (item: FormDataType, username: string): Promise<FormDataType | null> => {
   try {
     const { data, error } = await supabase
-      .from('superfeed')
+      .from('channels_messages')
       .insert([{
         ...item,
-        channel_username: mockTenant.username
+        username,
+        message_text: item.content,
+        channel_username: item.channel_username
       }])
       .select()
       .single();
@@ -159,19 +160,20 @@ export const createFeedItem = async (item: FormDataType): Promise<FormDataType |
 };
 
 export const setupRealtimeSubscription = (
+  username: string,
   onInsert: (item: FormDataType) => void,
   onUpdate: (item: FormDataType) => void,
   onDelete: (id: string) => void
 ) => {
   const channel = supabase
-    .channel('superfeed_changes')
+    .channel('channels_messages_changes')
     .on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
-        table: 'superfeed',
-        filter: `channel_username=eq.${mockTenant.username}`
+        table: 'channels_messages',
+        filter: `username=eq.${username}`
       },
       (payload) => {
         if (payload.eventType === 'INSERT') {
@@ -740,21 +742,38 @@ export const handleEditItem = (item: FormDataType): Partial<FormDataType> => ({
   }
 });
 
-export const refreshFeed = async (): Promise<FormDataType[]> => {
+export const refreshFeed = async (username: string): Promise<FormDataType[]> => {
   try {
-    const items = await fetchFeedItems();
-    return items;
+    const { data, error } = await supabase
+      .from('channels_messages')
+      .select('*')
+      .eq('username', username)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     console.error('Error refreshing feed:', error);
     return [];
   }
 };
 
-export const handleSubmit = async (formData: FormDataType): Promise<boolean> => {
+export const handleSubmit = async (formData: FormDataType, username: string): Promise<boolean> => {
   try {
-    const submissionData = prepareSubmissionData(formData);
-    const createdItem = await createFeedItem(submissionData);
-    return !!createdItem;
+    const { error } = await supabase
+      .from('channels_messages')
+      .insert([{
+        username,
+        message_text: formData.content,
+        type: formData.type,
+        media: formData.media,
+        metadata: formData.metadata,
+        stats: formData.stats,
+        interactive_content: formData.interactive_content
+      }]);
+
+    if (error) throw error;
+    return true;
   } catch (error) {
     console.error('Error submitting feed item:', error);
     return false;

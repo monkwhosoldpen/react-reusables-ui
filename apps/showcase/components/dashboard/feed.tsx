@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, TextInput, Switch, Pressable, RefreshControl } from 'react-native';
+import { View, ScrollView, TextInput, Switch, Pressable, RefreshControl, StyleSheet } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
 import { useFeedForm } from '~/lib/hooks/useFeedForm';
@@ -14,7 +14,7 @@ import {
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { mockTenant } from './mocktenant';
+import { useChannels } from '~/lib/hooks/useChannels';
 import {
   setupRealtimeSubscription,
   DEFAULT_METADATA,
@@ -33,9 +33,11 @@ import {
 } from '~/lib/utils/feedData';
 import { PreviewDialog } from '~/lib/enhanced-chat/components/feed/PreviewDialog';
 
-// Initialize Supabase client with tenant's credentials
+interface FeedScreenProps {
+  username: string;
+}
 
-export default function FeedScreen({ username = "janedoe" }: { username?: string }) {
+export default function FeedScreen({ username }: FeedScreenProps) {
   const [isInteractive, setIsInteractive] = React.useState(false);
   const [includeMedia, setIncludeMedia] = React.useState(false);
   const [selectedInteractiveType, setSelectedInteractiveType] = React.useState<'survey' | 'quiz' | 'poll'>('poll');
@@ -48,6 +50,8 @@ export default function FeedScreen({ username = "janedoe" }: { username?: string
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const insets = useSafeAreaInsets();
+  const { channels, isLoading: channelsLoading, error } = useChannels(username);
+  const mainChannel = channels[0];
 
   const {
     formData,
@@ -64,6 +68,7 @@ export default function FeedScreen({ username = "janedoe" }: { username?: string
   // Set up realtime subscription
   React.useEffect(() => {
     const cleanup = setupRealtimeSubscription(
+      username,
       (newItem) => setFeedItems(prev => [newItem, ...prev]),
       (updatedItem) => setFeedItems(prev => 
         prev.map(item => item.id === updatedItem.id ? updatedItem : item)
@@ -77,7 +82,7 @@ export default function FeedScreen({ username = "janedoe" }: { username?: string
   const refreshFeedHandler = async () => {
     try {
       setIsLoading(true);
-      const items = await refreshFeed();
+      const items = await refreshFeed(username);
       setFeedItems(items);
     } catch (error) {
       console.error('Error refreshing feed:', error);
@@ -88,7 +93,7 @@ export default function FeedScreen({ username = "janedoe" }: { username?: string
 
   const handleSubmitHandler = async () => {
     try {
-      const success = await handleSubmit(formData);
+      const success = await handleSubmit(formData, username);
       if (success) {
         // Refresh feed after successful submission
         refreshFeedHandler();
@@ -708,613 +713,34 @@ export default function FeedScreen({ username = "janedoe" }: { username?: string
     setSelectedInteractiveType(determineInteractiveType(item.interactive_content));
   };
 
+  if (channelsLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+        <Text style={{ color: colorScheme.colors.text }}>Loading feed...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+        <Text style={{ color: colorScheme.colors.notification }}>Error: {error}</Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={{ flex: 1, backgroundColor: colorScheme.colors.background }}>
-      {/* Toolbar */}
-      <View style={{
-        flexDirection: 'row',
-        padding: Number(design.spacing.padding.card),
-        borderBottomWidth: 1,
-        borderBottomColor: colorScheme.colors.border,
-        backgroundColor: colorScheme.colors.card,
-        gap: Number(design.spacing.padding.item),
-      }}>
-        <Button
-          onPress={generateRealisticContentHandler}
-        >
-          <Text style={{ color: colorScheme.colors.background }}>Create New</Text>
-        </Button>
-        <Button
-          onPress={createRichMockHandler}
-        >
-          <Text style={{ color: colorScheme.colors.background }}>Create Rich</Text>
-        </Button>
-        <PreviewDialog 
-          data={formData}
-          triggerText="Preview"
-        />
-      </View>
-
-      {/* New Content Type Buttons */}
-      <View style={{
-        flexDirection: 'row',
-        padding: Number(design.spacing.padding.card),
-        borderBottomWidth: 1,
-        borderBottomColor: colorScheme.colors.border,
-        backgroundColor: colorScheme.colors.card,
-        gap: Number(design.spacing.padding.item),
-        flexWrap: 'wrap',
-      }}>
-        <Button
-          onPress={() => {
-            setIncludeContent(true);
-            setIncludeMedia(false);
-            setIsInteractive(false);
-            setContentType('small');
-            handleFormDataChange({
-              content: 'Short text content example',
-              media: [],
-              interactive_content: undefined
-            });
-          }}
-          variant="outline"
-          size="default"
-        >
-          <Text style={{ color: colorScheme.colors.text }}>Short Text</Text>
-        </Button>
-        <Button
-          onPress={() => {
-            setIncludeContent(true);
-            setIncludeMedia(false);
-            setIsInteractive(false);
-            setContentType('long');
-            handleFormDataChange({
-              content: 'This is an example of a long-form text content that would be suitable for blog posts, articles, or detailed updates. It can contain multiple paragraphs and extensive information.',
-              media: [],
-              interactive_content: undefined
-            });
-          }}
-          variant="outline"
-          size="default"
-        >
-          <Text style={{ color: colorScheme.colors.text }}>Long Text</Text>
-        </Button>
-        <Button
-          onPress={() => {
-            setIncludeContent(true);
-            setIncludeMedia(true);
-            setIsInteractive(false);
-            handleFormDataChange({
-              content: 'Media content showcase',
-              media: [{
-                type: 'image',
-                url: 'https://picsum.photos/1200/675',
-                caption: 'Sample media content'
-              }]
-            });
-          }}
-          variant="outline"
-          size="default"
-        >
-          <Text style={{ color: colorScheme.colors.text }}>Media</Text>
-        </Button>
-        <Button
-          onPress={() => {
-            setIncludeContent(true);
-            setIncludeMedia(false);
-            setIsInteractive(true);
-            setSelectedInteractiveType('poll');
-            handleFormDataChange({
-              content: 'We\'re planning our next feature release! Which of these capabilities would be most valuable for your workflow?',
-              interactive_content: {
-                poll: {
-                  question: 'Which upcoming feature would be most valuable for your workflow?',
-                  options: [
-                    'Advanced analytics dashboard with real-time insights',
-                    'Customizable workflow automation templates',
-                    'Enhanced collaboration tools with threaded discussions',
-                    'AI-powered content suggestions and optimizations',
-                    'Mobile app with offline capabilities'
-                  ]
-                }
-              }
-            });
-          }}
-          variant="outline"
-          size="default"
-        >
-          <Text style={{ color: colorScheme.colors.text }}>Polls</Text>
-        </Button>
-        <Button
-          onPress={() => {
-            setIncludeContent(true);
-            setIncludeMedia(false);
-            setIsInteractive(true);
-            setSelectedInteractiveType('survey');
-            handleFormDataChange({
-              content: 'Help us improve our platform by sharing your feedback on these key aspects of your experience.',
-              interactive_content: {
-                survey: {
-                  title: 'Platform Experience Survey',
-                  questions: [{
-                    text: 'How satisfied are you with the platform\'s performance and reliability?',
-                    options: [
-                      'Extremely satisfied - Everything works perfectly',
-                      'Very satisfied - Minor issues but overall great',
-                      'Somewhat satisfied - Some areas need improvement',
-                      'Not very satisfied - Several issues need addressing',
-                      'Not satisfied at all - Major problems need fixing'
-                    ]
-                  }, {
-                    text: 'Which aspect of the platform do you use most frequently?',
-                    options: [
-                      'Content creation and management',
-                      'Analytics and reporting',
-                      'Team collaboration features',
-                      'Integration with other tools',
-                      'Customization and settings'
-                    ]
-                  }]
-                }
-              }
-            });
-          }}
-          variant="outline"
-          size="default"
-        >
-          <Text style={{ color: colorScheme.colors.text }}>Surveys</Text>
-        </Button>
-        <Button
-          onPress={() => {
-            setIncludeContent(true);
-            setIncludeMedia(false);
-            setIsInteractive(true);
-            setSelectedInteractiveType('quiz');
-            const quizData: Partial<FormDataType> = {
-              type: 'quiz' as const,
-              content: 'Test your knowledge about our platform\'s features and best practices with this comprehensive quiz!',
-              interactive_content: {
-                quiz: {
-                  title: 'Platform Mastery Quiz',
-                  questions: [{
-                    text: 'Which feature allows you to automate repetitive tasks and create custom workflows?',
-                    options: [
-                      'Workflow Builder with drag-and-drop interface',
-                      'Content Scheduler with calendar view',
-                      'Analytics Dashboard with real-time metrics',
-                      'Team Collaboration Hub with threaded discussions',
-                      'Integration Manager with API connections'
-                    ],
-                    correct_option: 0
-                  }, {
-                    text: 'What is the maximum file size supported for media uploads in the platform?',
-                    options: [
-                      '10MB for basic users, 25MB for premium',
-                      '25MB for all users with compression',
-                      '50MB with automatic optimization',
-                      '100MB for video content only',
-                      '250MB for enterprise users'
-                    ],
-                    correct_option: 2
-                  }, {
-                    text: 'Which of these integrations provides real-time analytics and user behavior tracking?',
-                    options: [
-                      'Google Analytics with custom dimensions',
-                      'Mixpanel with cohort analysis',
-                      'Amplitude with behavioral analytics',
-                      'Segment with unified customer data',
-                      'All of the above with different strengths'
-                    ],
-                    correct_option: 4
-                  }, {
-                    text: 'How can you optimize content for better engagement according to platform guidelines?',
-                    options: [
-                      'Use short, concise sentences with clear headings',
-                      'Include relevant images and media content',
-                      'Add interactive elements like polls and quizzes',
-                      'Optimize for mobile viewing and loading speed',
-                      'All of the above are recommended practices'
-                    ],
-                    correct_option: 4
-                  }, {
-                    text: 'What is the recommended approach for team collaboration on content?',
-                    options: [
-                      'Use the built-in commenting and review system',
-                      'Share content via direct links with permissions',
-                      'Create collaborative workspaces for projects',
-                      'Use the real-time co-editing feature',
-                      'All of these methods are supported and recommended'
-                    ],
-                    correct_option: 4
-                  }]
-                }
-              },
-              metadata: {
-                ...DEFAULT_METADATA,
-                requireAuth: true,
-                allowResubmit: false,
-                timestamp: new Date().toISOString()
-              }
-            };
-            console.log('Setting quiz data:', quizData);
-            handleFormDataChange(quizData);
-          }}
-          variant="outline"
-          size="default"
-        >
-          <Text style={{ color: colorScheme.colors.text }}>Quizzes</Text>
-        </Button>
-      </View>
-
-      {/* Main Content Area */}
-      <View style={{ flex: 1, flexDirection: 'row' }}>
-        {/* Left side - Form (50%) */}
-        <View style={{ flex: 1, width: '50%' }}>
-          <ScrollView 
-            style={{ flex: 1, padding: Number(design.spacing.padding.card) }}
-            ref={leftScrollRef}
-            contentContainerStyle={{
-              paddingBottom: insets.bottom + Number(design.spacing.padding.card),
-            }}
-          >
-            {/* Content Section */}
-            <View style={{
-              marginBottom: Number(design.spacing.margin.card),
-              backgroundColor: colorScheme.colors.card,
-              padding: Number(design.spacing.padding.card),
-              borderRadius: Number(design.radius.lg),
-            }}>
-              <Text style={{
-                fontSize: Number(design.spacing.fontSize.lg),
-                fontWeight: '700',
-                marginBottom: Number(design.spacing.margin.card),
-                color: colorScheme.colors.text,
-              }}>Content</Text>
-
-              {/* Content Toggle */}
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: Number(design.spacing.margin.card),
-              }}>
-                <Text style={{ color: colorScheme.colors.text }}>Include Content</Text>
-                <Switch
-                  value={includeContent}
-                  onValueChange={setIncludeContent}
-                />
-              </View>
-
-              {/* Content Type Selection */}
-              {includeContent && (
-                <View style={{ marginTop: Number(design.spacing.margin.item) }}>
-                  {(['small', 'long'] as const).map((type) => (
-                    <Pressable
-                      key={type}
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: Number(design.spacing.padding.item),
-                      }}
-                      onPress={() => setContentType(type)}
-                    >
-                      <Text style={{ color: colorScheme.colors.text }}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)} Content
-                      </Text>
-                      <View style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: Number(design.radius.full) / 2,
-                        borderWidth: 2,
-                        borderColor: colorScheme.colors.primary,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: contentType === type ? colorScheme.colors.primary : 'transparent',
-                      }} />
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-
-              {/* Content Input */}
-              {includeContent && (
-                <>
-                  <TextInput
-                    style={{
-                      borderWidth: 1,
-                      borderColor: colorScheme.colors.border,
-                      borderRadius: Number(design.radius.md),
-                      padding: Number(design.spacing.padding.item),
-                      marginBottom: Number(design.spacing.margin.item),
-                      color: colorScheme.colors.text,
-                      backgroundColor: colorScheme.colors.background,
-                      minHeight: contentType === 'long' ? 120 : undefined,
-                    }}
-                    value={formData.content}
-                    onChangeText={(text) => handleFormDataChange({ content: text })}
-                    placeholder={`Enter your ${contentType} content`}
-                    placeholderTextColor={colorScheme.colors.text + '80'}
-                    multiline
-                    numberOfLines={contentType === 'long' ? 6 : 3}
-                  />
-
-                  {/* Make Content Collapsible */}
-                  <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: Number(design.spacing.margin.card),
-                  }}>
-                    <Text style={{ color: colorScheme.colors.text }}>Make Content Collapsible</Text>
-                    <Switch
-                      value={formData.metadata?.isCollapsible ?? (contentType === 'long')}
-                      onValueChange={(value) => handleFormDataChange({
-                        metadata: {
-                          ...DEFAULT_METADATA,
-                          ...formData.metadata,
-                          isCollapsible: value
-                        }
-                      })}
-                    />
-                  </View>
-                </>
-              )}
-
-              {/* Media Toggle */}
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: Number(design.spacing.margin.card),
-              }}>
-                <Text style={{ color: colorScheme.colors.text }}>Include Media</Text>
-                <Switch
-                  value={includeMedia}
-                  onValueChange={setIncludeMedia}
-                />
-              </View>
-
-              {/* Media Section */}
-              {renderMediaSection()}
-
-              {/* Interactive Switch */}
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: Number(design.spacing.margin.card),
-              }}>
-                <Text style={{ color: colorScheme.colors.text }}>Interactive Content</Text>
-                <Switch
-                  value={isInteractive}
-                  onValueChange={setIsInteractive}
-                />
-              </View>
-
-              {/* Interactive Settings */}
-              {isInteractive && (
-                <>
-                  <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: Number(design.spacing.margin.item),
-                    paddingLeft: Number(design.spacing.padding.card),
-                    borderLeftWidth: 2,
-                    borderLeftColor: colorScheme.colors.primary,
-                  }}>
-                    <Text style={{ color: colorScheme.colors.text }}>Require Auth</Text>
-                    <Switch
-                      value={formData.metadata?.requireAuth ?? false}
-                      onValueChange={(value) => handleFormDataChange({
-                        metadata: {
-                          ...DEFAULT_METADATA,
-                          ...formData.metadata,
-                          requireAuth: value
-                        }
-                      })}
-                    />
-                  </View>
-
-                  <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: Number(design.spacing.margin.item),
-                    paddingLeft: Number(design.spacing.padding.card),
-                    borderLeftWidth: 2,
-                    borderLeftColor: colorScheme.colors.primary,
-                  }}>
-                    <Text style={{ color: colorScheme.colors.text }}>Allow Resubmit</Text>
-                    <Switch
-                      value={formData.metadata?.allowResubmit ?? false}
-                      onValueChange={(value) => handleFormDataChange({
-                        metadata: {
-                          ...DEFAULT_METADATA,
-                          ...formData.metadata,
-                          allowResubmit: value
-                        }
-                      })}
-                    />
-                  </View>
-                </>
-              )}
-
-              {/* Interactive Type Selection */}
-              {isInteractive && (
-                <View style={{ marginTop: Number(design.spacing.margin.item) }}>
-                  {(['poll', 'quiz', 'survey'] as const).map((type) => (
-                    <Pressable
-                      key={type}
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: Number(design.spacing.padding.item),
-                      }}
-                      onPress={() => setSelectedInteractiveType(type)}
-                    >
-                      <Text style={{ color: colorScheme.colors.text }}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </Text>
-                      <View style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: Number(design.radius.full) / 2,
-                        borderWidth: 2,
-                        borderColor: colorScheme.colors.primary,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: selectedInteractiveType === type ? colorScheme.colors.primary : 'transparent',
-                      }} />
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-
-              {/* Interactive Content Forms */}
-              <View style={{ marginTop: Number(design.spacing.margin.card) }}>
-                {renderInteractiveContent()}
-              </View>
-            </View>
-
-            <Button
-              onPress={() => handleSubmitHandler()}
-              disabled={isSubmitting}
-            >
-              <Text style={{ color: colorScheme.colors.background }}>
-                {isSubmitting ? 'Submitting...' : 'Submit'}
-              </Text>
-            </Button>
-          </ScrollView>
-        </View>
-
-        {/* Right side - Feed List (50%) */}
-        <View style={{ 
-          flex: 1, 
-          width: '50%', 
-          borderLeftWidth: 1, 
-          borderLeftColor: colorScheme.colors.border,
-          backgroundColor: colorScheme.colors.card,
-        }}>
-          <ScrollView
-            style={{ height: '100%' }}
-            ref={feedListRef}
-            refreshControl={
-              <RefreshControl 
-                refreshing={isLoading} 
-                onRefresh={refreshFeedHandler}
-                colors={[colorScheme.colors.primary]}
-                tintColor={colorScheme.colors.primary}
-              />
-            }
-            contentContainerStyle={{
-              paddingBottom: insets.bottom + Number(design.spacing.padding.card),
-            }}
-          >
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingVertical: Number(design.spacing.padding.item),
-              borderBottomWidth: 1,
-              borderBottomColor: colorScheme.colors.border,
-              paddingHorizontal: Number(design.spacing.padding.card),
-            }}>
-              <Text style={{
-                fontSize: Number(design.spacing.fontSize.lg),
-                fontWeight: '700',
-                color: colorScheme.colors.text,
-              }}>Feed Items</Text>
-            </View>
-
-            {feedItems.map((item, index) => (
-              <View key={item.id || index} style={{
-                margin: Number(design.spacing.margin.card),
-                borderWidth: 1,
-                borderColor: colorScheme.colors.border,
-                borderRadius: Number(design.radius.lg),
-                overflow: 'hidden',
-                backgroundColor: colorScheme.colors.card,
-                shadowColor: colorScheme.colors.text,
-              }}>
-                <FeedItem
-                  data={item}
-                  showHeader={true}
-                  showFooter={true}
-                />
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  padding: Number(design.spacing.padding.item),
-                  borderTopWidth: 1,
-                  borderTopColor: colorScheme.colors.border,
-                  backgroundColor: colorScheme.colors.card,
-                }}>
-                  <Button
-                    onPress={() => handleEditItemHandler(item)}
-                    variant="outline"
-                    size="default"
-                    style={{
-                      marginRight: Number(design.spacing.margin.item),
-                    }}
-                  >
-                    <Text style={{ color: colorScheme.colors.text }}>Edit</Text>
-                  </Button>
-                  <Button
-                    onPress={() => {
-                      const newItems = feedItems.filter(feedItem => feedItem.id !== item.id);
-                      setFeedItems(newItems);
-                    }}
-                    variant="destructive"
-                    size="default"
-                  >
-                    <Text style={{ color: colorScheme.colors.background }}>Delete</Text>
-                  </Button>
-                </View>
-              </View>
-            ))}
-
-            {feedItems.length === 0 && !isLoading && (
-              <View style={{
-                padding: Number(design.spacing.padding.card),
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: colorScheme.colors.card,
-                borderRadius: Number(design.radius.lg),
-                borderWidth: 1,
-                borderColor: colorScheme.colors.border,
-                margin: Number(design.spacing.margin.card),
-              }}>
-                <Text style={{
-                  fontSize: Number(design.spacing.fontSize.base),
-                  color: colorScheme.colors.text,
-                  opacity: Number(design.opacity.subtle),
-                }}>No feed items found</Text>
-              </View>
-            )}
-
-            {isLoading && (
-              <View style={{
-                padding: Number(design.spacing.padding.card),
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: colorScheme.colors.card,
-                borderRadius: Number(design.radius.lg),
-                borderWidth: 1,
-                borderColor: colorScheme.colors.border,
-                margin: Number(design.spacing.margin.card),
-              }}>
-                <Text style={{
-                  color: colorScheme.colors.text,
-                  opacity: Number(design.opacity.medium),
-                }}>Loading feed items...</Text>
-              </View>
-            )}
-          </ScrollView>
-        </View>
-      </View>
+    <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+      <Text style={{ color: colorScheme.colors.text }}>
+        Feed for {mainChannel?.username}
+      </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+});

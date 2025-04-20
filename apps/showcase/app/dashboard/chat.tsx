@@ -4,11 +4,11 @@ import { Text } from '~/components/ui/text';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { Card } from '~/components/ui/card';
-import { mockTenant } from '../../components/dashboard/mocktenant';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
-import { ChannelMessage } from '~/lib/types/channel.types';
+import { ChannelMessage, Channel } from '~/lib/types/channel.types';
 import FeedScreen from '~/components/dashboard/feed';
+import { useChannels } from '~/lib/hooks/useChannels';
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -134,28 +134,43 @@ export default function ChatScreen() {
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const insets = useSafeAreaInsets();
-  const [selectedChannel, setSelectedChannel] = useState<typeof mockTenant.related_channels[0] | null>(null);
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const { channels, isLoading, error } = useChannels('janedoe');
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
       {/* Sidebar */}
       <View style={[styles.sidebar, { borderRightColor: colorScheme.colors.border }]}>
         <ScrollView style={styles.sidebarScroll}>
-          {mockTenant.related_channels?.map((channel) => (
-            <TouchableOpacity
-              key={channel.username}
-              style={[
-                styles.sidebarItem,
-                selectedChannel?.username === channel.username && styles.selectedSidebarItem,
-                { borderBottomColor: colorScheme.colors.border }
-              ]}
-              onPress={() => setSelectedChannel(channel)}
-            >
-              <Text style={[styles.sidebarText, { color: colorScheme.colors.text }]}>
-                {channel.username}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {isLoading ? (
+            <Text style={[styles.sidebarText, { color: colorScheme.colors.text }]}>
+              Loading channels...
+            </Text>
+          ) : error ? (
+            <Text style={[styles.sidebarText, { color: colorScheme.colors.notification }]}>
+              Error: {error}
+            </Text>
+          ) : channels.length > 0 ? (
+            channels.map((channel) => (
+              <TouchableOpacity
+                key={channel.username}
+                style={[
+                  styles.sidebarItem,
+                  selectedChannel?.username === channel.username && styles.selectedSidebarItem,
+                  { borderBottomColor: colorScheme.colors.border }
+                ]}
+                onPress={() => setSelectedChannel(channel)}
+              >
+                <Text style={[styles.sidebarText, { color: colorScheme.colors.text }]}>
+                  {channel.username}
+                </Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={[styles.sidebarText, { color: colorScheme.colors.text }]}>
+              No channels available
+            </Text>
+          )}
         </ScrollView>
       </View>
 

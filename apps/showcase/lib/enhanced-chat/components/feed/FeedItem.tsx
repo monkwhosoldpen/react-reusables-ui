@@ -784,7 +784,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             isCollapsed && { maxHeight: 72 } // Approximately 3 lines of text
           ]}>
             <Markdown style={markdownStyles}>
-              {data.content}
+              {data.content || ''}
             </Markdown>
           </View>
 
