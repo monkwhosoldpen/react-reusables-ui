@@ -64,13 +64,25 @@ export default function MaterialTopTabsLayout() {
         <MaterialTopTabs.Screen
           name='index'
           options={{
-            title: 'UI',
+            title: 'Overview',
           }}
         />
         <MaterialTopTabs.Screen
-          name='primitives'
+          name='tenant-requests'
           options={{
-            title: 'Primitives',
+            title: 'Tenant Requests',
+          }}
+        />
+        <MaterialTopTabs.Screen
+          name='chat'
+          options={{
+            title: 'Chat',
+          }}
+        />
+         <MaterialTopTabs.Screen
+          name='ai-dashboard'
+          options={{
+            title: 'AI Dashboard',
           }}
         />
       </MaterialTopTabs>

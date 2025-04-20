@@ -8,7 +8,7 @@ import { mockTenant } from '../../components/dashboard/mocktenant';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { ChannelMessage } from '~/lib/types/channel.types';
-import FeedScreen from './feed';
+import FeedScreen from '~/components/dashboard/feed';
 
 const windowWidth = Dimensions.get('window').width;
 

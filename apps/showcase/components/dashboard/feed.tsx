@@ -14,7 +14,7 @@ import {
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { mockTenant } from '../../components/dashboard/mocktenant';
+import { mockTenant } from './mocktenant';
 import {
   setupRealtimeSubscription,
   DEFAULT_METADATA,
