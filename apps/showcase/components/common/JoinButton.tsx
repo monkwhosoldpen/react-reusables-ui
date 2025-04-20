@@ -13,6 +13,9 @@ import { View, Text, StyleSheet } from 'react-native'
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider'
 import { Channel } from '@/lib/types/channel.types'
+import { config } from '@/lib/config'
+import { TenantRequest } from '@/lib/services/indexedDBSchema'
+import { indexedDB } from '@/lib/services/indexedDB'
 
 interface JoinButtonProps {
   username: string;
@@ -23,10 +26,31 @@ interface JoinButtonProps {
   showIcon?: boolean;
   onJoin?: () => void;
   onRequestAccess?: () => void;
-  isRequested?: boolean;
-  requestStatus?: string | null;
   isLoading?: boolean;
 }
+
+// Enhanced logger implementation with better formatting and error handling
+const logger = {
+  info: (message: string, data?: any) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [INFO] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+  },
+  debug: (message: string, data?: any) => {
+    const timestamp = new Date().toISOString();
+    console.debug(`[${timestamp}] [DEBUG] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+  },
+  warn: (message: string, data?: any) => {
+    const timestamp = new Date().toISOString();
+    console.warn(`[${timestamp}] [WARN] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+  },
+  error: (message: string, error?: any) => {
+    const timestamp = new Date().toISOString();
+    const errorDetails = error instanceof Error 
+      ? { message: error.message, stack: error.stack }
+      : error;
+    console.error(`[${timestamp}] [ERROR] ${message}`, errorDetails ? JSON.stringify(errorDetails, null, 2) : '');
+  }
+};
 
 export function JoinButton({
   username,
@@ -37,14 +61,20 @@ export function JoinButton({
   showIcon = true,
   onJoin,
   onRequestAccess,
-  isRequested = false,
-  requestStatus = null,
   isLoading: externalLoading = false,
   ...props
 }: JoinButtonProps) {
-  const { user, signIn, signInAnonymously, signInAsGuest, refreshUserInfo, completeChannelOnboarding } = useAuth()
+  const { user, signIn, signInAnonymously, signInAsGuest, refreshUserInfo, completeChannelOnboarding, isFollowingChannel } = useAuth()
   const { colorScheme, isDarkMode } = useColorScheme()
   const { design } = useDesign()
+  const [dbInitialized, setDbInitialized] = useState(false);
+  
+  logger.info(`[JoinButton] Initializing for username: ${username}`, {
+    channelDetails,
+    user: user?.id,
+    isDarkMode
+  });
+
   const [showDialog, setShowDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [hasJoined, setHasJoined] = useState(false)
@@ -54,6 +84,10 @@ export function JoinButton({
   const [isLoginLoading, setIsLoginLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [showLogin, setShowLogin] = useState(true)
+  const [requestState, setRequestState] = useState<{ isRequested: boolean; status: string | null }>({
+    isRequested: false,
+    status: null
+  })
 
   const onboardingSteps = [
     {
@@ -73,76 +107,145 @@ export function JoinButton({
   // Combine internal and external loading states
   const isButtonLoading = isLoading || externalLoading;
 
-  // Log channel details and access status
+  // Log state changes
   useEffect(() => {
-    console.log('JoinButton State:', {
+    logger.debug('[JoinButton] State updated', {
       username,
-      channelDetails,
-      isRequested,
-      requestStatus,
+      requestState,
       hasJoined,
-      isLoading,
+      isLoading: isButtonLoading,
       showDialog,
       showLogin,
-      currentStep
+      currentStep,
+      user: user?.id
     });
-  }, [username, channelDetails, isRequested, requestStatus, hasJoined, isLoading, showDialog, showLogin, currentStep]);
+  }, [username, requestState, hasJoined, isButtonLoading, showDialog, showLogin, currentStep, user]);
+
+  // Initialize IndexedDB
+  useEffect(() => {
+    const initDB = async () => {
+      try {
+        await indexedDB.initialize();
+        setDbInitialized(true);
+        logger.info('[JoinButton] IndexedDB initialized successfully');
+      } catch (error) {
+        logger.error('[JoinButton] Error initializing IndexedDB:', error);
+      }
+    };
+
+    initDB();
+  }, []);
+
+  // Check tenant request status when component mounts or username changes
+  useEffect(() => {
+    const checkRequestStatus = async () => {
+      if (!user?.id || !dbInitialized) {
+        logger.debug('[JoinButton] No user ID or DB not initialized, skipping request status check');
+        return;
+      }
+      
+      logger.info(`[JoinButton] Checking request status for ${username}`);
+      
+      try {
+        // First check if user is following the channel
+        const isFollowing = await isFollowingChannel(username);
+        if (isFollowing) {
+          logger.info(`[JoinButton] User is following ${username}`);
+          setHasJoined(true);
+          return;
+        }
+
+        // Get tenant requests from IndexedDB
+        const requests = await indexedDB.getAllFromIndex('tenant_requests', 'by-username', username);
+        logger.debug('[JoinButton] Retrieved tenant requests from IndexedDB', { requests });
+        
+        const request = requests.find((req: TenantRequest) => req.uid === user.id);
+        
+        logger.info(`[JoinButton] Found request for ${username}:`, { request });
+        
+        if (request) {
+          logger.info(`[JoinButton] Setting request state to requested with status: ${request.status}`);
+          setRequestState({
+            isRequested: true,
+            status: request.status
+          });
+        } else {
+          logger.info('[JoinButton] No request found, setting state to not requested');
+          setRequestState({
+            isRequested: false,
+            status: null
+          });
+        }
+      } catch (error) {
+        logger.error('[JoinButton] Error checking tenant request status:', error);
+        // Set default state on error
+        setRequestState({
+          isRequested: false,
+          status: null
+        });
+      }
+    };
+
+    checkRequestStatus();
+  }, [username, user?.id, isFollowingChannel, dbInitialized]);
 
   // Function to handle button click
   const handleClick = () => {
-    console.log('[JoinButton] handleClick called', {
+    logger.info('[JoinButton] Button clicked', {
       username,
-      isRequested,
-      requestStatus,
-      hasJoined
+      requestState,
+      hasJoined,
+      user: user?.id
     });
     
-    if (isRequested) {
-      console.log('Access already requested, status:', requestStatus);
+    if (requestState.isRequested) {
+      logger.info('Access already requested, status:', requestState.status);
       return;
     }
 
     setShowDialog(true);
     setShowLogin(!user);
     if (user) {
+      logger.info('[JoinButton] User is logged in, starting onboarding');
       setCurrentStep(0); // Reset to first step when opening dialog
+    } else {
+      logger.info('[JoinButton] No user, showing login dialog');
     }
   }
 
   // Handle successful login
   const handleLoginSuccess = async () => {
-    console.log('[JoinButton] Login successful');
+    logger.info('[JoinButton] Login successful');
     await refreshUserInfo();
     setShowLogin(false);
   }
 
   const handleNextStep = async () => {
     if (currentStep < onboardingSteps.length - 1) {
+      logger.debug(`[JoinButton] Moving to next step: ${currentStep + 1}`);
       setCurrentStep(currentStep + 1);
     } else {
       try {
-        console.log('Completing onboarding with:', { 
+        logger.info('Completing onboarding with:', { 
           username, 
           channelDetails,
-          isRequested,
-          requestStatus 
+          requestState
         });
         
-        // Call completeChannelOnboarding with both username and channelDetails
         const success = await completeChannelOnboarding(username, channelDetails as Channel);
 
         if (success) {
-          console.log('Channel onboarding completed successfully');
+          logger.info('Channel onboarding completed successfully');
           setShowDialog(false);
           setHasJoined(true);
           onJoin?.();
           toast.success(`You've joined @${username}`);
         } else {
-          console.warn('Channel onboarding completion had an issue');
+          logger.warn('Channel onboarding completion had an issue');
           toast.error('Failed to complete channel onboarding');
         }
       } catch (error) {
-        console.error('Error during onboarding completion:', error);
+        logger.error('Error during onboarding completion:', error);
         toast.error('Failed to complete channel onboarding');
       }
     }
@@ -333,7 +436,7 @@ export function JoinButton({
           backgroundColor: hasJoined ? colorScheme.colors.primary : 'transparent',
           borderColor: hasJoined ? 'transparent' : colorScheme.colors.primary,
         }}
-        disabled={isButtonLoading || isRequested}
+        disabled={isButtonLoading || requestState.isRequested}
         {...props}
       >
         {isButtonLoading ? (
@@ -361,7 +464,7 @@ export function JoinButton({
               fontSize: Number(design.spacing.fontSize.sm),
               fontWeight: '500'
             }}>
-              {isRequested ? `Request ${requestStatus || 'Pending'}` : (hasJoined ? 'Joined' : buttonText)}
+              {requestState.isRequested ? `Request ${requestState.status || 'Pending'}` : (hasJoined ? 'Joined' : buttonText)}
             </Text>
           </View>
         )}
