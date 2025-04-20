@@ -556,7 +556,11 @@ export default function Index() {
   // If no user and not loading, show landing
   if (!loading) {
     console.log('[Index] Rendering Landing page');
-    return <Landing />;
+    return (
+      <View style={{ flex: 1 }}>
+        <Landing />
+      </View>
+    );
   }
 
   // During loading with no cache, show a blank screen with app background

@@ -1,38 +1,32 @@
 export const LANDING_CONTENT = {
-  title: '✨ Welcome to NConnect',
-  subtitle: 'Your personal space to connect with fans, followers, and your community—without any distractions.',
+  tagline: "YOUR PERSONAL COMMUNITY SPACE",
+  headline: "Connect with Your Fans & Followers!",
+  subheadline: "Build meaningful relationships with your community in a distraction-free environment.",
   features: [
     {
-      icon: '👥',
-      title: 'Premium & Free Groups',
-      description: 'Create public groups or exclusive premium communities for your true fans'
+      title: "Community Groups",
+      description: "Create and manage both public and private groups for your community members"
     },
     {
-      icon: '🔐',
-      title: 'Private & Secure',
-      description: 'Your data and fanbase are yours. No algorithms. No ads. Just genuine connections'
+      title: "Secure Messaging",
+      description: "End-to-end encrypted conversations to keep your community safe and private"
     },
     {
-      icon: '⚡',
-      title: 'Offline-First',
-      description: 'Works anywhere, even without internet. Everything syncs automatically when you\'re back online'
-    },
-    {
-      icon: '🎯',
-      title: 'Built for Scale',
-      description: 'Support millions of fans, regional teams, and custom workflows. Grows with your community'
+      title: "Offline Access",
+      description: "Stay connected with your community even without internet access"
     }
   ],
-  ctas: [
+  stats: [
     {
-      text: 'Get Started',
-      href: '/login',
-      variant: 'default' as const
+      text: "50K+ Active Users"
     },
     {
-      text: 'Explore',
-      href: '/explore',
-      variant: 'outline' as const
+      text: "5K+ Communities"
     }
-  ]
+  ],
+  cta: {
+    inputPlaceholder: "Enter your email",
+    buttonText: "Create Your Community"
+  },
+  heroImage: "https://placehold.co/600x400"
 }; 
