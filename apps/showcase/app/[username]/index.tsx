@@ -174,17 +174,19 @@ export default function ChannelPage() {
 
         {/* Content Area */}
         <View style={{ width: contentWidth }} className="bg-background relative">
-          <ScrollView className="p-4">
-            <ChannelInfoSection
+          
+          <ChannelInfoSection
+            username={usernameStr}
+            channelDetails={channel}
+            messageCount={messages?.length || 0}
+          >
+            <ChannelDebugInfo
               username={usernameStr}
               channelDetails={channel}
-              messageCount={messages?.length || 0}
-            >
-              <ChannelDebugInfo
-                username={usernameStr}
-                channelDetails={channel}
-              />
-            </ChannelInfoSection>
+            />
+          </ChannelInfoSection>
+
+          <ScrollView className="p-4">
 
             <ChannelMessages
               messages={messages || []}
