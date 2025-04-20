@@ -30,8 +30,6 @@ export default function ExplorePage() {
   const insets = useSafeAreaInsets();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
-  console.log('[ExplorePage] Component mounted, user:', user?.id);
-
   // Helper function to determine if dark mode
   const isDarkMode = colorScheme.colors.text === '#ffffff' || colorScheme.colors.background === '#000000';
   const avatarBgColor = isDarkMode ? 'rgba(255,255,255,0.1)' : '#E8EEF2';
@@ -183,36 +181,29 @@ export default function ExplorePage() {
 
   React.useEffect(() => {
     const fetchChannels = async () => {
-      console.log('[ExplorePage] Starting to fetch channels');
       setIsLoading(true);
       setError(null);
       
       try {
         const response = await fetch(config.api.endpoints.channels.base);
-        console.log('[ExplorePage] API response status:', response.status);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch channels: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('[ExplorePage] Received data:', data);
         
         if (Array.isArray(data)) {
-          console.log('[ExplorePage] Setting channels array:', data.length);
           setChannels(data);
         } else if (data.success) {
-          console.log('[ExplorePage] Setting channels from success response:', data.channels.length);
           setChannels(data.channels);
         } else {
           throw new Error(data.error || 'Failed to fetch channels');
         }
       } catch (error) {
-        console.error('[ExplorePage] Error fetching channels:', error);
         setError('Failed to load channels. Please try again.');
         toast.error('Failed to load channels');
       } finally {
-        console.log('[ExplorePage] Finished loading channels');
         setIsLoading(false);
       }
     };
@@ -221,7 +212,6 @@ export default function ExplorePage() {
   }, []);
 
   const renderItem = useCallback(({ item, index }: { item: Channel; index: number }) => {
-    console.log('[ExplorePage] Rendering item:', item.username);
     return (
       <Animated.View
         style={[
@@ -244,7 +234,6 @@ export default function ExplorePage() {
         <TouchableOpacity
           style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
           onPress={() => {
-            console.log('[ExplorePage] Channel pressed:', item.username);
             router.push(`/${item.username}`);
           }}
         >

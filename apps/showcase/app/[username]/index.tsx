@@ -48,10 +48,6 @@ export default function ChannelPage() {
           (!prevActivity || prevActivity.last_message?.id !== activity.last_message?.id) &&
           !processedMessagesRef.current.has(activity.last_message.id)) {
         
-        console.log(`📨 New message in ${activity.username}:`);
-        console.log(`   Message: ${activity.last_message.message_text || 'No message text'}`);
-        console.log(`   Time: ${activity.last_message.created_at}`);
-        
         // Mark this message as processed
         processedMessagesRef.current.add(activity.last_message.id);
       }

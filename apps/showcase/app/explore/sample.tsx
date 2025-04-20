@@ -200,7 +200,6 @@ export default function ExplorePage() {
           throw new Error(data.error || 'Failed to fetch channels');
         }
       } catch (error) {
-        console.error('Error fetching channels:', error);
         setError('Failed to load channels. Please try again.');
         toast.error('Failed to load channels');
       } finally {
@@ -232,7 +231,9 @@ export default function ExplorePage() {
     >
       <TouchableOpacity
         style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
-        onPress={() => router.push(`/${item.username}`)}
+        onPress={() => {
+          router.push(`/${item.username}`);
+        }}
       >
         <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
           <Text style={[styles.itemTitle, { color: colorScheme.colors.primary }]}>

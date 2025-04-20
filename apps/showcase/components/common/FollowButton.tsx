@@ -39,8 +39,6 @@ export function FollowButton({
   const { colorScheme, isDarkMode } = useColorScheme();
   const { design } = useDesign();
   
-  console.log('[FollowButton] Component mounted for username:', username, 'initialFollowing:', initialFollowing);
-  
   // Use local state to track following status and loading state
   const [following, setFollowing] = useState(initialFollowing ?? false);
   const [loading, setLoading] = useState(false);
@@ -57,29 +55,23 @@ export function FollowButton({
   // Load initial following status from AuthContext
   useEffect(() => {
     const loadFollowStatus = async () => {
-      console.log('[FollowButton] Loading follow status for:', username);
       // If initialFollowing is provided, use that
       if (initialFollowing !== undefined) {
-        console.log('[FollowButton] Using initialFollowing value:', initialFollowing);
         setFollowing(initialFollowing);
         return;
       }
       
       // Only check follow status if user is logged in
       if (user) {
-        console.log('[FollowButton] User logged in, checking follow status');
         setLoading(true);
         try {
           const isFollowed = await isFollowingChannel(username);
-          console.log('[FollowButton] Follow status result:', isFollowed);
           setFollowing(isFollowed);
         } catch (err) {
-          console.error('[FollowButton] Error checking follow status:', err);
+          // Handle error silently
         } finally {
           setLoading(false);
         }
-      } else {
-        console.log('[FollowButton] No user logged in, using default following state');
       }
     };
     
@@ -88,10 +80,8 @@ export function FollowButton({
   
   // Watch for user changes and trigger follow action if needed
   useEffect(() => {
-    console.log('[FollowButton] User changed:', user?.id, 'shouldFollowAfterLogin:', shouldFollowAfterLogin.current);
     // If user becomes available and we should follow after login
     if (user && shouldFollowAfterLogin.current) {
-      console.log('[FollowButton] Executing follow after login');
       // Reset the flag
       shouldFollowAfterLogin.current = false;
       
@@ -103,9 +93,7 @@ export function FollowButton({
   }, [user]);
   
   const executeFollowAction = async () => {
-    console.log('[FollowButton] Executing follow action for:', username);
     if (!user) {
-      console.log('[FollowButton] No user, cannot execute follow action');
       return;
     }
     
@@ -113,19 +101,14 @@ export function FollowButton({
     setFollowing(true);
     
     try {
-      console.log('[FollowButton] Waiting for auth state sync');
       // Wait for auth state to be fully synchronized
       await new Promise(resolve => setTimeout(resolve, 1000));
       // Refresh user info to ensure state is up to date
-      console.log('[FollowButton] Refreshing user info');
       await refreshUserInfo();
       // Now attempt to follow
-      console.log('[FollowButton] Attempting to follow channel');
       await followChannel(username);
-      console.log('[FollowButton] Successfully followed channel');
       toast.success(`Following @${username}`);
     } catch (error) {
-      console.error('[FollowButton] Error following channel:', error);
       toast.error(`Failed to follow channel`);
       setFollowing(false);
     } finally {
@@ -134,9 +117,7 @@ export function FollowButton({
   };
   
   const handleFollow = async () => {
-    console.log('[FollowButton] Handling follow for:', username);
     if (!user) {
-      console.log('[FollowButton] No user, cannot follow');
       return;
     }
     
@@ -144,12 +125,9 @@ export function FollowButton({
     setFollowing(true); // Optimistic update
     
     try {
-      console.log('[FollowButton] Calling followChannel');
       await followChannel(username);
-      console.log('[FollowButton] Successfully followed channel');
       toast.success(`Following @${username}`);
     } catch (error) {
-      console.error('[FollowButton] Error following channel:', error);
       toast.error(`Failed to follow channel`);
       setFollowing(false);
     } finally {
@@ -158,9 +136,7 @@ export function FollowButton({
   };
   
   const handleUnfollow = async () => {
-    console.log('[FollowButton] Handling unfollow for:', username);
     if (!user) {
-      console.log('[FollowButton] No user, cannot unfollow');
       return;
     }
     
@@ -168,12 +144,9 @@ export function FollowButton({
     setFollowing(false); // Optimistic update
     
     try {
-      console.log('[FollowButton] Calling unfollowChannel');
       await unfollowChannel(username);
-      console.log('[FollowButton] Successfully unfollowed channel');
       toast.success(`Unfollowed @${username}`);
     } catch (error) {
-      console.error('[FollowButton] Error unfollowing channel:', error);
       toast.error(`Failed to unfollow channel`);
       setFollowing(true);
     } finally {
@@ -181,15 +154,8 @@ export function FollowButton({
     }
   };
   
-  // Add debug effect for dialog state
-  useEffect(() => {
-    console.log('Dialog state changed:', showLoginDialog);
-  }, [showLoginDialog]);
-  
   const handleToggleFollow = async () => {
-    console.log('[FollowButton] Toggle follow clicked for:', username, 'user:', user?.id);
     if (!user) {
-      console.log('[FollowButton] No user, opening login dialog');
       shouldFollowAfterLogin.current = true;
       setShowLoginDialog(true);
       return;
@@ -204,7 +170,6 @@ export function FollowButton({
   
   // Handle successful login
   const handleLoginSuccess = async () => {
-    console.log('Login successful, executing follow action');
     setShowLoginDialog(false);
     // Wait for auth state to be synchronized
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -232,7 +197,6 @@ export function FollowButton({
       await executeFollowAction();
     } catch (err) {
       setError('Invalid email or password');
-      console.error('Email sign in error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -251,7 +215,6 @@ export function FollowButton({
       await executeFollowAction();
     } catch (err) {
       setError('Failed to sign in anonymously');
-      console.error('Anonymous sign in error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -270,7 +233,6 @@ export function FollowButton({
       await executeFollowAction();
     } catch (err) {
       setError('Failed to sign in as guest');
-      console.error('Guest sign in error:', err);
     } finally {
       setIsLoading(false);
     }

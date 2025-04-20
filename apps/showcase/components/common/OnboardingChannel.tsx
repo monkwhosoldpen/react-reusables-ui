@@ -21,11 +21,6 @@ export function OnboardingChannel({
   onboardingConfig,
   onComplete
 }: OnboardingChannelProps) {
-  console.log('[OnboardingChannel] Component mounted with props:', {
-    hasChannelDetails: !!channelDetails,
-    hasOnCompleteHandler: !!onComplete
-  })
-
   // Track current screen index for the middle screens
   const [currentScreenIndex, setCurrentScreenIndex] = useState<number>(-1)
   // Track overall step (welcome, screens, finish)
@@ -74,45 +69,30 @@ export function OnboardingChannel({
 
   // Log when dialog opens/closes
   const handleOpenChange = (open: boolean) => {
-    console.log('[OnboardingChannel] Dialog open state changed:', open)
     if (!open && currentScreenIndex === -1) {
-      console.log('[OnboardingChannel] Dialog closed without starting onboarding')
       onComplete?.()
     }
   }
 
   // Log screen transitions
   const handleStartClick = () => {
-    console.log('[OnboardingChannel] Starting onboarding process')
     setCurrentScreenIndex(0)
   }
 
   const handleNextClick = () => {
-    console.log('[OnboardingChannel] Moving to next screen:', currentScreenIndex + 1)
     setCurrentScreenIndex(prev => prev + 1)
   }
 
   const handleFinishClick = async () => {
-    console.log('[OnboardingChannel] Finishing onboarding process')
     try {
       if (channelDetails) {
-        console.log('[OnboardingChannel] Calling completeChannelOnboarding with:', channelDetails)
         await completeChannelOnboarding(username, channelDetails)
-        console.log('[OnboardingChannel] Onboarding completed successfully')
         onComplete?.()
-      } else {
-        console.error('[OnboardingChannel] Cannot complete onboarding: missing channel details')
       }
     } catch (error) {
-      console.error('[OnboardingChannel] Error completing onboarding:', error)
+      // Handle error silently
     }
   }
-
-  console.log('[OnboardingChannel] Current render state:', {
-    currentScreenIndex,
-    isWelcomeScreen: currentScreenIndex === -1,
-    isFinishScreen: currentScreenIndex === config.screens.length
-  })
 
   // Function to determine if user can proceed to next screen
   const canProceed = () => {

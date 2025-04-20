@@ -50,15 +50,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         message_count: item.message_count
       }));
 
-      console.log('✅ Channel activities fetched:', {
-        count: activities.length,
-        activities: activities.map(a => ({
-          username: a.username,
-          message_count: a.message_count,
-          last_updated: a.last_updated_at
-        }))
-      });
-
       setChannelActivities(activities);
     } catch (error) {
       console.error('❌ Error in fetchChannelActivities:', error);
