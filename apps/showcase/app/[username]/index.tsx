@@ -7,6 +7,8 @@ import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import { ChannelSidebar } from '@/components/channel-profile/ChannelSidebar';
 import { ChannelMessages } from '@/components/channel-profile/ChannelMessages';
+import { ChannelDebugInfo } from '@/components/channel-profile/ChannelDebugInfo';
+import ChannelInfoSection from './ChannelInfoSection';
 import { Channel, ChannelResponse } from '@/lib/types/channel.types';
 import { config } from '~/lib/config';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
@@ -175,23 +177,33 @@ export default function ChannelPage() {
         </View>
 
         {/* Content Area */}
-        <View style={{ width: contentWidth }} className="bg-background">
+        <View style={{ width: contentWidth }} className="bg-background relative">
           <ScrollView className="p-4">
-            {channel.is_agent ? (
-              <AgentChat
+            <ChannelInfoSection
+              username={usernameStr}
+              channelDetails={channel}
+              messageCount={messages?.length || 0}
+            >
+              <ChannelDebugInfo
                 username={usernameStr}
                 channelDetails={channel}
               />
-            ) : (
-              <ChannelMessages
-                messages={messages || []}
-                messagesLoading={loadingMessages}
-                messagesError={messageError}
-                messagesEndRef={messagesEndRef}
-                channelDetails={channel}
-                username={usernameStr}
-              />
-            )}
+              {channel.is_agent ? (
+                <AgentChat
+                  username={usernameStr}
+                  channelDetails={channel}
+                />
+              ) : (
+                <ChannelMessages
+                  messages={messages || []}
+                  messagesLoading={loadingMessages}
+                  messagesError={messageError}
+                  messagesEndRef={messagesEndRef}
+                  channelDetails={channel}
+                  username={usernameStr}
+                />
+              )}
+            </ChannelInfoSection>
           </ScrollView>
         </View>
       </View>

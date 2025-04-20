@@ -29,29 +29,6 @@ interface JoinButtonProps {
   isLoading?: boolean;
 }
 
-// Enhanced logger implementation with better formatting and error handling
-const logger = {
-  info: (message: string, data?: any) => {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] [INFO] ${message}`, data ? JSON.stringify(data, null, 2) : '');
-  },
-  debug: (message: string, data?: any) => {
-    const timestamp = new Date().toISOString();
-    console.debug(`[${timestamp}] [DEBUG] ${message}`, data ? JSON.stringify(data, null, 2) : '');
-  },
-  warn: (message: string, data?: any) => {
-    const timestamp = new Date().toISOString();
-    console.warn(`[${timestamp}] [WARN] ${message}`, data ? JSON.stringify(data, null, 2) : '');
-  },
-  error: (message: string, error?: any) => {
-    const timestamp = new Date().toISOString();
-    const errorDetails = error instanceof Error 
-      ? { message: error.message, stack: error.stack }
-      : error;
-    console.error(`[${timestamp}] [ERROR] ${message}`, errorDetails ? JSON.stringify(errorDetails, null, 2) : '');
-  }
-};
-
 export function JoinButton({
   username,
   channelDetails,
@@ -69,12 +46,6 @@ export function JoinButton({
   const { design } = useDesign()
   const [dbInitialized, setDbInitialized] = useState(false);
   
-  logger.info(`[JoinButton] Initializing for username: ${username}`, {
-    channelDetails,
-    user: user?.id,
-    isDarkMode
-  });
-
   const [showDialog, setShowDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [hasJoined, setHasJoined] = useState(false)
@@ -107,29 +78,14 @@ export function JoinButton({
   // Combine internal and external loading states
   const isButtonLoading = isLoading || externalLoading;
 
-  // Log state changes
-  useEffect(() => {
-    logger.debug('[JoinButton] State updated', {
-      username,
-      requestState,
-      hasJoined,
-      isLoading: isButtonLoading,
-      showDialog,
-      showLogin,
-      currentStep,
-      user: user?.id
-    });
-  }, [username, requestState, hasJoined, isButtonLoading, showDialog, showLogin, currentStep, user]);
-
   // Initialize IndexedDB
   useEffect(() => {
     const initDB = async () => {
       try {
         await indexedDB.initialize();
         setDbInitialized(true);
-        logger.info('[JoinButton] IndexedDB initialized successfully');
       } catch (error) {
-        logger.error('[JoinButton] Error initializing IndexedDB:', error);
+        // Handle error silently
       }
     };
 
@@ -140,44 +96,33 @@ export function JoinButton({
   useEffect(() => {
     const checkRequestStatus = async () => {
       if (!user?.id || !dbInitialized) {
-        logger.debug('[JoinButton] No user ID or DB not initialized, skipping request status check');
         return;
       }
-      
-      logger.info(`[JoinButton] Checking request status for ${username}`);
       
       try {
         // First check if user is following the channel
         const isFollowing = await isFollowingChannel(username);
         if (isFollowing) {
-          logger.info(`[JoinButton] User is following ${username}`);
           setHasJoined(true);
           return;
         }
 
         // Get tenant requests from IndexedDB
         const requests = await indexedDB.getAllFromIndex('tenant_requests', 'by-username', username);
-        logger.debug('[JoinButton] Retrieved tenant requests from IndexedDB', { requests });
-        
         const request = requests.find((req: TenantRequest) => req.uid === user.id);
         
-        logger.info(`[JoinButton] Found request for ${username}:`, { request });
-        
         if (request) {
-          logger.info(`[JoinButton] Setting request state to requested with status: ${request.status}`);
           setRequestState({
             isRequested: true,
             status: request.status
           });
         } else {
-          logger.info('[JoinButton] No request found, setting state to not requested');
           setRequestState({
             isRequested: false,
             status: null
           });
         }
       } catch (error) {
-        logger.error('[JoinButton] Error checking tenant request status:', error);
         // Set default state on error
         setRequestState({
           isRequested: false,
@@ -191,61 +136,39 @@ export function JoinButton({
 
   // Function to handle button click
   const handleClick = () => {
-    logger.info('[JoinButton] Button clicked', {
-      username,
-      requestState,
-      hasJoined,
-      user: user?.id
-    });
-    
     if (requestState.isRequested) {
-      logger.info('Access already requested, status:', requestState.status);
       return;
     }
 
     setShowDialog(true);
     setShowLogin(!user);
     if (user) {
-      logger.info('[JoinButton] User is logged in, starting onboarding');
       setCurrentStep(0); // Reset to first step when opening dialog
-    } else {
-      logger.info('[JoinButton] No user, showing login dialog');
     }
   }
 
   // Handle successful login
   const handleLoginSuccess = async () => {
-    logger.info('[JoinButton] Login successful');
     await refreshUserInfo();
     setShowLogin(false);
   }
 
   const handleNextStep = async () => {
     if (currentStep < onboardingSteps.length - 1) {
-      logger.debug(`[JoinButton] Moving to next step: ${currentStep + 1}`);
       setCurrentStep(currentStep + 1);
     } else {
       try {
-        logger.info('Completing onboarding with:', { 
-          username, 
-          channelDetails,
-          requestState
-        });
-        
         const success = await completeChannelOnboarding(username, channelDetails as Channel);
 
         if (success) {
-          logger.info('Channel onboarding completed successfully');
           setShowDialog(false);
           setHasJoined(true);
           onJoin?.();
           toast.success(`You've joined @${username}`);
         } else {
-          logger.warn('Channel onboarding completion had an issue');
           toast.error('Failed to complete channel onboarding');
         }
       } catch (error) {
-        logger.error('Error during onboarding completion:', error);
         toast.error('Failed to complete channel onboarding');
       }
     }

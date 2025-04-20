@@ -34,8 +34,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  console.log('[MainScreen] Component mounted, user:', user?.id, 'initialData:', initialData);
-
   const [followedChannels, setFollowedChannels] = useState<any[]>(initialData?.follows || []);
   const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>(initialData?.requests || []);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -156,16 +154,13 @@ export function MainScreen({ initialData }: MainScreenProps) {
   // Initialize IndexedDB
   useEffect(() => {
     if (!initializationStarted.current) {
-      console.log('[MainScreen] Starting IndexedDB initialization');
       initializationStarted.current = true;
 
       indexedDB.initialize()
         .then(() => {
-          console.log('[MainScreen] IndexedDB initialized successfully');
           setDbInitialized(true);
         })
         .catch(err => {
-          console.error('[MainScreen] Error initializing IndexedDB:', err);
           setError('Failed to initialize database');
         });
     }
@@ -174,17 +169,13 @@ export function MainScreen({ initialData }: MainScreenProps) {
   // Fetch followed channels
   const fetchUserFollows = async () => {
     if (!user?.id || !dbInitialized) {
-      console.log('[MainScreen] Cannot fetch follows - missing user or db not initialized');
       return [];
     }
 
     try {
-      console.log('[MainScreen] Fetching user follows from IndexedDB');
       const follows = await indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id);
-      console.log('[MainScreen] Retrieved follows:', follows?.length);
       return follows || [];
     } catch (err) {
-      console.error('[MainScreen] Error fetching user follows:', err);
       return [];
     }
   };
@@ -192,17 +183,13 @@ export function MainScreen({ initialData }: MainScreenProps) {
   // Fetch tenant requests
   const fetchTenantRequests = async () => {
     if (!user?.id || !dbInitialized) {
-      console.log('[MainScreen] Cannot fetch requests - missing user or db not initialized');
       return [];
     }
 
     try {
-      console.log('[MainScreen] Fetching tenant requests from IndexedDB');
       const requests = await indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id);
-      console.log('[MainScreen] Retrieved requests:', requests?.length);
       return requests || [];
     } catch (err) {
-      console.error('[MainScreen] Error fetching tenant requests:', err);
       return [];
     }
   };
@@ -210,15 +197,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
   // Load data when DB is initialized and user is available
   useEffect(() => {
     const loadData = async () => {
-      console.log('[MainScreen] Checking data load conditions:', {
-        dbInitialized,
-        userId: user?.id,
-        isDataLoaded,
-        isLoading
-      });
-
       if (dbInitialized && user?.id && !isDataLoaded) {
-        console.log('[MainScreen] Starting data load');
         setIsLoading(true);
         try {
           const [follows, requests] = await Promise.all([
@@ -226,15 +205,8 @@ export function MainScreen({ initialData }: MainScreenProps) {
             fetchTenantRequests()
           ]);
 
-          console.log('[MainScreen] Fetched data:', {
-            followsCount: follows.length,
-            requestsCount: requests.length
-          });
-
           // Get all channel activity records
-          console.log('[MainScreen] Fetching channel activity');
           const allChannelActivity = await indexedDB.getAll('channels_activity');
-          console.log('[MainScreen] Retrieved channel activity:', allChannelActivity?.length);
 
           // Merge channel activity into follows
           const followsWithActivity = follows.map(follow => {
@@ -263,19 +235,12 @@ export function MainScreen({ initialData }: MainScreenProps) {
             };
           });
 
-          console.log('[MainScreen] Setting state with processed data:', {
-            followsWithActivityCount: followsWithActivity.length,
-            requestsWithActivityCount: requestsWithActivity.length
-          });
-
           setFollowedChannels(followsWithActivity);
           setTenantRequests(requestsWithActivity);
           setIsDataLoaded(true);
         } catch (error) {
-          console.error('[MainScreen] Error loading data:', error);
           setError('Failed to load data');
         } finally {
-          console.log('[MainScreen] Finished data load');
           setIsLoading(false);
         }
       }
@@ -286,12 +251,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   // Reset data loaded state when user or userInfo changes
   useEffect(() => {
-    console.log('[MainScreen] User or userInfo changed:', {
-      userId: user?.id,
-      userInfoChanged: !!userInfo
-    });
     if (user?.id || userInfo) {
-      console.log('[MainScreen] Resetting data loaded state');
       setIsDataLoaded(false);
     }
   }, [user?.id, userInfo]);
@@ -299,18 +259,12 @@ export function MainScreen({ initialData }: MainScreenProps) {
   // Handle window resize on web
   useEffect(() => {
     if (Platform.OS === 'web') {
-      console.log('[MainScreen] Setting up window resize handler');
       const handleResize = () => {
         const newIsMediumOrAbove = window.innerWidth >= 768;
-        console.log('[MainScreen] Window resized:', {
-          width: window.innerWidth,
-          isMediumOrAbove: newIsMediumOrAbove
-        });
         setIsMediumOrAbove(newIsMediumOrAbove);
       };
       window.addEventListener('resize', handleResize);
       return () => {
-        console.log('[MainScreen] Cleaning up window resize handler');
         window.removeEventListener('resize', handleResize);
       };
     }
