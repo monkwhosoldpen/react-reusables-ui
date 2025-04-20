@@ -32,12 +32,14 @@ import {
   determineInteractiveType
 } from '~/lib/utils/feedData';
 import { PreviewDialog } from '~/lib/enhanced-chat/components/feed/PreviewDialog';
+import { ChannelMessage } from '~/lib/types/channel.types';
 
 interface FeedScreenProps {
   username: string;
+  messages: ChannelMessage[];
 }
 
-export default function FeedScreen({ username }: FeedScreenProps) {
+export default function FeedScreen({ username, messages }: FeedScreenProps) {
   const [isInteractive, setIsInteractive] = React.useState(false);
   const [includeMedia, setIncludeMedia] = React.useState(false);
   const [selectedInteractiveType, setSelectedInteractiveType] = React.useState<'survey' | 'quiz' | 'poll'>('poll');
@@ -60,10 +62,41 @@ export default function FeedScreen({ username }: FeedScreenProps) {
     user: { email: username }
   });
 
-  // Fetch initial feed items
+  // Log incoming messages
   React.useEffect(() => {
-    refreshFeedHandler();
-  }, [username]);
+    console.log('FeedScreen - Received messages:', messages);
+  }, [messages]);
+
+  // Use the passed messages to initialize feed items
+  React.useEffect(() => {
+    console.log('FeedScreen - Processing messages to feed items');
+    if (messages && messages.length > 0) {
+      const formattedMessages: FormDataType[] = messages.map(message => ({
+        id: message.id,
+        type: 'tweet' as const,
+        content: message.message_text,
+        username: message.username,
+        created_at: message.created_at,
+        metadata: {
+          ...DEFAULT_METADATA,
+          timestamp: message.created_at
+        },
+        media: []
+      }));
+      console.log('FeedScreen - Formatted feed items:', formattedMessages);
+      setFeedItems(formattedMessages);
+      setIsLoading(false);
+    } else {
+      console.log('FeedScreen - No messages to process');
+      setFeedItems([]);
+      setIsLoading(false);
+    }
+  }, [messages]);
+
+  // Log feed items state changes
+  React.useEffect(() => {
+    console.log('FeedScreen - Current feed items:', feedItems);
+  }, [feedItems]);
 
   // Set up realtime subscription
   React.useEffect(() => {
@@ -713,6 +746,594 @@ export default function FeedScreen({ username }: FeedScreenProps) {
     setSelectedInteractiveType(determineInteractiveType(item.interactive_content));
   };
 
+  const createMultipleMessages = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Create 2 polls with realistic questions and options
+      const pollQuestions = [
+        {
+          question: "What's your favorite programming language?",
+          options: [
+            "JavaScript/TypeScript",
+            "Python",
+            "Java",
+            "C#",
+            "Go",
+            "Rust",
+            "Swift"
+          ]
+        },
+        {
+          question: "Which frontend framework do you prefer?",
+          options: [
+            "React",
+            "Vue",
+            "Angular",
+            "Svelte",
+            "Next.js",
+            "Remix",
+            "SolidJS"
+          ]
+        }
+      ];
+
+      for (const poll of pollQuestions) {
+        const pollData: FormDataType = {
+          type: 'poll',
+          content: poll.question,
+          interactive_content: {
+            poll: {
+              question: poll.question,
+              options: poll.options
+            }
+          },
+          metadata: {
+            ...DEFAULT_METADATA,
+            timestamp: new Date().toISOString(),
+            requireAuth: false,
+            allowResubmit: true
+          },
+          media: [],
+          stats: {
+            views: 0,
+            likes: 0,
+            shares: 0,
+            responses: 0
+          }
+        };
+        await handleSubmit(pollData, username);
+      }
+
+      // Create 2 quizzes with realistic questions and answers
+      const quizQuestions = [
+        {
+          title: "JavaScript Fundamentals Quiz",
+          questions: [
+            {
+              text: "What is the output of 'typeof null' in JavaScript?",
+              options: [
+                "object",
+                "null",
+                "undefined",
+                "string",
+                "number",
+                "boolean"
+              ],
+              correct_option: 0
+            },
+            {
+              text: "Which of these is NOT a JavaScript framework?",
+              options: [
+                "Django",
+                "React",
+                "Vue",
+                "Angular",
+                "Svelte",
+                "Next.js"
+              ],
+              correct_option: 0
+            }
+          ]
+        },
+        {
+          title: "React Knowledge Check",
+          questions: [
+            {
+              text: "What is the correct way to update state in React?",
+              options: [
+                "Using setState()",
+                "Directly modifying state",
+                "Using useState() hook",
+                "Using useReducer() hook",
+                "Using Context API",
+                "Using Redux"
+              ],
+              correct_option: 2
+            },
+            {
+              text: "Which hook is used for side effects?",
+              options: [
+                "useEffect",
+                "useState",
+                "useContext",
+                "useReducer",
+                "useCallback",
+                "useMemo"
+              ],
+              correct_option: 0
+            }
+          ]
+        }
+      ];
+
+      for (const quiz of quizQuestions) {
+        const quizData: FormDataType = {
+          type: 'quiz',
+          content: quiz.title,
+          interactive_content: {
+            quiz: {
+              title: quiz.title,
+              questions: quiz.questions
+            }
+          },
+          metadata: {
+            ...DEFAULT_METADATA,
+            timestamp: new Date().toISOString(),
+            requireAuth: false,
+            allowResubmit: true
+          },
+          media: [],
+          stats: {
+            views: 0,
+            likes: 0,
+            shares: 0,
+            responses: 0
+          }
+        };
+        await handleSubmit(quizData, username);
+      }
+
+      // Create 2 surveys with realistic questions and options
+      const surveyQuestions = [
+        {
+          title: "Developer Experience Survey",
+          description: "Help us understand your development preferences and challenges",
+          questions: [
+            {
+              text: "How many years of experience do you have in software development?",
+              options: [
+                "Less than 1 year",
+                "1-3 years",
+                "3-5 years",
+                "5-10 years",
+                "10+ years"
+              ]
+            },
+            {
+              text: "What's your preferred development environment?",
+              options: [
+                "VS Code",
+                "WebStorm",
+                "Sublime Text",
+                "Vim/Neovim",
+                "Emacs",
+                "Other"
+              ]
+            }
+          ]
+        },
+        {
+          title: "Project Management Preferences",
+          description: "Share your thoughts on project management tools and methodologies",
+          questions: [
+            {
+              text: "Which project management methodology do you prefer?",
+              options: [
+                "Agile/Scrum",
+                "Kanban",
+                "Waterfall",
+                "Lean",
+                "Hybrid",
+                "Other"
+              ]
+            },
+            {
+              text: "What's your preferred project management tool?",
+              options: [
+                "Jira",
+                "Trello",
+                "Asana",
+                "Monday.com",
+                "ClickUp",
+                "Other"
+              ]
+            }
+          ]
+        }
+      ];
+
+      for (const survey of surveyQuestions) {
+        const surveyData: FormDataType = {
+          type: 'survey',
+          content: survey.title,
+          interactive_content: {
+            survey: {
+              title: survey.title,
+              description: survey.description,
+              questions: survey.questions
+            }
+          },
+          metadata: {
+            ...DEFAULT_METADATA,
+            timestamp: new Date().toISOString(),
+            requireAuth: false,
+            allowResubmit: true
+          },
+          media: [],
+          stats: {
+            views: 0,
+            likes: 0,
+            shares: 0,
+            responses: 0
+          }
+        };
+        await handleSubmit(surveyData, username);
+      }
+
+      // Create 2 media posts with realistic content
+      const mediaPosts = [
+        {
+          content: "Check out this amazing code snippet!",
+          media: [
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Beautiful code editor setup',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            }
+          ]
+        },
+        {
+          content: "Team collaboration in action!",
+          media: [
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Team working together',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            }
+          ]
+        }
+      ];
+
+      for (const post of mediaPosts) {
+        const mediaData: FormDataType = {
+          type: 'message',
+          content: post.content,
+          media: post.media,
+          metadata: {
+            ...DEFAULT_METADATA,
+            timestamp: new Date().toISOString(),
+            requireAuth: false,
+            allowResubmit: true
+          },
+          stats: {
+            views: 0,
+            likes: 0,
+            shares: 0,
+            responses: 0
+          }
+        };
+        await handleSubmit(mediaData, username);
+      }
+
+      // Create 2 video posts
+      const videoPosts = [
+        {
+          content: "Watch this amazing coding tutorial!",
+          media: [
+            {
+              type: 'video' as const,
+              url: 'https://example.com/video1.mp4',
+              thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Learn React in 10 minutes',
+              duration: 600,
+              dimensions: {
+                width: 1280,
+                height: 720
+              }
+            }
+          ]
+        },
+        {
+          content: "Check out this live coding session!",
+          media: [
+            {
+              type: 'video' as const,
+              url: 'https://example.com/video2.mp4',
+              thumbnail: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Building a full-stack app',
+              duration: 1800,
+              dimensions: {
+                width: 1280,
+                height: 720
+              }
+            }
+          ]
+        }
+      ];
+
+      for (const post of videoPosts) {
+        const videoData: FormDataType = {
+          type: 'message',
+          content: post.content,
+          media: post.media,
+          metadata: {
+            ...DEFAULT_METADATA,
+            timestamp: new Date().toISOString(),
+            requireAuth: false,
+            allowResubmit: true
+          },
+          stats: {
+            views: 0,
+            likes: 0,
+            shares: 0,
+            responses: 0
+          }
+        };
+        await handleSubmit(videoData, username);
+      }
+
+      // Create 2 mixed media posts (image + video)
+      const mixedMediaPosts = [
+        {
+          content: "Check out our latest project updates!",
+          media: [
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Project screenshot',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            },
+            {
+              type: 'video' as const,
+              url: 'https://example.com/video3.mp4',
+              thumbnail: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Project demo',
+              duration: 300,
+              dimensions: {
+                width: 1280,
+                height: 720
+              }
+            }
+          ]
+        },
+        {
+          content: "Behind the scenes of our development process",
+          media: [
+            {
+              type: 'video' as const,
+              url: 'https://example.com/video4.mp4',
+              thumbnail: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Development process',
+              duration: 450,
+              dimensions: {
+                width: 1280,
+                height: 720
+              }
+            },
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Team meeting',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            }
+          ]
+        }
+      ];
+
+      for (const post of mixedMediaPosts) {
+        const mixedMediaData: FormDataType = {
+          type: 'message',
+          content: post.content,
+          media: post.media,
+          metadata: {
+            ...DEFAULT_METADATA,
+            timestamp: new Date().toISOString(),
+            requireAuth: false,
+            allowResubmit: true
+          },
+          stats: {
+            views: 0,
+            likes: 0,
+            shares: 0,
+            responses: 0
+          }
+        };
+        await handleSubmit(mixedMediaData, username);
+      }
+
+      // Create 2 Instagram posts
+      const instagramPosts = [
+        {
+          content: "Check out our latest project! 🚀 #coding #webdev",
+          media: [
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Beautiful code editor setup',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            }
+          ]
+        },
+        {
+          content: "Team collaboration in action! 👨‍💻👩‍💻 #teamwork #development",
+          media: [
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Team working together',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            }
+          ]
+        }
+      ];
+
+      for (const post of instagramPosts) {
+        const instagramData: FormDataType = {
+          type: 'message',
+          content: post.content,
+          media: post.media,
+          metadata: {
+            ...DEFAULT_METADATA,
+            timestamp: new Date().toISOString(),
+            requireAuth: false,
+            allowResubmit: true
+          },
+          stats: {
+            views: 0,
+            likes: 0,
+            shares: 0,
+            responses: 0
+          }
+        };
+        await handleSubmit(instagramData, username);
+      }
+
+      // Create 2 LinkedIn posts
+      const linkedinPosts = [
+        {
+          content: "Excited to share our latest project milestone! We've successfully implemented a new feature that improves user experience by 40%. #innovation #tech #development",
+          media: [
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Project milestone achieved',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            }
+          ]
+        },
+        {
+          content: "Join us for an exciting webinar on modern web development practices! We'll be discussing the latest trends and best practices. #webinar #development #learning",
+          media: [
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Webinar announcement',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            }
+          ]
+        }
+      ];
+
+      for (const post of linkedinPosts) {
+        const linkedinData: FormDataType = {
+          type: 'message',
+          content: post.content,
+          media: post.media,
+          metadata: {
+            ...DEFAULT_METADATA,
+            timestamp: new Date().toISOString(),
+            requireAuth: false,
+            allowResubmit: true
+          },
+          stats: {
+            views: 0,
+            likes: 0,
+            shares: 0,
+            responses: 0
+          }
+        };
+        await handleSubmit(linkedinData, username);
+      }
+
+      // Create 2 WhatsApp posts
+      const whatsappPosts = [
+        {
+          content: "Hey team! Just wanted to share this amazing code snippet I found. Check it out! 👇",
+          media: [
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Useful code snippet',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            }
+          ]
+        },
+        {
+          content: "Quick update: The new feature is ready for testing! Let me know what you think. 🚀",
+          media: [
+            {
+              type: 'image' as const,
+              url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Feature preview',
+              dimensions: {
+                width: 1000,
+                height: 667
+              }
+            }
+          ]
+        }
+      ];
+
+      for (const post of whatsappPosts) {
+        const whatsappData: FormDataType = {
+          type: 'message',
+          content: post.content,
+          media: post.media,
+          metadata: {
+            ...DEFAULT_METADATA,
+            timestamp: new Date().toISOString(),
+            requireAuth: false,
+            allowResubmit: true
+          },
+          stats: {
+            views: 0,
+            likes: 0,
+            shares: 0,
+            responses: 0
+          }
+        };
+        await handleSubmit(whatsappData, username);
+      }
+
+      // Refresh the feed after creating all messages
+      await refreshFeedHandler();
+    } catch (error) {
+      console.error('Error creating multiple messages:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (channelsLoading) {
     return (
       <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
@@ -731,9 +1352,48 @@ export default function FeedScreen({ username }: FeedScreenProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      <Text style={{ color: colorScheme.colors.text }}>
-        Feed for {mainChannel?.username}
-      </Text>
+      <View style={[styles.toolbar, { backgroundColor: colorScheme.colors.card }]}>
+        <Button
+          onPress={createMultipleMessages}
+          disabled={isLoading}
+          style={styles.toolbarButton}
+        >
+          <Text style={{ color: colorScheme.colors.background }}>
+            {isLoading ? 'Creating Messages...' : 'Create All Message Types'}
+          </Text>
+        </Button>
+      </View>
+      <ScrollView 
+        ref={feedListRef}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: Number(design.spacing.padding.card) }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refreshFeedHandler}
+            colors={[colorScheme.colors.primary]}
+            tintColor={colorScheme.colors.primary}
+          />
+        }
+      >
+        {isLoading ? (
+          <Text style={{ color: colorScheme.colors.text }}>Loading feed...</Text>
+        ) : feedItems.length > 0 ? (
+          feedItems.map((item) => {
+            console.log('FeedScreen - Rendering feed item:', item);
+            return (
+              <FeedItem
+                key={item.id}
+                data={item}
+                showHeader={true}
+                showFooter={true}
+              />
+            );
+          })
+        ) : (
+          <Text style={{ color: colorScheme.colors.text }}>No messages yet</Text>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -742,5 +1402,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  toolbar: {
+    flexDirection: 'row',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  toolbarButton: {
+    flex: 1,
   },
 });

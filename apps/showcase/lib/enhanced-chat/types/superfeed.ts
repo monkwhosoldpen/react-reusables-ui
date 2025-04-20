@@ -1,6 +1,6 @@
 import { ViewStyle } from 'react-native';
 
-export type FeedItemType = 'tweet' | 'instagram' | 'linkedin' | 'whatsapp' | 'poll' | 'survey' | 'quiz';
+export type FeedItemType = 'tweet' | 'instagram' | 'linkedin' | 'whatsapp' | 'poll' | 'survey' | 'quiz' | 'message';
 
 export type MediaType = 'image' | 'video';
 export type DisplayMode = 'compact' | 'expanded';

@@ -1,12 +1,19 @@
 import { useState, useCallback, useEffect } from 'react';
-import { supabase } from '~/lib/supabase';
+
 import { useAuth } from '~/lib/contexts/AuthContext';
-import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
+import { FormDataType, InteractiveContent } from '~/lib/enhanced-chat/types/superfeed';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client with environment variables
+const supabase = createClient(
+  'https://risbemjewosmlvzntjkd.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM',
+);
 
 interface InteractiveResponse {
   id: string;
   user_id: string;
-  feed_item_id: string;
+  message_id: string;
   response_type: 'poll' | 'quiz' | 'survey';
   response_data: any;
   created_at: string;
@@ -18,14 +25,15 @@ function isInteractiveResponse(data: unknown): data is InteractiveResponse {
   return (
     typeof d.id === 'string' &&
     typeof d.user_id === 'string' &&
-    typeof d.feed_item_id === 'string' &&
+    typeof d.message_id === 'string' &&
     ['poll', 'quiz', 'survey'].includes(d.response_type) &&
     typeof d.created_at === 'string'
   );
 }
 
 export function useInteractiveContent(feedItem: FormDataType) {
-  const { user, isAuthenticated, refreshAuth } = useAuth();
+  const { user, refreshUserInfo } = useAuth();
+  const isAuthenticated = !!user;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [userResponse, setUserResponse] = useState<InteractiveResponse | null>(null);
@@ -36,7 +44,9 @@ export function useInteractiveContent(feedItem: FormDataType) {
   const checkAuthAndRetry = async (operation: () => Promise<any>) => {
     try {
       if (!isAuthenticated) {
-        await refreshAuth();
+        await refreshUserInfo();
+        // Wait a short time for auth state to update
+        await new Promise(resolve => setTimeout(resolve, 100));
         if (!isAuthenticated) {
           throw new Error('Authentication required');
         }
@@ -45,6 +55,8 @@ export function useInteractiveContent(feedItem: FormDataType) {
     } catch (err) {
       if (retryCount < MAX_RETRIES) {
         setRetryCount(prev => prev + 1);
+        // Add delay between retries
+        await new Promise(resolve => setTimeout(resolve, 1000));
         return checkAuthAndRetry(operation);
       }
       throw err;
@@ -60,10 +72,10 @@ export function useInteractiveContent(feedItem: FormDataType) {
       
       const response = await checkAuthAndRetry(async () => {
         const { data, error } = await supabase
-          .from('superfeed_responses')
+          .from('channels_message_responses')
           .select('*')
           .eq('user_id', user.id)
-          .eq('feed_item_id', feedItem.id)
+          .eq('message_id', feedItem.id)
           .single();
 
         if (error) throw error;
@@ -105,24 +117,32 @@ export function useInteractiveContent(feedItem: FormDataType) {
           responses: currentStats.responses + 1
         };
 
-        const { data: updatedFeedItem, error } = await supabase
-          .from('superfeed')
-          .update({ 
-            stats: updatedStats,
-            interactive_content: {
-              ...feedItem.interactive_content,
-              responses: [...(feedItem.interactive_content?.responses || []), response]
-            }
+        // Insert the response into superfeed_responses
+        const { data: responseData, error: responseError } = await supabase
+          .from('channels_message_responses')
+          .insert({
+            message_id: feedItem.id,
+            user_id: user?.id,
+            response_type: feedItem.type,
+            response_data: response
           })
-          .eq('id', feedItem.id)
           .select()
           .single();
 
-        if (error) throw error;
-        return updatedFeedItem;
+        if (responseError) throw responseError;
+
+        // Update the stats on the superfeed item
+        const { error: updateError } = await supabase
+          .from('superfeed')
+          .update({ stats: updatedStats })
+          .eq('id', feedItem.id);
+
+        if (updateError) throw updateError;
+
+        return responseData;
       });
 
-      setUserResponse(response as InteractiveResponse);
+      setUserResponse(result as InteractiveResponse);
       return result;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to submit response'));

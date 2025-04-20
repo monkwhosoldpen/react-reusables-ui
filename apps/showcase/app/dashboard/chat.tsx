@@ -7,7 +7,7 @@ import { Card } from '~/components/ui/card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { ChannelMessage, Channel } from '~/lib/types/channel.types';
-import FeedScreen from '~/components/dashboard/feed';
+import FeedScreen from './feed';
 import { useChannels } from '~/lib/hooks/useChannels';
 
 const windowWidth = Dimensions.get('window').width;
@@ -136,6 +136,28 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const { channels, isLoading, error } = useChannels('janedoe');
+  const { messages: channelMessages } = useChannelMessages({
+    username: selectedChannel?.username || '',
+  });
+
+  const transformChannel = (channel: any): Channel => {
+    return {
+      ...channel,
+      is_enhanced_chat: false,
+      custom_properties: {},
+      related_channels: channel.related_channels?.map((related: any) => ({
+        ...related,
+        is_enhanced_chat: false,
+        custom_properties: {}
+      })) || []
+    };
+  };
+
+  // Log channel selection and messages
+  React.useEffect(() => {
+    console.log('Selected Channel:', selectedChannel);
+    console.log('Channel Messages:', channelMessages);
+  }, [selectedChannel, channelMessages]);
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
@@ -159,7 +181,10 @@ export default function ChatScreen() {
                   selectedChannel?.username === channel.username && styles.selectedSidebarItem,
                   { borderBottomColor: colorScheme.colors.border }
                 ]}
-                onPress={() => setSelectedChannel(channel)}
+                onPress={() => {
+                  console.log('Channel selected:', channel);
+                  setSelectedChannel(transformChannel(channel));
+                }}
               >
                 <Text style={[styles.sidebarText, { color: colorScheme.colors.text }]}>
                   {channel.username}
@@ -178,7 +203,10 @@ export default function ChatScreen() {
       <View style={styles.mainContent}>
         {selectedChannel ? (
           <View style={{ flex: 1, flexDirection: 'row' }}>
-            <FeedScreen username={selectedChannel.username} />
+            <FeedScreen 
+              username={selectedChannel.username} 
+              messages={channelMessages || []}
+            />
           </View>
         ) : (
           <View style={styles.placeholder}>

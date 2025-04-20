@@ -20,7 +20,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   const { design } = useDesign();
 
   const {
-    isLoading,
+    isLoading: interactiveLoading,
     error,
     userResponse,
     submitResponse,
@@ -32,6 +32,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   const [surveyAnswers, setSurveyAnswers] = React.useState<Record<number, number>>({});
   const [showResults, setShowResults] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(data.metadata?.isCollapsible ?? true);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Update collapsed state when metadata changes
   React.useEffect(() => {
@@ -52,12 +53,16 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     }
 
     try {
+      setIsSubmitting(true);
       await submitResponse({ 
         type: 'poll',
         options: selectedPollOptions 
       });
       setShowResults(true);
     } catch (err) {
+      console.error('Error submitting poll:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -68,6 +73,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     }
 
     try {
+      setIsSubmitting(true);
       const quiz = data.interactive_content?.quiz;
       if (quiz) {
         const score = quiz.questions.reduce((acc, q, index) => {
@@ -81,6 +87,9 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         setShowResults(true);
       }
     } catch (err) {
+      console.error('Error submitting quiz:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -91,12 +100,16 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     }
 
     try {
+      setIsSubmitting(true);
       await submitResponse({ 
         type: 'survey',
         answers: surveyAnswers 
       });
       setShowResults(true);
     } catch (err) {
+      console.error('Error submitting survey:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -150,7 +163,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             selectedPollOptions.includes(index) && styles.pollOptionSelected,
             showResults && styles.pollOptionResult
           ]}
-          disabled={isLoading || (showResults && !isAuthenticated)}
+          disabled={isSubmitting || (showResults && !isAuthenticated)}
         >
           <View style={[
             styles.pollOptionProgress,
@@ -178,10 +191,10 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             variant="default" 
             onPress={handlePollSubmit} 
             style={styles.pollSubmitButton}
-            disabled={isLoading || selectedPollOptions.length === 0}
+            disabled={isSubmitting || selectedPollOptions.length === 0}
           >
             <Text style={styles.pollSubmitText}>
-              {isLoading ? 'Submitting...' : 'Vote'}
+              {isSubmitting ? 'Submitting...' : 'Vote'}
             </Text>
           </Button>
           <Text style={styles.pollVoteCount}>
@@ -217,7 +230,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
                     variant={quizAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
                     onPress={() => setQuizAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
                     style={styles.optionButton}
-                    disabled={isLoading || (showResults && !isAuthenticated)}
+                    disabled={isSubmitting || (showResults && !isAuthenticated)}
                   >
                     <Text>{option}</Text>
                     {showResults && (
@@ -236,9 +249,9 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             variant="default" 
             onPress={handleQuizSubmit} 
             style={styles.submitButton}
-            disabled={isLoading || Object.keys(quizAnswers).length !== quiz.questions.length}
+            disabled={isSubmitting || Object.keys(quizAnswers).length !== quiz.questions.length}
           >
-            <Text>{isLoading ? 'Submitting...' : 'Submit Answers'}</Text>
+            <Text>{isSubmitting ? 'Submitting...' : 'Submit Answers'}</Text>
           </Button>
         )}
         {showResults && (
@@ -246,7 +259,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             variant="default" 
             onPress={() => setShowResults(false)} 
             style={styles.submitButton}
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
             <Text>Try Again</Text>
           </Button>
@@ -273,7 +286,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
               variant={surveyAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
               onPress={() => setSurveyAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
               style={styles.optionButton}
-              disabled={isLoading || (showResults && !isAuthenticated)}
+              disabled={isSubmitting || (showResults && !isAuthenticated)}
             >
               <Text>{option}</Text>
             </Button>
@@ -285,9 +298,9 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
           variant="default" 
           onPress={handleSurveySubmit} 
           style={styles.submitButton}
-          disabled={isLoading || Object.keys(surveyAnswers).length !== survey.questions.length}
+          disabled={isSubmitting || Object.keys(surveyAnswers).length !== survey.questions.length}
         >
-          <Text>{isLoading ? 'Submitting...' : 'Submit Survey'}</Text>
+          <Text>{isSubmitting ? 'Submitting...' : 'Submit Survey'}</Text>
         </Button>
       )}
       {showResults && (

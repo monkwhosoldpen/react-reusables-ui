@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Channel, ChannelMessage } from '@/lib/types/channel.types';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client with environment variables
+const supabase = createClient(
+  'https://risbemjewosmlvzntjkd.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM',
+);
 
 interface UseChannelMessagesProps {
   username: string;
@@ -35,18 +42,22 @@ export function useChannelMessages({ username }: UseChannelMessagesProps) {
         
         setChannelDetails(channelData);
 
-        // Fetch messages
-        const { messages: channelMessages, error: messagesError, accessStatus: status } = await auth.fetchChannelMessages(username, 50);
-        
+        // Fetch messages directly from Supabase
+        const { data, error: messagesError } = await supabase
+          .from('channels_messages')
+          .select('*')
+          .eq('username', username)
+          .order('created_at', { ascending: true })
+          .limit(50);
+
         if (messagesError) {
-          setError(messagesError);
+          console.error('Error fetching messages:', messagesError);
+          setError('Failed to fetch channel messages');
           return;
         }
 
-        setMessages(channelMessages);
-        // Convert accessStatus to string if it's an object
-        const statusString = typeof status === 'object' ? (status?.status || 'none') : (status || 'none');
-        setAccessStatus(statusString);
+        setMessages(data || []);
+        setAccessStatus('none'); // Default access status
       } catch (error) {
         console.error('Error fetching channel data:', error);
         setError('An error occurred while loading the channel');
