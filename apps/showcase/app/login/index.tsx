@@ -30,6 +30,8 @@ export default function LoginPage() {
     },
     content: {
       flex: 1,
+      marginBottom: 20,
+      marginTop: 20,
       padding: Number(design.spacing.padding.card),
     },
     header: {
@@ -119,22 +121,6 @@ export default function LoginPage() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>SIGN IN</Text>
-          </View>
-          <View style={styles.titleContainer}>
-            <View style={styles.iconContainer}>
-              <MaterialIcons name="login" size={24} color={colorScheme.colors.primary} />
-            </View>
-            <View>
-              <Text style={styles.title}>Welcome back</Text>
-              <Text style={styles.description}>
-                Sign in to access your account and continue where you left off
-              </Text>
-            </View>
-          </View>
-        </View>
 
         <LoginCommon
           email={email}

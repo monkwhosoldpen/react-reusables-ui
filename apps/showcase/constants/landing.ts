@@ -5,7 +5,7 @@ export const LANDING_CONTENT = {
   features: [
     {
       title: "Community Groups",
-      description: "Create and manage both public and private groups for your community members"
+      description: "Create and manage both public, private groups for your community members"
     },
     {
       title: "Secure Messaging",
@@ -24,9 +24,17 @@ export const LANDING_CONTENT = {
       text: "5K+ Communities"
     }
   ],
-  cta: {
-    inputPlaceholder: "Enter your email",
-    buttonText: "Create Your Community"
-  },
+  ctas: [
+    {
+      text: 'Get Started',
+      href: '/login',
+      variant: 'default' as const
+    },
+    {
+      text: 'Explore',
+      href: '/explore',
+      variant: 'outline' as const
+    }
+  ],
   heroImage: "https://placehold.co/600x400"
 }; 

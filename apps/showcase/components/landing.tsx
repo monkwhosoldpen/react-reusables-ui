@@ -3,11 +3,13 @@ import { Link } from 'expo-router';
 import { Button } from '~/components/ui/button';
 import { useTheme } from '~/lib/providers/theme/ThemeProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ChevronRight } from '~/lib/icons/ChevronRight';
 import { LANDING_CONTENT } from '~/constants/landing';
 
 export function Landing() {
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 768;
+  const { theme } = useTheme();
 
   const MobileLayout = () => (
     <View style={styles.mobileContainer}>
@@ -42,14 +44,22 @@ export function Landing() {
           </View>
 
           <View style={styles.mobileCta}>
-            <TextInput
-              placeholder={LANDING_CONTENT.cta.inputPlaceholder}
-              style={styles.mobileEmailInput}
-              placeholderTextColor="#666"
-            />
-            <Button style={styles.mobileCtaButton}>
-              <Text style={styles.mobileCtaButtonText}>{LANDING_CONTENT.cta.buttonText}</Text>
-            </Button>
+            {LANDING_CONTENT.ctas.map((cta, index) => (
+              <Link key={index} href={cta.href} asChild>
+                <Button variant={cta.variant} style={styles.mobileCtaButton}>
+                  <Text style={[
+                    styles.mobileCtaButtonText,
+                    cta.variant === 'default' ? { color: 'white' } : { color: theme.colorScheme.colors.text }
+                  ]}>
+                    {cta.text}
+                  </Text>
+                  <ChevronRight 
+                    size={18} 
+                    color={cta.variant === 'default' ? 'white' : theme.colorScheme.colors.text} 
+                  />
+                </Button>
+              </Link>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -75,14 +85,22 @@ export function Landing() {
             </View>
 
             <View style={styles.ctaSection}>
-              <TextInput
-                placeholder={LANDING_CONTENT.cta.inputPlaceholder}
-                style={styles.emailInput}
-                placeholderTextColor="#666"
-              />
-              <Button style={styles.ctaButton}>
-                <Text style={styles.ctaButtonText}>{LANDING_CONTENT.cta.buttonText}</Text>
-              </Button>
+              {LANDING_CONTENT.ctas.map((cta, index) => (
+                <Link key={index} href={cta.href} asChild>
+                  <Button variant={cta.variant} style={styles.ctaButton}>
+                    <Text style={[
+                      styles.ctaButtonText,
+                      cta.variant === 'default' ? { color: 'white' } : { color: theme.colorScheme.colors.text }
+                    ]}>
+                      {cta.text}
+                    </Text>
+                    <ChevronRight 
+                      size={18} 
+                      color={cta.variant === 'default' ? 'white' : theme.colorScheme.colors.text} 
+                    />
+                  </Button>
+                </Link>
+              ))}
             </View>
           </View>
 

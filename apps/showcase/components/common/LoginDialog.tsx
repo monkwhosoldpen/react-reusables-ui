@@ -36,14 +36,11 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
     },
     content: {
       flex: 1,
-      padding: Number(design.spacing.padding.card),
     },
     header: {
       marginBottom: Number(design.spacing.padding.card),
     },
     sectionHeader: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
       backgroundColor: 'transparent',
     },
     sectionHeaderText: {
