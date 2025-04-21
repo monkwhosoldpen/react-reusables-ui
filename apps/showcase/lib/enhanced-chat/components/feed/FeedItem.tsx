@@ -163,57 +163,50 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
 
   const renderPoll = (poll: PollData) => (
     <View style={styles.interactiveContent}>
-      <Text style={styles.pollQuestion}>{poll.question}</Text>
+      <Text style={styles.quizTitle}>{poll.question}</Text>
       {error && (
         <Text style={styles.errorText}>{error.message}</Text>
       )}
-      {poll.options.map((option, index) => (
-        <Pressable
-          key={index}
-          onPress={() => !showResults && setSelectedPollOptions([index])}
-          style={[
-            styles.pollOption,
-            selectedPollOptions.includes(index) && styles.pollOptionSelected,
-            showResults && styles.pollOptionResult
-          ]}
-          disabled={isSubmitting || (showResults && !isAuthenticated)}
-        >
-          <View style={[
-            styles.pollOptionProgress,
-            showResults && {
-              width: `${Math.floor(Math.random() * 100)}%` // Replace with actual percentage
-            }
-          ]}>
-            <Text style={[
-              styles.pollOptionText,
-              selectedPollOptions.includes(index) && styles.pollOptionTextSelected
-            ]}>
-              {option}
-            </Text>
-            {showResults && (
-              <Text style={styles.pollPercentage}>
-                {Math.floor(Math.random() * 100)}%
-              </Text>
-            )}
-          </View>
-        </Pressable>
-      ))}
-      {!showResults && (
-        <View style={styles.pollFooter}>
-          <Button 
-            variant="default" 
-            onPress={handlePollSubmit} 
-            style={styles.pollSubmitButton}
-            disabled={isSubmitting || selectedPollOptions.length === 0}
+      <View style={styles.questionContainer}>
+        {poll.options.map((option, index) => (
+          <Button
+            key={index}
+            variant={selectedPollOptions.includes(index) ? 'default' : 'secondary'}
+            onPress={() => !showResults && setSelectedPollOptions([index])}
+            style={styles.optionButton}
+            disabled={isSubmitting || (showResults && !isAuthenticated)}
           >
-            <Text style={styles.pollSubmitText}>
-              {isSubmitting ? 'Submitting...' : 'Vote'}
-            </Text>
+            <View style={styles.pollOptionContent}>
+              <Text>{option}</Text>
+              {showResults && (
+                <Text style={styles.pollPercentage}>
+                  {Math.floor(Math.random() * 100)}%
+                </Text>
+              )}
+            </View>
+            {showResults && (
+              <View style={[
+                styles.pollOptionProgress,
+                { width: `${Math.floor(Math.random() * 100)}%` }
+              ]} />
+            )}
           </Button>
-          <Text style={styles.pollVoteCount}>
-            {data.stats?.responses || 0} votes
-          </Text>
-        </View>
+        ))}
+      </View>
+      {!showResults && (
+        <Button 
+          variant="default" 
+          onPress={handlePollSubmit} 
+          style={styles.submitButton}
+          disabled={isSubmitting || selectedPollOptions.length === 0}
+        >
+          <Text>{isSubmitting ? 'Submitting...' : 'Vote'}</Text>
+        </Button>
+      )}
+      {showResults && (
+        <Text style={styles.pollVoteCount}>
+          {data.stats?.responses || 0} votes
+        </Text>
       )}
     </View>
   );
@@ -370,6 +363,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       fontSize: Number(design.spacing.fontSize.base),
       fontWeight: '700',
       color: colorScheme.colors.text,
+      flexShrink: 1,
     },
     verifiedBadge: {
       fontSize: Number(design.spacing.fontSize.sm),
@@ -379,6 +373,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       fontSize: Number(design.spacing.fontSize.base),
       color: colorScheme.colors.text,
       opacity: Number(design.opacity.medium),
+      flexShrink: 1,
     },
     moreButton: {
       padding: Number(design.spacing.padding.item),
@@ -399,6 +394,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       padding: Number(design.spacing.padding.card),
       position: 'relative',
       overflow: 'hidden',
+      width: '100%',
     },
     interactiveFeaturesContainer: {
       gap: Number(design.spacing.padding.card),
@@ -422,12 +418,15 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       flexWrap: 'wrap',
       gap: Number(design.spacing.padding.item),
       marginTop: Number(design.spacing.margin.item),
+      width: '100%',
     },
     mediaItem: {
       borderRadius: Number(design.radius.md),
       overflow: 'hidden',
-      backgroundColor: colorScheme.colors.notification,
+      backgroundColor: colorScheme.colors.background,
       position: 'relative',
+      width: '100%' as const,
+      aspectRatio: 1,
     },
     mediaImage: {
       width: '100%',
@@ -445,36 +444,36 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       fontSize: Number(design.spacing.fontSize.sm),
     },
     singleMediaItem: {
-      width: '100%',
+      width: '100%' as const,
       aspectRatio: 16/9,
     },
     doubleMediaItem: {
-      width: '48%',
+      width: '48%' as const,
       aspectRatio: 1,
     },
     tripleMediaItem: {
-      width: '100%',
+      width: '100%' as const,
       aspectRatio: 16/9,
     },
     tripleMainItem: {
-      width: '100%',
+      width: '100%' as const,
       aspectRatio: 16/9,
       marginBottom: Number(design.spacing.margin.item),
     },
     tripleSecondaryItem: {
-      width: '48%',
+      width: '48%' as const,
       aspectRatio: 1,
     },
     quadMediaItem: {
-      width: '48%',
+      width: '48%' as const,
       aspectRatio: 1,
     },
     lastQuadItem: {
-      width: '100%',
+      width: '100%' as const,
       aspectRatio: 2,
     },
     gridMediaItem: {
-      width: '31%',
+      width: '48%' as const,
       aspectRatio: 1,
     },
     carouselContainer: {
@@ -484,7 +483,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       position: 'relative',
     },
     carouselItem: {
-      width: '100%',
+      width: '100%' as const,
       aspectRatio: 16/9,
       marginRight: Number(design.spacing.padding.item),
     },
@@ -505,20 +504,20 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       backgroundColor: '#007AFF',
     },
     listMediaItem: {
-      width: '100%',
+      width: '100%' as const,
       aspectRatio: 16/9,
       marginBottom: Number(design.spacing.margin.item),
     },
     collageMediaItem: {
-      width: '48%',
+      width: '48%' as const,
       aspectRatio: 1,
     },
     masonryMediaItem: {
-      width: '48%',
+      width: '48%' as const,
       aspectRatio: 1,
     },
     fullwidthMediaItem: {
-      width: '100%',
+      width: '100%' as const,
       aspectRatio: 16/9,
     },
     footer: {
@@ -531,7 +530,8 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      maxWidth: 425,
+      maxWidth: '100%',
+      flexWrap: 'wrap',
     },
     metricItem: {
       flexDirection: 'row',
@@ -540,6 +540,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       paddingVertical: Number(design.spacing.padding.item),
       paddingHorizontal: Number(design.spacing.padding.item),
       borderRadius: Number(design.radius.full),
+      minWidth: 60,
     },
     metricIcon: {
       fontSize: Number(design.spacing.fontSize.base),
@@ -573,22 +574,11 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       marginBottom: Number(design.spacing.margin.item),
       color: colorScheme.colors.text,
     },
-    pollOption: {
+    pollOptionContent: {
+      flex: 1,
       flexDirection: 'row',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      padding: Number(design.spacing.padding.item),
-      marginBottom: Number(design.spacing.margin.item),
-      backgroundColor: colorScheme.colors.background,
-      borderRadius: Number(design.radius.sm),
-      borderWidth: 1,
-      borderColor: colorScheme.colors.border,
-    },
-    pollOptionSelected: {
-      backgroundColor: colorScheme.colors.primary,
-      borderColor: colorScheme.colors.primary,
-    },
-    pollOptionResult: {
-      backgroundColor: colorScheme.colors.notification,
     },
     pollOptionProgress: {
       position: 'absolute',
@@ -598,14 +588,6 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       backgroundColor: colorScheme.colors.primary,
       opacity: 0.1,
       borderRadius: Number(design.radius.sm),
-    },
-    pollOptionText: {
-      flex: 1,
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-    },
-    pollOptionTextSelected: {
-      color: colorScheme.colors.background,
     },
     pollPercentage: {
       fontSize: Number(design.spacing.fontSize.sm),
@@ -648,7 +630,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     },
     questionContainer: {
       marginBottom: Number(design.spacing.margin.item),
-      backgroundColor: colorScheme.colors.notification,
+      backgroundColor: colorScheme.colors.background,
       borderRadius: Number(design.radius.lg),
       padding: Number(design.spacing.padding.card),
     },
@@ -876,6 +858,32 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       );
     }
 
+    const getMediaItemStyle = (index: number) => {
+      if (data.metadata?.mediaLayout === 'fullwidth') {
+        return styles.fullwidthMediaItem;
+      } else if (data.metadata?.mediaLayout === 'grid') {
+        return styles.gridMediaItem;
+      } else if (data.metadata?.mediaLayout === 'list') {
+        return styles.listMediaItem;
+      } else if (data.metadata?.mediaLayout === 'collage') {
+        return styles.collageMediaItem;
+      } else if (data.metadata?.mediaLayout === 'masonry') {
+        return styles.masonryMediaItem;
+      } else {
+        // Default layout based on media count
+        if (data.media.length === 1) {
+          return styles.singleMediaItem;
+        } else if (data.media.length === 2) {
+          return styles.doubleMediaItem;
+        } else if (data.media.length === 3) {
+          return index === 0 ? styles.tripleMainItem : styles.tripleSecondaryItem;
+        } else if (data.media.length === 4) {
+          return index < 3 ? styles.quadMediaItem : styles.lastQuadItem;
+        }
+      }
+      return styles.mediaItem;
+    };
+
     return (
       <View style={[styles.mediaContainer]}>
         {data.media.map((item, index) => (
@@ -883,18 +891,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             key={index} 
             style={[
               styles.mediaItem,
-              data.metadata?.mediaLayout === 'grid' && styles.gridMediaItem,
-              data.metadata?.mediaLayout === 'list' && styles.listMediaItem,
-              data.metadata?.mediaLayout === 'collage' && styles.collageMediaItem,
-              data.metadata?.mediaLayout === 'masonry' && styles.masonryMediaItem,
-              data.metadata?.mediaLayout === 'fullwidth' && styles.fullwidthMediaItem,
-              // Fallback to default layouts based on media count
-              !data.metadata?.mediaLayout && data.media?.length === 1 && styles.singleMediaItem,
-              !data.metadata?.mediaLayout && data.media?.length === 2 && styles.doubleMediaItem,
-              !data.metadata?.mediaLayout && data.media?.length === 3 && index === 0 && styles.tripleMainItem,
-              !data.metadata?.mediaLayout && data.media?.length === 3 && index > 0 && styles.tripleSecondaryItem,
-              !data.metadata?.mediaLayout && data.media?.length === 4 && index < 3 && styles.quadMediaItem,
-              !data.metadata?.mediaLayout && data.media?.length === 4 && index === 3 && styles.lastQuadItem,
+              getMediaItemStyle(index)
             ]}
           >
             <Image
@@ -951,16 +948,37 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         isCollapsed && styles.collapsed
       ]}>
         <View style={styles.contentWrapper}>
-          <View style={[
-            styles.markdownContainer,
-            isCollapsed && { maxHeight: 72 }
-          ]}>
-            <Markdown style={markdownStyles}>
-              {data.content || ''}
-            </Markdown>
-          </View>
+          {/* Content Text */}
+          {data.content && (
+            <View style={[
+              styles.markdownContainer,
+              isCollapsed && { maxHeight: 72 }
+            ]}>
+              <Markdown style={markdownStyles}>
+                {data.content}
+              </Markdown>
+            </View>
+          )}
 
-          {renderMediaItems()}
+          {/* Media Items */}
+          {data.media && data.media.length > 0 && renderMediaItems()}
+
+          {/* Interactive Content */}
+          {!isCollapsed && (
+            <View style={styles.interactiveFeaturesContainer}>
+              {(data.type === 'poll' || data.interactive_content?.poll) && data.interactive_content?.poll && (
+                renderPoll(data.interactive_content.poll)
+              )}
+              
+              {(data.type === 'quiz' || data.interactive_content?.quiz) && data.interactive_content?.quiz && (
+                renderQuiz(data.interactive_content.quiz)
+              )}
+              
+              {(data.type === 'survey' || data.interactive_content?.survey) && data.interactive_content?.survey && (
+                renderSurvey(data.interactive_content.survey)
+              )}
+            </View>
+          )}
 
           {isCollapsed && data.metadata?.isCollapsible && (
             <LinearGradient
@@ -981,36 +999,18 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
           )}
         </View>
 
-        {!isCollapsed && (
-          <>
-            <View style={styles.interactiveFeaturesContainer}>
-              {(data.type === 'poll') && data.interactive_content?.poll && (
-                renderPoll(data.interactive_content.poll)
-              )}
-              
-              {(data.type === 'quiz') && data.interactive_content?.quiz && (
-                renderQuiz(data.interactive_content.quiz)
-              )}
-              
-              {(data.type === 'survey') && data.interactive_content?.survey && (
-                renderSurvey(data.interactive_content.survey)
-              )}
+        {!isCollapsed && data.metadata?.isCollapsible && (
+          <View style={styles.showLessContainer}>
+            <View style={styles.collapseButtonContainer}>
+              <Button
+                variant="ghost"
+                onPress={toggleCollapse}
+                style={styles.showLessButton}
+              >
+                <Text style={styles.showLessButtonText}>Show less</Text>
+              </Button>
             </View>
-
-            {data.metadata?.isCollapsible && (
-              <View style={styles.showLessContainer}>
-                <View style={styles.collapseButtonContainer}>
-                  <Button
-                    variant="ghost"
-                    onPress={toggleCollapse}
-                    style={styles.showLessButton}
-                  >
-                    <Text style={styles.showLessButtonText}>Show less</Text>
-                  </Button>
-                </View>
-              </View>
-            )}
-          </>
+          </View>
         )}
       </View>
 

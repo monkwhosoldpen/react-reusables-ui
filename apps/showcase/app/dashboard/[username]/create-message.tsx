@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions, TextInput, Switch, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
@@ -12,6 +12,7 @@ import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { DEFAULT_METADATA } from '~/lib/utils/feedData';
 import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { debounce } from 'lodash';
 
 export default function CreateMessageScreen() {
   const router = useRouter();
@@ -38,7 +39,15 @@ export default function CreateMessageScreen() {
 
   const handleQuickAction = (type: 'poll' | 'quiz' | 'survey' | 'media' | 'video' | 'small' | 'long') => {
     // Reset form state completely
-    handleFormDataChange({});
+    handleFormDataChangeWithPreview({
+      type: 'message',
+      content: '',
+      media: [],
+      metadata: {
+        ...DEFAULT_METADATA,
+        mediaLayout: 'grid'
+      }
+    });
     setIsInteractive(false);
     setIncludeMedia(false);
     setIncludeContent(true);
@@ -51,9 +60,11 @@ export default function CreateMessageScreen() {
         handleFormDataChange({
           type: 'message',
           content: 'This is a short message that gets straight to the point.',
+          media: [],
           metadata: {
             ...DEFAULT_METADATA,
-            isCollapsible: false
+            isCollapsible: false,
+            mediaLayout: 'grid'
           }
         });
         break;
@@ -70,9 +81,11 @@ Use this format when you need to:
 - Engage with thoughtful content
 
 Remember to structure your content with clear paragraphs and formatting to ensure readability.`,
+          media: [],
           metadata: {
             ...DEFAULT_METADATA,
-            isCollapsible: true
+            isCollapsible: true,
+            mediaLayout: 'grid'
           }
         });
         break;
@@ -84,6 +97,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         handleFormDataChange({
           type: 'poll',
           content: 'We\'re planning our next feature release! Which of these capabilities would be most valuable for your workflow?',
+          media: [],
           interactive_content: {
             poll: {
               question: 'Which upcoming feature would be most valuable for your workflow?',
@@ -113,6 +127,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         handleFormDataChange({
           type: 'quiz',
           content: 'Test your knowledge about our platform\'s features and best practices with this comprehensive quiz!',
+          media: [],
           interactive_content: {
             quiz: {
               title: 'Platform Mastery Quiz',
@@ -135,7 +150,8 @@ Remember to structure your content with clear paragraphs and formatting to ensur
             ...DEFAULT_METADATA,
             requireAuth: true,
             allowResubmit: false,
-            isCollapsible: true
+            isCollapsible: true,
+            mediaLayout: 'grid'
           }
         });
         break;
@@ -147,6 +163,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         handleFormDataChange({
           type: 'survey',
           content: 'Help us improve our platform by sharing your feedback on these key aspects of your experience.',
+          media: [],
           interactive_content: {
             survey: {
               title: 'Platform Experience Survey',
@@ -168,7 +185,8 @@ Remember to structure your content with clear paragraphs and formatting to ensur
             ...DEFAULT_METADATA,
             requireAuth: true,
             allowResubmit: false,
-            isCollapsible: true
+            isCollapsible: true,
+            mediaLayout: 'grid'
           }
         });
         break;
@@ -183,6 +201,31 @@ Remember to structure your content with clear paragraphs and formatting to ensur
               type: 'image',
               url: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
               caption: 'Our new product in action'
+            },
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Product close-up'
+            },
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Product in use'
+            },
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Product features'
+            },
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Product packaging'
+            },
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1572635196237-14b3f281049f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Product lifestyle'
             }
           ],
           metadata: {
@@ -205,6 +248,41 @@ Remember to structure your content with clear paragraphs and formatting to ensur
               caption: 'Product Demo: Getting Started',
               thumbnail: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
               duration: 180
+            },
+            {
+              type: 'video',
+              url: 'https://example.com/advanced-features.mp4',
+              caption: 'Advanced Features Tutorial',
+              thumbnail: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              duration: 240
+            },
+            {
+              type: 'video',
+              url: 'https://example.com/tips-tricks.mp4',
+              caption: 'Tips and Tricks',
+              thumbnail: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              duration: 120
+            },
+            {
+              type: 'video',
+              url: 'https://example.com/case-study.mp4',
+              caption: 'Customer Success Story',
+              thumbnail: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              duration: 300
+            },
+            {
+              type: 'video',
+              url: 'https://example.com/faq.mp4',
+              caption: 'Frequently Asked Questions',
+              thumbnail: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              duration: 150
+            },
+            {
+              type: 'video',
+              url: 'https://example.com/roadmap.mp4',
+              caption: 'Product Roadmap',
+              thumbnail: 'https://images.unsplash.com/photo-1572635196237-14b3f281049f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              duration: 200
             }
           ],
           metadata: {
@@ -215,65 +293,183 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         });
         break;
     }
+
+    // Force preview update
+    setPreviewKey(prev => prev + 1);
   };
 
-  const handleMediaLayoutChange = (layout: MediaLayout) => {
+  // Add debug logging for form data changes
+  useEffect(() => {
+    console.log('Form Data Changed:', {
+      type: formData.type,
+      content: formData.content,
+      media: formData.media?.length,
+      interactive_content: formData.interactive_content,
+      metadata: formData.metadata
+    });
+  }, [formData]);
+
+  // Update preview data memo with better synchronization
+  const previewData = useMemo(() => {
+    console.log('Recalculating preview data...');
+    const data: FormDataType = {
+      ...formData,
+      type: formData.type || 'message',
+      channel_username: username || 'anonymous',
+      metadata: {
+        ...DEFAULT_METADATA,
+        ...formData.metadata,
+        mediaLayout: mediaLayout,
+        isCollapsible: formData.metadata?.isCollapsible ?? true,
+        displayMode: formData.metadata?.displayMode ?? 'default' as DisplayMode,
+        maxHeight: formData.metadata?.maxHeight ?? 300,
+        visibility: formData.metadata?.visibility ?? 'public' as unknown as Visibility,
+        requireAuth: formData.metadata?.requireAuth ?? false,
+        allowResubmit: formData.metadata?.allowResubmit ?? false,
+        timestamp: formData.metadata?.timestamp ?? new Date().toISOString()
+      }
+    };
+
+    // Only include interactive content if isInteractive is true
+    if (isInteractive) {
+      switch (selectedInteractiveType) {
+        case 'poll':
+          data.type = 'poll';
+          data.interactive_content = {
+            poll: {
+              question: formData.interactive_content?.poll?.question || 'Poll Question',
+              options: formData.interactive_content?.poll?.options || ['Option 1', 'Option 2']
+            }
+          };
+          break;
+        case 'quiz':
+          data.type = 'quiz';
+          data.interactive_content = {
+            quiz: {
+              title: formData.interactive_content?.quiz?.title || 'Quiz Title',
+              questions: formData.interactive_content?.quiz?.questions || [{
+                text: 'Quiz Question',
+                options: ['Option 1', 'Option 2'],
+                correct_option: 0
+              }]
+            }
+          };
+          break;
+        case 'survey':
+          data.type = 'survey';
+          data.interactive_content = {
+            survey: {
+              title: formData.interactive_content?.survey?.title || 'Survey Title',
+              questions: formData.interactive_content?.survey?.questions || [{
+                text: 'Survey Question',
+                options: ['Option 1', 'Option 2']
+              }]
+            }
+          };
+          break;
+      }
+    } else {
+      // Clear interactive content when toggled off
+      data.type = 'message';
+      data.interactive_content = undefined;
+    }
+
+    // Ensure content is set
+    if (!data.content) {
+      data.content = isInteractive 
+        ? `This is a ${selectedInteractiveType} content.` 
+        : 'Enter your message here.';
+    }
+
+    // Ensure media array is properly structured
+    if (includeMedia && formData.media) {
+      data.media = formData.media.map(item => ({
+        ...item,
+        type: item.type || 'image',
+        url: item.url || '',
+        caption: item.caption || ''
+      }));
+    } else {
+      data.media = [];
+    }
+
+    // Log the final preview data
+    console.log('Final Preview Data:', data);
+    return data;
+  }, [formData, mediaLayout, isInteractive, selectedInteractiveType, username, includeMedia]);
+
+  // Update preview key effect to include more dependencies
+  useEffect(() => {
+    console.log('Updating preview key due to changes in:', {
+      mediaLayout,
+      formDataMedia: formData.media,
+      isInteractive,
+      selectedInteractiveType
+    });
+    setPreviewKey(prev => prev + 1);
+  }, [mediaLayout, formData.media, isInteractive, selectedInteractiveType]);
+
+  // Add debounced preview update
+  const debouncedPreviewUpdate = useCallback(
+    debounce(() => {
+      console.log('Debounced preview update triggered');
+      setPreviewKey(prev => prev + 1);
+    }, 300),
+    []
+  );
+
+  // Update handleFormDataChangeWithPreview to handle interactive content state
+  const handleFormDataChangeWithPreview = useCallback((updates: Partial<FormDataType>) => {
+    console.log('Form data change with preview:', updates);
+    const newFormData = {
+      ...formData,
+      ...updates,
+      type: updates.type || formData.type || 'message',
+      media: includeMedia ? (updates.media || formData.media || []) : [],
+      interactive_content: isInteractive ? updates.interactive_content : undefined
+    };
+    handleFormDataChange(newFormData);
+    debouncedPreviewUpdate();
+  }, [formData, handleFormDataChange, debouncedPreviewUpdate, includeMedia, isInteractive]);
+
+  // Update all form change handlers to use the new function
+  const handleMediaLayoutChange = useCallback((layout: MediaLayout) => {
     console.log('Media layout changed to:', layout);
     setMediaLayout(layout);
-    // Create default media content when layout is selected
-    const defaultMedia = Array(5).fill(null).map((_, index) => ({
-      type: 'image' as const,
-      url: `https://placeholder.co/800x600?text=Image+${index + 1}`,
-      caption: `Image ${index + 1}`,
-      metadata: {
-        width: 800,
-        height: 600
-      }
-    }));
-
-    console.log('Created default media:', defaultMedia);
-
-    // Update form data with new layout and media
-    const updatedFormData = {
+    // Preserve existing media data when changing layout
+    handleFormDataChangeWithPreview({
       ...formData,
-      media: defaultMedia,
       metadata: {
         ...formData.metadata,
         mediaLayout: layout
       }
-    };
+    });
+  }, [formData, handleFormDataChangeWithPreview]);
 
-    console.log('Updated form data:', updatedFormData);
-
-    // Force update the form data
-    handleFormDataChange(updatedFormData);
-  };
-
-  const handleMediaUrlChange = (index: number, url: string) => {
+  const handleMediaUrlChange = useCallback((index: number, url: string) => {
     const newMedia = [...(formData.media || [])];
     newMedia[index] = {
-      ...newMedia[index],
-      url: url
+      type: 'image' as const,
+      url: url,
+      caption: newMedia[index]?.caption || ''
     };
-    const updatedFormData = {
+    handleFormDataChangeWithPreview({
       ...formData,
       media: newMedia
-    };
-    handleFormDataChange(updatedFormData);
-  };
+    });
+  }, [formData, handleFormDataChangeWithPreview]);
 
-  const handleMediaCaptionChange = (index: number, caption: string) => {
+  const handleMediaCaptionChange = useCallback((index: number, caption: string) => {
     const newMedia = [...(formData.media || [])];
     newMedia[index] = {
       ...newMedia[index],
       caption: caption
     };
-    const updatedFormData = {
+    handleFormDataChangeWithPreview({
       ...formData,
       media: newMedia
-    };
-    handleFormDataChange(updatedFormData);
-  };
+    });
+  }, [formData, handleFormDataChangeWithPreview]);
 
   const renderInteractiveContent = () => {
     if (!isInteractive) return null;
@@ -661,78 +857,12 @@ Remember to structure your content with clear paragraphs and formatting to ensur
 
   const handleCreateItem = async () => {
     try {
-      await submitResponse(formData);
-      router.back();
+      const response = await submitResponse(formData);
+      console.log('Create response:', response);
     } catch (error) {
       console.error('Error creating item:', error);
     }
   };
-
-  // Update the preview data to properly reflect the form state
-  const previewData = useMemo(() => {
-    const data: FormDataType = {
-      ...formData,
-      type: (isInteractive ? selectedInteractiveType : 'message') as FeedItemType,
-      channel_username: username || 'anonymous',
-      metadata: {
-        ...formData.metadata,
-        mediaLayout: mediaLayout,
-        isCollapsible: formData.metadata?.isCollapsible ?? true,
-        displayMode: formData.metadata?.displayMode ?? 'default' as DisplayMode,
-        maxHeight: formData.metadata?.maxHeight ?? 300,
-        visibility: formData.metadata?.visibility ?? 'public' as unknown as Visibility,
-        requireAuth: formData.metadata?.requireAuth ?? false,
-        allowResubmit: formData.metadata?.allowResubmit ?? false,
-        timestamp: formData.metadata?.timestamp ?? new Date().toISOString()
-      }
-    };
-
-    // Ensure interactive content is properly structured
-    if (isInteractive) {
-      switch (selectedInteractiveType) {
-        case 'poll':
-          data.interactive_content = {
-            poll: {
-              question: formData.interactive_content?.poll?.question || 'Poll Question',
-              options: formData.interactive_content?.poll?.options || ['Option 1', 'Option 2']
-            }
-          };
-          break;
-        case 'quiz':
-          data.interactive_content = {
-            quiz: {
-              title: formData.interactive_content?.quiz?.title || 'Quiz Title',
-              questions: formData.interactive_content?.quiz?.questions || [{
-                text: 'Quiz Question',
-                options: ['Option 1', 'Option 2'],
-                correct_option: 0
-              }]
-            }
-          };
-          break;
-        case 'survey':
-          data.interactive_content = {
-            survey: {
-              title: formData.interactive_content?.survey?.title || 'Survey Title',
-              questions: formData.interactive_content?.survey?.questions || [{
-                text: 'Survey Question',
-                options: ['Option 1', 'Option 2']
-              }]
-            }
-          };
-          break;
-      }
-    }
-
-    // Ensure content is set
-    if (!data.content) {
-      data.content = isInteractive 
-        ? `This is a ${selectedInteractiveType} content.` 
-        : 'Enter your message here.';
-    }
-
-    return data;
-  }, [formData, mediaLayout, isInteractive, selectedInteractiveType, username]);
 
   // Log when formData changes
   useEffect(() => {
@@ -747,11 +877,19 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     console.log('Media layout state changed:', mediaLayout);
   }, [mediaLayout]);
 
+  // Add debug logging for preview data
+  useEffect(() => {
+    console.log('Preview Data Changed:', {
+      type: previewData.type,
+      content: previewData.content,
+      media: previewData.media?.length,
+      interactive_content: previewData.interactive_content,
+      metadata: previewData.metadata
+    });
+  }, [previewData]);
+
   // Force preview update when layout changes
   const [previewKey, setPreviewKey] = useState(0);
-  useEffect(() => {
-    setPreviewKey(prev => prev + 1);
-  }, [mediaLayout, formData.media]);
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
