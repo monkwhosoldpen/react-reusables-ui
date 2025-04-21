@@ -6,26 +6,24 @@ import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { Card } from '~/components/ui/card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '~/components/ui/button';
-import { FormDataType, MediaLayout } from '~/lib/enhanced-chat/types/superfeed';
+import { FormDataType, MediaLayout, FeedItemType, DisplayMode, Visibility } from '~/lib/enhanced-chat/types/superfeed';
 import { useFeedForm } from '~/lib/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { DEFAULT_METADATA } from '~/lib/utils/feedData';
 import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
 import { useRouter } from 'expo-router';
 
-const windowWidth = Dimensions.get('window').width;
-
 export default function CreateMessageScreen() {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
-  const insets = useSafeAreaInsets();
   const [selectedType, setSelectedType] = useState<'message' | 'poll' | 'quiz' | 'survey'>('message');
   const [isInteractive, setIsInteractive] = useState(false);
   const [includeMedia, setIncludeMedia] = useState(false);
   const [includeContent, setIncludeContent] = useState(true);
   const [contentType, setContentType] = useState<'small' | 'long'>('small');
   const [mediaLayout, setMediaLayout] = useState<MediaLayout>('grid');
+  const [selectedInteractiveType, setSelectedInteractiveType] = useState<'poll' | 'quiz' | 'survey'>('poll');
 
   const {
     formData,
@@ -44,6 +42,7 @@ export default function CreateMessageScreen() {
     setIncludeMedia(false);
     setIncludeContent(true);
     setSelectedType('message');
+    setSelectedInteractiveType('poll');
 
     // Prefill form based on type
     switch (type) {
@@ -80,6 +79,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       case 'poll':
         setIsInteractive(true);
         setSelectedType('poll');
+        setSelectedInteractiveType('poll');
         handleFormDataChange({
           type: 'poll',
           content: 'We\'re planning our next feature release! Which of these capabilities would be most valuable for your workflow?',
@@ -108,6 +108,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       case 'quiz':
         setIsInteractive(true);
         setSelectedType('quiz');
+        setSelectedInteractiveType('quiz');
         handleFormDataChange({
           type: 'quiz',
           content: 'Test your knowledge about our platform\'s features and best practices with this comprehensive quiz!',
@@ -141,6 +142,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       case 'survey':
         setIsInteractive(true);
         setSelectedType('survey');
+        setSelectedInteractiveType('survey');
         handleFormDataChange({
           type: 'survey',
           content: 'Help us improve our platform by sharing your feedback on these key aspects of your experience.',
@@ -275,7 +277,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
   const renderInteractiveContent = () => {
     if (!isInteractive) return null;
 
-    switch (selectedType) {
+    switch (selectedInteractiveType) {
       case 'poll':
         return (
           <View style={styles.interactiveSection}>
@@ -665,21 +667,70 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     }
   };
 
-  // Create a memoized preview data to ensure updates
+  // Update the preview data to properly reflect the form state
   const previewData = useMemo(() => {
-    const data = {
+    const data: FormDataType = {
       ...formData,
+      type: (isInteractive ? selectedInteractiveType : 'message') as FeedItemType,
       metadata: {
         ...formData.metadata,
-        mediaLayout: mediaLayout
+        mediaLayout: mediaLayout,
+        isCollapsible: formData.metadata?.isCollapsible ?? true,
+        displayMode: formData.metadata?.displayMode ?? 'default' as DisplayMode,
+        maxHeight: formData.metadata?.maxHeight ?? 300,
+        visibility: formData.metadata?.visibility ?? 'public' as unknown as Visibility,
+        requireAuth: formData.metadata?.requireAuth ?? false,
+        allowResubmit: formData.metadata?.allowResubmit ?? false,
+        timestamp: formData.metadata?.timestamp ?? new Date().toISOString()
       }
     };
-    console.log('Preview data updated:', {
-      ...data,
-      media: data.media?.map(m => ({ ...m, url: m.url.substring(0, 30) + '...' }))
-    });
+
+    // Ensure interactive content is properly structured
+    if (isInteractive) {
+      switch (selectedInteractiveType) {
+        case 'poll':
+          data.interactive_content = {
+            poll: {
+              question: formData.interactive_content?.poll?.question || 'Poll Question',
+              options: formData.interactive_content?.poll?.options || ['Option 1', 'Option 2']
+            }
+          };
+          break;
+        case 'quiz':
+          data.interactive_content = {
+            quiz: {
+              title: formData.interactive_content?.quiz?.title || 'Quiz Title',
+              questions: formData.interactive_content?.quiz?.questions || [{
+                text: 'Quiz Question',
+                options: ['Option 1', 'Option 2'],
+                correct_option: 0
+              }]
+            }
+          };
+          break;
+        case 'survey':
+          data.interactive_content = {
+            survey: {
+              title: formData.interactive_content?.survey?.title || 'Survey Title',
+              questions: formData.interactive_content?.survey?.questions || [{
+                text: 'Survey Question',
+                options: ['Option 1', 'Option 2']
+              }]
+            }
+          };
+          break;
+      }
+    }
+
+    // Ensure content is set
+    if (!data.content) {
+      data.content = isInteractive 
+        ? `This is a ${selectedInteractiveType} content.` 
+        : 'Enter your message here.';
+    }
+
     return data;
-  }, [formData, mediaLayout]);
+  }, [formData, mediaLayout, isInteractive, selectedInteractiveType]);
 
   // Log when formData changes
   useEffect(() => {
@@ -756,7 +807,6 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       </View>
 
       <View style={styles.dialogContent}>
-        {/* Left Side - Form */}
         <View style={styles.formContainer}>
           <ScrollView style={styles.formScroll}>
             {/* Content Section */}
@@ -916,15 +966,47 @@ Remember to structure your content with clear paragraphs and formatting to ensur
                   onValueChange={setIsInteractive}
                 />
               </View>
-              {isInteractive && renderInteractiveContent()}
+              {isInteractive && (
+                <>
+                  <View style={styles.radioGroup}>
+                    {(['poll', 'quiz', 'survey'] as const).map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        style={[
+                          styles.radioOption,
+                          selectedInteractiveType === type && styles.radioOptionSelected
+                        ]}
+                        onPress={() => setSelectedInteractiveType(type)}
+                      >
+                        <Text style={[
+                          styles.radioText,
+                          { color: selectedInteractiveType === type ? '#fff' : colorScheme.colors.text }
+                        ]}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  {renderInteractiveContent()}
+                </>
+              )}
             </View>
           </ScrollView>
         </View>
 
-        {/* Right Side - Preview */}
+        <View style={styles.comingSoonContainer}>
+          <Text style={styles.comingSoonText}>Coming Soon</Text>
+        </View>
+
         <View style={[styles.previewContainer, { backgroundColor: colorScheme.colors.background }]}>
           <ScrollView style={styles.previewScroll}>
-            <Card style={[styles.previewCard, { backgroundColor: colorScheme.colors.card }]}>
+            <Card style={[
+              styles.previewCard, 
+              { 
+                backgroundColor: colorScheme.colors.card,
+                borderColor: colorScheme.colors.border,
+              }
+            ]}>
               <FeedItem
                 key={`preview-${previewKey}`}
                 data={previewData}
@@ -971,7 +1053,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   formContainer: {
-    width: '50%',
+    width: '30%',
     borderRightWidth: StyleSheet.hairlineWidth,
     borderRightColor: '#ccc',
     padding: 16,
@@ -1034,8 +1116,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   previewContainer: {
-    width: '50%',
+    width: '30%',
     padding: 16,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: '#ccc',
   },
   previewScroll: {
     flex: 1,
@@ -1045,6 +1129,11 @@ const styles = StyleSheet.create({
     minHeight: 200,
     borderRadius: 12,
     overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   dialogFooter: {
     padding: 16,
@@ -1107,5 +1196,41 @@ const styles = StyleSheet.create({
   mediaButton: {
     flex: 1,
     paddingVertical: 12,
+  },
+  radioGroup: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  radioOption: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  radioOptionSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  radioText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  comingSoonContainer: {
+    width: '40%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: '#ccc',
+  },
+  comingSoonText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#666',
+    transform: [{ rotate: '-45deg' }],
   },
 }); 

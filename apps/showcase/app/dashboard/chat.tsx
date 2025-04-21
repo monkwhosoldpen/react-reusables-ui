@@ -7,7 +7,7 @@ import { Card } from '~/components/ui/card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { ChannelMessage, Channel } from '~/lib/types/channel.types';
-import FeedScreen from './feed';
+import FeedScreen from '../../components/dashboard/feed';
 import { useChannels } from '~/lib/hooks/useChannels';
 import { Button } from '~/components/ui/button';
 import { FormDataType, PollData, QuizData, MediaItem, MediaType, SurveyData } from '~/lib/enhanced-chat/types/superfeed';

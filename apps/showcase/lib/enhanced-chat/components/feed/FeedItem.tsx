@@ -556,7 +556,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       marginLeft: 'auto',
     },
     errorText: {
-      color: colorScheme.colors.error,
+      color: colorScheme.colors.primary,
       fontSize: Number(design.spacing.fontSize.sm),
       marginTop: Number(design.spacing.margin.item),
     },
@@ -568,7 +568,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       textAlign: 'center',
     },
     pollQuestion: {
-      fontSize: Number(design.spacing.fontSize.md),
+      fontSize: Number(design.spacing.fontSize.base),
       fontWeight: 'bold',
       marginBottom: Number(design.spacing.margin.item),
       color: colorScheme.colors.text,
@@ -601,7 +601,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     },
     pollOptionText: {
       flex: 1,
-      fontSize: Number(design.spacing.fontSize.md),
+      fontSize: Number(design.spacing.fontSize.base),
       color: colorScheme.colors.text,
     },
     pollOptionTextSelected: {

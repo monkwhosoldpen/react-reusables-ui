@@ -104,46 +104,55 @@ export function useInteractiveContent(feedItem: FormDataType) {
       setIsSubmitting(true);
       setError(null);
 
-      const result = await checkAuthAndRetry(async () => {
-        const currentStats = feedItem.stats || {
-          views: 0,
-          likes: 0,
-          shares: 0,
-          responses: 0
-        };
+      // First, create the message
+      const { data: messageData, error: messageError } = await supabase
+        .from('channels_messages')
+        .insert({
+          username: feedItem.channel_username,
+          message_text: feedItem.content,
+          type: feedItem.type,
+          media: feedItem.media,
+          metadata: feedItem.metadata,
+          stats: feedItem.stats,
+          interactive_content: feedItem.interactive_content
+        })
+        .select()
+        .single();
 
-        const updatedStats = {
-          ...currentStats,
-          responses: currentStats.responses + 1
-        };
+      if (messageError) throw messageError;
 
-        // Insert the response into superfeed_responses
-        const { data: responseData, error: responseError } = await supabase
-          .from('channels_message_responses')
-          .insert({
-            message_id: feedItem.id,
-            user_id: user?.id,
-            response_type: feedItem.type,
-            response_data: response
-          })
-          .select()
-          .single();
+      // Determine the correct response type based on feedItem type
+      const responseType = feedItem.type === 'message' ? 'text' : feedItem.type;
 
-        if (responseError) throw responseError;
+      // Then create the response using the message ID
+      const { data: responseData, error: responseError } = await supabase
+        .from('channels_message_responses')
+        .insert({
+          message_id: messageData.id,
+          user_id: user?.id,
+          response_type: responseType,
+          response_data: response
+        })
+        .select()
+        .single();
 
-        // Update the stats on the superfeed item
-        const { error: updateError } = await supabase
-          .from('superfeed')
-          .update({ stats: updatedStats })
-          .eq('id', feedItem.id);
+      if (responseError) throw responseError;
 
-        if (updateError) throw updateError;
+      // Update the stats on the message
+      const { error: updateError } = await supabase
+        .from('channels_messages')
+        .update({ 
+          stats: {
+            ...messageData.stats,
+            responses: (messageData.stats?.responses || 0) + 1
+          }
+        })
+        .eq('id', messageData.id);
 
-        return responseData;
-      });
+      if (updateError) throw updateError;
 
-      setUserResponse(result as InteractiveResponse);
-      return result;
+      setUserResponse(responseData as InteractiveResponse);
+      return responseData;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to submit response'));
       throw err;
