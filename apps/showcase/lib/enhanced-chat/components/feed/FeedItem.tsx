@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, Pressable, Image } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
@@ -33,6 +33,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   const [showResults, setShowResults] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(data.metadata?.isCollapsible ?? true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   // Update collapsed state when metadata changes
   React.useEffect(() => {
@@ -145,6 +146,18 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       });
     } catch (error) {
       return '';
+    }
+  };
+
+  const handleNextSlide = () => {
+    if (data.media && currentSlide < data.media.length - 1) {
+      setCurrentSlide(currentSlide + 1);
+    }
+  };
+
+  const handlePrevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
     }
   };
 
@@ -414,18 +427,34 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       borderRadius: Number(design.radius.md),
       overflow: 'hidden',
       backgroundColor: colorScheme.colors.notification,
+      position: 'relative',
+    },
+    mediaImage: {
+      width: '100%',
+      height: '100%',
+      resizeMode: 'cover',
+    },
+    mediaCaption: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      color: colorScheme.colors.background,
+      padding: Number(design.spacing.padding.item),
+      fontSize: Number(design.spacing.fontSize.sm),
     },
     singleMediaItem: {
       width: '100%',
       aspectRatio: 16/9,
     },
     doubleMediaItem: {
-      width: '49%',
+      width: '48%',
       aspectRatio: 1,
     },
     tripleMediaItem: {
-      width: '32%',
-      aspectRatio: 1,
+      width: '100%',
+      aspectRatio: 16/9,
     },
     tripleMainItem: {
       width: '100%',
@@ -433,33 +462,67 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       marginBottom: Number(design.spacing.margin.item),
     },
     tripleSecondaryItem: {
-      width: '49%',
+      width: '48%',
       aspectRatio: 1,
     },
     quadMediaItem: {
-      width: '49%',
+      width: '48%',
       aspectRatio: 1,
     },
     lastQuadItem: {
       width: '100%',
       aspectRatio: 2,
     },
-    mediaImage: {
-      width: '100%',
-      height: '100%',
+    gridMediaItem: {
+      width: '31%',
+      aspectRatio: 1,
     },
-    mediaCaption: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      color: colorScheme.colors.background,
-      padding: Number(design.spacing.padding.item),
-      fontSize: Number(design.spacing.fontSize.sm),
+    carouselContainer: {
+      flexDirection: 'row',
+      overflow: 'hidden',
+      marginTop: Number(design.spacing.margin.item),
+      position: 'relative',
+    },
+    carouselItem: {
+      width: '100%',
+      aspectRatio: 16/9,
+      marginRight: Number(design.spacing.padding.item),
+    },
+    carouselControls: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: Number(design.spacing.margin.item),
+      gap: Number(design.spacing.padding.item),
+    },
+    carouselDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: '#ccc',
+    },
+    carouselDotActive: {
+      backgroundColor: '#007AFF',
+    },
+    listMediaItem: {
+      width: '100%',
+      aspectRatio: 16/9,
+      marginBottom: Number(design.spacing.margin.item),
+    },
+    collageMediaItem: {
+      width: '48%',
+      aspectRatio: 1,
+    },
+    masonryMediaItem: {
+      width: '48%',
+      aspectRatio: 1,
+    },
+    fullwidthMediaItem: {
+      width: '100%',
+      aspectRatio: 16/9,
     },
     footer: {
-      paddingHorizontal: Number(design.spacing.padding.item),
+      paddingHorizontal: Number(design.spacing.padding.card),
       paddingVertical: Number(design.spacing.padding.item),
       borderTopWidth: 1,
       borderTopColor: colorScheme.colors.border,
@@ -493,10 +556,9 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       marginLeft: 'auto',
     },
     errorText: {
-      color: colorScheme.colors.primary,
+      color: colorScheme.colors.error,
       fontSize: Number(design.spacing.fontSize.sm),
-      marginBottom: Number(design.spacing.margin.item),
-      textAlign: 'center',
+      marginTop: Number(design.spacing.margin.item),
     },
     authRequiredText: {
       color: colorScheme.colors.text,
@@ -506,46 +568,49 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       textAlign: 'center',
     },
     pollQuestion: {
-      fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '700',
-      color: colorScheme.colors.text,
+      fontSize: Number(design.spacing.fontSize.md),
+      fontWeight: 'bold',
       marginBottom: Number(design.spacing.margin.item),
+      color: colorScheme.colors.text,
     },
     pollOption: {
-      minHeight: 40,
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: Number(design.spacing.padding.item),
       marginBottom: Number(design.spacing.margin.item),
+      backgroundColor: colorScheme.colors.background,
+      borderRadius: Number(design.radius.sm),
       borderWidth: 1,
       borderColor: colorScheme.colors.border,
-      borderRadius: Number(design.radius.sm),
-      overflow: 'hidden',
     },
     pollOptionSelected: {
+      backgroundColor: colorScheme.colors.primary,
       borderColor: colorScheme.colors.primary,
-      backgroundColor: colorScheme.colors.notification,
     },
     pollOptionResult: {
-      borderColor: colorScheme.colors.border,
-    },
-    pollOptionProgress: {
-      position: 'relative',
-      padding: Number(design.spacing.padding.item),
       backgroundColor: colorScheme.colors.notification,
     },
+    pollOptionProgress: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      backgroundColor: colorScheme.colors.primary,
+      opacity: 0.1,
+      borderRadius: Number(design.radius.sm),
+    },
     pollOptionText: {
-      fontSize: Number(design.spacing.fontSize.base),
+      flex: 1,
+      fontSize: Number(design.spacing.fontSize.md),
       color: colorScheme.colors.text,
-      zIndex: 1,
     },
     pollOptionTextSelected: {
-      color: colorScheme.colors.primary,
+      color: colorScheme.colors.background,
     },
     pollPercentage: {
-      position: 'absolute',
-      right: Number(design.spacing.padding.item),
-      top: Number(design.spacing.padding.item),
-      fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '700',
+      fontSize: Number(design.spacing.fontSize.sm),
       color: colorScheme.colors.text,
+      marginLeft: Number(design.spacing.margin.item),
     },
     pollFooter: {
       flexDirection: 'row',
@@ -679,6 +744,12 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     markdownContainer: {
       overflow: 'hidden',
     },
+    pollContainer: {
+      marginTop: Number(design.spacing.margin.item),
+      padding: Number(design.spacing.padding.item),
+      backgroundColor: colorScheme.colors.notification,
+      borderRadius: Number(design.radius.md),
+    },
   });
 
   const markdownStyles = StyleSheet.create({
@@ -754,8 +825,96 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     },
   });
 
+  const renderMediaItems = () => {
+    if (!data.media || data.media.length === 0) return null;
+
+    if (data.metadata?.mediaLayout === 'carousel') {
+      return (
+        <>
+          <View style={styles.carouselContainer}>
+            <View style={styles.carouselItem}>
+              <Image
+                source={{ uri: data.media[currentSlide].type === 'video' ? data.media[currentSlide].thumbnail : data.media[currentSlide].url }}
+                style={styles.mediaImage}
+                resizeMode="cover"
+              />
+              {data.media[currentSlide].caption && (
+                <Text style={styles.mediaCaption}>
+                  {data.media[currentSlide].type === 'video' ? '🎥 ' : ''}{data.media[currentSlide].caption}
+                </Text>
+              )}
+            </View>
+          </View>
+          <View style={styles.carouselControls}>
+            <Button
+              variant="ghost"
+              onPress={handlePrevSlide}
+              disabled={currentSlide === 0}
+            >
+              <Text>Previous</Text>
+            </Button>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {data.media.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.carouselDot,
+                    currentSlide === index && styles.carouselDotActive
+                  ]}
+                />
+              ))}
+            </View>
+            <Button
+              variant="ghost"
+              onPress={handleNextSlide}
+              disabled={currentSlide === data.media.length - 1}
+            >
+              <Text>Next</Text>
+            </Button>
+          </View>
+        </>
+      );
+    }
+
+    return (
+      <View style={[styles.mediaContainer]}>
+        {data.media.map((item, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.mediaItem,
+              data.metadata?.mediaLayout === 'grid' && styles.gridMediaItem,
+              data.metadata?.mediaLayout === 'list' && styles.listMediaItem,
+              data.metadata?.mediaLayout === 'collage' && styles.collageMediaItem,
+              data.metadata?.mediaLayout === 'masonry' && styles.masonryMediaItem,
+              data.metadata?.mediaLayout === 'fullwidth' && styles.fullwidthMediaItem,
+              // Fallback to default layouts based on media count
+              !data.metadata?.mediaLayout && data.media?.length === 1 && styles.singleMediaItem,
+              !data.metadata?.mediaLayout && data.media?.length === 2 && styles.doubleMediaItem,
+              !data.metadata?.mediaLayout && data.media?.length === 3 && index === 0 && styles.tripleMainItem,
+              !data.metadata?.mediaLayout && data.media?.length === 3 && index > 0 && styles.tripleSecondaryItem,
+              !data.metadata?.mediaLayout && data.media?.length === 4 && index < 3 && styles.quadMediaItem,
+              !data.metadata?.mediaLayout && data.media?.length === 4 && index === 3 && styles.lastQuadItem,
+            ]}
+          >
+            <Image
+              source={{ uri: item.type === 'video' ? item.thumbnail : item.url }}
+              style={styles.mediaImage}
+              resizeMode="cover"
+            />
+            {item.caption && (
+              <Text style={styles.mediaCaption}>
+                {item.type === 'video' ? '🎥 ' : ''}{item.caption}
+              </Text>
+            )}
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colorScheme.colors.card }]}>
       {showHeader && (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -794,43 +953,14 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         <View style={styles.contentWrapper}>
           <View style={[
             styles.markdownContainer,
-            isCollapsed && { maxHeight: 72 } // Approximately 3 lines of text
+            isCollapsed && { maxHeight: 72 }
           ]}>
             <Markdown style={markdownStyles}>
               {data.content || ''}
             </Markdown>
           </View>
 
-          {data.media && data.media.length > 0 && (
-            <View style={[styles.mediaContainer]}>
-              {data.media.map((item, index) => (
-                <View 
-                  key={index} 
-                  style={[
-                    styles.mediaItem,
-                    data.media?.length === 1 && styles.singleMediaItem,
-                    data.media?.length === 2 && styles.doubleMediaItem,
-                    data.media?.length === 3 && styles.tripleMediaItem,
-                    data.media?.length === 3 && index === 0 && styles.tripleMainItem,
-                    data.media?.length === 3 && index > 0 && styles.tripleSecondaryItem,
-                    data.media?.length === 4 && styles.quadMediaItem,
-                    data.media?.length === 4 && index === 3 && styles.lastQuadItem,
-                  ]}
-                >
-                  <Image
-                    source={{ uri: item.type === 'video' ? item.thumbnail : item.url }}
-                    style={styles.mediaImage}
-                    resizeMode="cover"
-                  />
-                  {item.caption && (
-                    <Text style={styles.mediaCaption}>
-                      {item.type === 'video' ? '🎥 ' : ''}{item.caption}
-                    </Text>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
+          {renderMediaItems()}
 
           {isCollapsed && data.metadata?.isCollapsible && (
             <LinearGradient

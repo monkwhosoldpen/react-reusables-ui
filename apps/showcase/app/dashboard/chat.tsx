@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Modal, Pressable, TextInput, Switch, ActivityIndicator } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
@@ -9,22 +9,33 @@ import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { ChannelMessage, Channel } from '~/lib/types/channel.types';
 import FeedScreen from './feed';
 import { useChannels } from '~/lib/hooks/useChannels';
+import { Button } from '~/components/ui/button';
+import { FormDataType, PollData, QuizData, MediaItem, MediaType, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
+import { useFeedForm } from '~/lib/hooks/useFeedForm';
+import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
+import { DEFAULT_METADATA } from '~/lib/utils/feedData';
+import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
+import { useRouter } from 'expo-router';
 
 const windowWidth = Dimensions.get('window').width;
 
-function ChatList({ title, description, username }: { title: string; description: string; username: string }) {
+function ChatList({ 
+  title, 
+  description, 
+  username, 
+  messages, 
+  isLoading, 
+  error 
+}: { 
+  title: string; 
+  description: string; 
+  username: string;
+  messages: ChannelMessage[];
+  isLoading: boolean;
+  error: string | null;
+}) {
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
-
-  // Initialize the hook to fetch messages
-  const {
-    isLoading,
-    error,
-    channelDetails,
-    messages
-  } = useChannelMessages({
-    username,
-  });
 
   const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -81,6 +92,27 @@ function ChatList({ title, description, username }: { title: string; description
     );
   };
 
+  if (isLoading) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colorScheme.colors.background }]}>
+        <ActivityIndicator size="large" color={colorScheme.colors.primary} />
+        <Text style={[styles.loadingText, { color: colorScheme.colors.text }]}>
+          Loading messages...
+        </Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.errorContainer, { backgroundColor: colorScheme.colors.background }]}>
+        <Text style={[styles.errorText, { color: colorScheme.colors.notification }]}>
+          Error: {error}
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colorScheme.colors.background }]}
@@ -93,33 +125,10 @@ function ChatList({ title, description, username }: { title: string; description
         <Text style={[styles.description, { color: colorScheme.colors.text }]}>
           {description}
         </Text>
-        {isLoading && (
-          <Text style={[styles.description, { color: colorScheme.colors.text }]}>
-            Loading channel details...
-          </Text>
-        )}
-        {error && (
-          <Text style={[styles.description, { color: colorScheme.colors.notification }]}>
-            Error: {error}
-          </Text>
-        )}
-        {channelDetails && (
-          <Text style={[styles.description, { color: colorScheme.colors.text }]}>
-            Channel details loaded
-          </Text>
-        )}
       </Card>
 
       {/* Messages Section */}
-      {isLoading ? (
-        <Text style={[styles.statusText, { color: colorScheme.colors.text }]}>
-          Loading messages...
-        </Text>
-      ) : error ? (
-        <Text style={[styles.statusText, { color: colorScheme.colors.notification }]}>
-          Error loading messages: {error}
-        </Text>
-      ) : messages && messages.length > 0 ? (
+      {messages && messages.length > 0 ? (
         messages.map(renderMessage)
       ) : (
         <Text style={[styles.statusText, { color: colorScheme.colors.text }]}>
@@ -131,12 +140,20 @@ function ChatList({ title, description, username }: { title: string; description
 }
 
 export default function ChatScreen() {
+  const router = useRouter();
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const insets = useSafeAreaInsets();
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
-  const { channels, isLoading, error } = useChannels('janedoe');
-  const { messages: channelMessages } = useChannelMessages({
+  const { channels, isLoading: channelsLoading, error: channelsError } = useChannels('janedoe');
+  
+  // Fetch messages for the selected channel
+  const { 
+    messages: channelMessages, 
+    isLoading: messagesLoading, 
+    error: messagesError,
+    channelDetails
+  } = useChannelMessages({
     username: selectedChannel?.username || '',
   });
 
@@ -153,24 +170,21 @@ export default function ChatScreen() {
     };
   };
 
-  // Log channel selection and messages
-  React.useEffect(() => {
-    console.log('Selected Channel:', selectedChannel);
-    console.log('Channel Messages:', channelMessages);
-  }, [selectedChannel, channelMessages]);
-
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
       {/* Sidebar */}
       <View style={[styles.sidebar, { borderRightColor: colorScheme.colors.border }]}>
         <ScrollView style={styles.sidebarScroll}>
-          {isLoading ? (
-            <Text style={[styles.sidebarText, { color: colorScheme.colors.text }]}>
-              Loading channels...
-            </Text>
-          ) : error ? (
+          {channelsLoading ? (
+            <View style={styles.sidebarLoading}>
+              <ActivityIndicator size="small" color={colorScheme.colors.primary} />
+              <Text style={[styles.sidebarText, { color: colorScheme.colors.text }]}>
+                Loading channels...
+              </Text>
+            </View>
+          ) : channelsError ? (
             <Text style={[styles.sidebarText, { color: colorScheme.colors.notification }]}>
-              Error: {error}
+              Error: {channelsError}
             </Text>
           ) : channels.length > 0 ? (
             channels.map((channel) => (
@@ -216,6 +230,14 @@ export default function ChatScreen() {
           </View>
         )}
       </View>
+
+      {/* Floating Create Button */}
+      <TouchableOpacity
+        style={[styles.createButton, { right: insets.right + 16, bottom: insets.bottom + 16 }]}
+        onPress={() => router.push('/dashboard/create-message')}
+      >
+        <Text style={styles.createButtonText}>Create</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -243,6 +265,12 @@ const styles = StyleSheet.create({
   sidebarText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  sidebarLoading: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   mainContent: {
     flex: 1,
@@ -311,5 +339,44 @@ const styles = StyleSheet.create({
     marginTop: 4,
     alignSelf: 'flex-end',
     opacity: 0.7,
+  },
+  createButton: {
+    position: 'absolute',
+    backgroundColor: '#007AFF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 }); 
