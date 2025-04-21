@@ -294,7 +294,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
               style={styles.optionButton}
               disabled={isSubmitting || (showResults && !isAuthenticated)}
             >
-              <Text>{option}</Text>
+              <Text style={styles.optionButtonText} numberOfLines={0}>{option}</Text>
             </Button>
           ))}
         </View>
@@ -325,7 +325,10 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       borderWidth: 1,
       borderColor: colorScheme.colors.border,
       margin: Number(design.spacing.padding.card),
-      overflow: 'hidden'
+      overflow: 'hidden',
+      width: '100%',
+      maxWidth: 600,
+      alignSelf: 'center',
     },
     header: {
       flexDirection: 'row',
@@ -333,11 +336,13 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       alignItems: 'flex-start',
       paddingHorizontal: Number(design.spacing.padding.card),
       paddingVertical: Number(design.spacing.padding.item),
+      flexWrap: 'wrap',
     },
     headerLeft: {
       flex: 1,
       flexDirection: 'row',
       gap: Number(design.spacing.padding.item),
+      minWidth: 200,
     },
     avatar: {
       width: Number(design.spacing.avatarSize),
@@ -352,6 +357,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     },
     headerText: {
       flex: 1,
+      minWidth: 150,
     },
     nameContainer: {
       flexDirection: 'row',
@@ -389,6 +395,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     },
     content: {
       position: 'relative',
+      width: '100%',
     },
     contentWrapper: {
       padding: Number(design.spacing.padding.card),
@@ -400,10 +407,15 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       gap: Number(design.spacing.padding.card),
       padding: Number(design.spacing.padding.card),
       paddingTop: 0,
+      width: '100%',
+      maxWidth: '100%',
+      overflow: 'hidden'
     },
     interactiveContent: {
       marginTop: Number(design.spacing.margin.item),
       width: '100%',
+      maxWidth: '100%',
+      overflow: 'hidden'
     },
     collapsible: {
       overflow: 'hidden'
@@ -450,6 +462,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     doubleMediaItem: {
       width: '48%' as const,
       aspectRatio: 1,
+      minWidth: 150,
     },
     tripleMediaItem: {
       width: '100%' as const,
@@ -463,10 +476,12 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     tripleSecondaryItem: {
       width: '48%' as const,
       aspectRatio: 1,
+      minWidth: 150,
     },
     quadMediaItem: {
       width: '48%' as const,
       aspectRatio: 1,
+      minWidth: 150,
     },
     lastQuadItem: {
       width: '100%' as const,
@@ -475,12 +490,14 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     gridMediaItem: {
       width: '48%' as const,
       aspectRatio: 1,
+      minWidth: 150,
     },
     carouselContainer: {
       flexDirection: 'row',
       overflow: 'hidden',
       marginTop: Number(design.spacing.margin.item),
       position: 'relative',
+      width: '100%',
     },
     carouselItem: {
       width: '100%' as const,
@@ -493,6 +510,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       alignItems: 'center',
       marginTop: Number(design.spacing.margin.item),
       gap: Number(design.spacing.padding.item),
+      flexWrap: 'wrap',
     },
     carouselDot: {
       width: 8,
@@ -511,10 +529,12 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     collageMediaItem: {
       width: '48%' as const,
       aspectRatio: 1,
+      minWidth: 150,
     },
     masonryMediaItem: {
       width: '48%' as const,
       aspectRatio: 1,
+      minWidth: 150,
     },
     fullwidthMediaItem: {
       width: '100%' as const,
@@ -525,6 +545,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       paddingVertical: Number(design.spacing.padding.item),
       borderTopWidth: 1,
       borderTopColor: colorScheme.colors.border,
+      width: '100%',
     },
     metrics: {
       flexDirection: 'row',
@@ -532,6 +553,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       justifyContent: 'space-between',
       maxWidth: '100%',
       flexWrap: 'wrap',
+      gap: Number(design.spacing.padding.item),
     },
     metricItem: {
       flexDirection: 'row',
@@ -579,6 +601,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      flexWrap: 'wrap',
     },
     pollOptionProgress: {
       position: 'absolute',
@@ -599,6 +622,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       alignItems: 'center',
       justifyContent: 'space-between',
       marginTop: Number(design.spacing.margin.item),
+      flexWrap: 'wrap',
     },
     pollSubmitButton: {
       backgroundColor: colorScheme.colors.primary,
@@ -626,19 +650,28 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     surveyTitle: {
       fontSize: Number(design.spacing.fontSize.xl),
       fontWeight: '600',
-      marginBottom: Number(design.spacing.margin.item)
+      marginBottom: Number(design.spacing.margin.item),
+      width: '100%',
+      flexWrap: 'wrap',
+      paddingHorizontal: Number(design.spacing.padding.item)
     },
     questionContainer: {
       marginBottom: Number(design.spacing.margin.item),
       backgroundColor: colorScheme.colors.background,
       borderRadius: Number(design.radius.lg),
       padding: Number(design.spacing.padding.card),
+      width: '100%',
+      maxWidth: '100%',
+      flexShrink: 1,
+      overflow: 'hidden'
     },
     questionText: {
       fontSize: Number(design.spacing.fontSize.base),
       color: colorScheme.colors.text,
       marginBottom: Number(design.spacing.margin.item),
       fontWeight: '600',
+      flexWrap: 'wrap',
+      width: '100%'
     },
     optionButton: {
       marginBottom: Number(design.spacing.margin.item),
@@ -651,12 +684,24 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       borderRadius: Number(design.radius.sm),
       paddingVertical: Number(design.spacing.padding.item),
       paddingHorizontal: Number(design.spacing.padding.card),
+      width: '100%',
+      minHeight: 44,
+      flexWrap: 'wrap'
+    },
+    optionButtonText: {
+      flex: 1,
+      flexWrap: 'wrap',
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text
     },
     submitButton: {
       backgroundColor: colorScheme.colors.primary,
       borderRadius: Number(design.radius.full),
       paddingVertical: Number(design.spacing.padding.item),
       marginTop: Number(design.spacing.margin.item),
+      width: '100%',
+      maxWidth: '100%',
+      minHeight: 44
     },
     resultText: {
       marginLeft: Number(design.spacing.margin.item),
@@ -725,12 +770,14 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     },
     markdownContainer: {
       overflow: 'hidden',
+      width: '100%',
     },
     pollContainer: {
       marginTop: Number(design.spacing.margin.item),
       padding: Number(design.spacing.padding.item),
       backgroundColor: colorScheme.colors.notification,
       borderRadius: Number(design.radius.md),
+      width: '100%',
     },
   });
 
