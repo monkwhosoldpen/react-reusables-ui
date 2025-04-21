@@ -11,10 +11,11 @@ import { useFeedForm } from '~/lib/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { DEFAULT_METADATA } from '~/lib/utils/feedData';
 import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export default function CreateMessageScreen() {
   const router = useRouter();
+  const { username } = useLocalSearchParams<{ username: string }>();
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const [selectedType, setSelectedType] = useState<'message' | 'poll' | 'quiz' | 'survey'>('message');
@@ -672,6 +673,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     const data: FormDataType = {
       ...formData,
       type: (isInteractive ? selectedInteractiveType : 'message') as FeedItemType,
+      channel_username: username || 'anonymous',
       metadata: {
         ...formData.metadata,
         mediaLayout: mediaLayout,
@@ -730,7 +732,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     }
 
     return data;
-  }, [formData, mediaLayout, isInteractive, selectedInteractiveType]);
+  }, [formData, mediaLayout, isInteractive, selectedInteractiveType, username]);
 
   // Log when formData changes
   useEffect(() => {

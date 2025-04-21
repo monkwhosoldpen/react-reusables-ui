@@ -49,7 +49,8 @@ const useFeedForm = () => {
       const newData = {
         ...prev,
         ...updates,
-        type: updates.type || prev.type,
+        type: updates.type ?? prev.type,
+        content: updates.content ?? prev.content,
         media: Array.isArray(updates.media) ? updates.media : prev.media,
         metadata: {
           ...DEFAULT_METADATA,
@@ -61,10 +62,8 @@ const useFeedForm = () => {
           ...prev.stats,
           ...updates.stats,
         },
-        interactive_content: updates.type ? updates.interactive_content : {
-          ...prev.interactive_content,
-          ...updates.interactive_content,
-        },
+        interactive_content: updates.interactive_content ?? prev.interactive_content,
+        channel_username: updates.channel_username ?? prev.channel_username,
       };
       console.log('useFeedForm - handleFormDataChange - New formData:', newData);
       console.log('useFeedForm - handleFormDataChange - New type:', newData.type);

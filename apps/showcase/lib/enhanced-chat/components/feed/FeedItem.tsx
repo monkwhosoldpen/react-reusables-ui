@@ -240,7 +240,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
                 return (
                   <Button
                     key={oIndex}
-                    variant={quizAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
+                    variant={(quizAnswers[qIndex] ?? -1) === oIndex ? 'default' : 'secondary'}
                     onPress={() => setQuizAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
                     style={styles.optionButton}
                     disabled={isSubmitting || (showResults && !isAuthenticated)}

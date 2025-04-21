@@ -7,7 +7,7 @@ import { Card } from '~/components/ui/card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { ChannelMessage, Channel } from '~/lib/types/channel.types';
-import FeedScreen from '../../components/dashboard/feed';
+import FeedScreen from './feed';
 import { useChannels } from '~/lib/hooks/useChannels';
 import { Button } from '~/components/ui/button';
 import { FormDataType, PollData, QuizData, MediaItem, MediaType, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
@@ -139,13 +139,13 @@ function ChatList({
   );
 }
 
-export default function ChatScreen() {
+export default function ChatScreen({ username }: { username: string }) {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const insets = useSafeAreaInsets();
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
-  const { channels, isLoading: channelsLoading, error: channelsError } = useChannels('janedoe');
+  const { channels, isLoading: channelsLoading, error: channelsError } = useChannels(username);
   
   // Fetch messages for the selected channel
   const { 
@@ -156,6 +156,16 @@ export default function ChatScreen() {
   } = useChannelMessages({
     username: selectedChannel?.username || '',
   });
+
+  // Auto-select channel based on username
+  useEffect(() => {
+    if (channels && !selectedChannel) {
+      const matchingChannel = channels.find(channel => channel.username === username);
+      if (matchingChannel) {
+        setSelectedChannel(transformChannel(matchingChannel));
+      }
+    }
+  }, [channels, username, selectedChannel]);
 
   const transformChannel = (channel: any): Channel => {
     return {
@@ -187,9 +197,9 @@ export default function ChatScreen() {
               Error: {channelsError}
             </Text>
           ) : channels.length > 0 ? (
-            channels.map((channel) => (
+            channels.map((channel, index) => (
               <TouchableOpacity
-                key={channel.username}
+                key={`${channel.username}_${index}`}
                 style={[
                   styles.sidebarItem,
                   selectedChannel?.username === channel.username && styles.selectedSidebarItem,
@@ -234,7 +244,7 @@ export default function ChatScreen() {
       {/* Floating Create Button */}
       <TouchableOpacity
         style={[styles.createButton, { right: insets.right + 16, bottom: insets.bottom + 16 }]}
-        onPress={() => router.push('/dashboard/create-message')}
+        onPress={() => router.push(`/dashboard/${username}/create-message`)}
       >
         <Text style={styles.createButtonText}>Create</Text>
       </TouchableOpacity>
