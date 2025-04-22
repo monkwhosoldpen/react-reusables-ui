@@ -1,10 +1,10 @@
 import { ViewStyle } from 'react-native';
 
-export type FeedItemType = 'tweet' | 'instagram' | 'linkedin' | 'whatsapp' | 'poll' | 'survey' | 'quiz' | 'message';
+export type FeedItemType = 'tweet' | 'instagram' | 'linkedin' | 'whatsapp' | 'poll' | 'survey' | 'quiz' | 'all' | 'message';
 
 export type MediaType = 'image' | 'video';
-export type DisplayMode = 'compact' | 'expanded';
 export type MediaLayout = 'grid' | 'carousel' | 'list' | 'collage' | 'masonry' | 'fullwidth';
+export type DisplayMode = 'compact' | 'default';
 export type ShowResults = 'always' | 'after_vote' | 'never';
 export type ShowExplanation = 'after_question' | 'after_quiz' | 'never';
 export type ShowQuizResults = 'immediately' | 'after_quiz' | 'never';
@@ -14,14 +14,13 @@ export type FillRequirement = 'partial' | 'strict';
 export interface MediaItem {
   type: MediaType;
   url: string;
-  thumbnail?: string;
-  dimensions?: {
-    width: number;
-    height: number;
-  };
   caption?: string;
-  duration?: number;
-  altText?: string;
+  thumbnail?: string;
+  metadata?: {
+    width?: number;
+    height?: number;
+    duration?: number;
+  };
 }
 
 export interface PollSettings {
@@ -78,7 +77,7 @@ export interface SurveyData {
   questions: SurveyQuestion[];
 }
 
-export interface Visibility {
+export interface VisibilitySettings {
   stats: boolean;
   shareButtons: boolean;
   header: boolean;
@@ -96,7 +95,7 @@ export interface Metadata {
   isCollapsible: boolean;
   displayMode: DisplayMode;
   maxHeight: number;
-  visibility: Visibility;
+  visibility: VisibilitySettings;
   mediaLayout: MediaLayout;
   requireAuth?: boolean;
   allowResubmit?: boolean;
@@ -105,17 +104,19 @@ export interface Metadata {
 
 export interface BaseData {
   id?: string;
-  type: FeedItemType;
-  content: string;
+  username?: string;
+  type: string;
+  message_text: string;
   caption?: string;
-  message?: string;
-  media: MediaItem[];
-  metadata?: Metadata;
-  stats?: Stats;
-  fill_requirement?: FillRequirement;
+  media?: Record<string, any>;
+  metadata?: Record<string, any>;
+  stats?: Record<string, any>;
+  interactive_content?: Record<string, any>;
+  fill_requirement?: string;
+  translations?: Record<string, any>;
+  is_translated?: boolean;
+  message_count?: number;
   expires_at?: string;
-  channel_username?: string;
-  interactive_content?: InteractiveContent;
   created_at?: string;
   updated_at?: string;
 }
@@ -128,8 +129,18 @@ export interface InteractiveContent {
   survey?: SurveyData;
 }
 
-export interface FormDataType extends BaseData {
+export interface FormDataType {
+  type: FeedItemType;
+  content: string;
+  message?: string;
+  caption?: string;
+  media?: MediaItem[];
+  metadata?: Metadata;
+  stats?: Stats;
   interactive_content?: InteractiveContent;
+  fill_requirement?: FillRequirement;
+  channel_username?: string;
+  expires_at?: Date;
 }
 
 export interface SuperFeedItemPreviewProps {
@@ -139,4 +150,27 @@ export interface SuperFeedItemPreviewProps {
   showHeader?: boolean;
   showCollapsible?: boolean;
   showFooter?: boolean;
-} 
+}
+
+export interface FeedItemResponse {
+  id: string;
+  feed_item_id: string;
+  user_id: string;
+  response_type: 'poll' | 'quiz' | 'survey';
+  response_data: Record<string, any>;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export const DEFAULT_METADATA: Metadata = {
+  isCollapsible: true,
+  displayMode: 'default',
+  maxHeight: 300,
+  visibility: {
+    stats: true,
+    shareButtons: true,
+    header: true,
+    footer: true
+  },
+  mediaLayout: 'grid'
+}; 

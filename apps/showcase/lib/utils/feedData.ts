@@ -760,22 +760,54 @@ export const refreshFeed = async (username: string): Promise<FormDataType[]> => 
 
 export const handleSubmit = async (formData: FormDataType, username: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('channels_messages')
-      .insert([{
-        username,
-        message_text: formData.content,
+    console.log('handleSubmit - Starting submission with data:', {
+      username,
+      formData: {
         type: formData.type,
+        content: formData.content,
+        message: formData.message,
         media: formData.media,
         metadata: formData.metadata,
         stats: formData.stats,
         interactive_content: formData.interactive_content
-      }]);
+      }
+    });
 
-    if (error) throw error;
+    // Determine the message text to use, with fallbacks in order of preference
+    const messageText = formData.message || 
+                       formData.content || 
+                       formData.interactive_content?.survey?.title || 
+                       formData.interactive_content?.poll?.question || 
+                       formData.interactive_content?.quiz?.title || 
+                       'Survey';
+
+    const submissionData = {
+      username: username,
+      type: formData.type,
+      message_text: messageText,
+      media: formData.media,
+      metadata: formData.metadata,
+      stats: formData.stats,
+      interactive_content: formData.interactive_content,
+      fill_requirement: formData.fill_requirement || 'partial'
+    };
+
+    console.log('handleSubmit - Prepared submission data:', submissionData);
+
+    const { data, error } = await supabase
+      .from('channels_messages')
+      .insert([submissionData])
+      .select();
+
+    if (error) {
+      console.error('handleSubmit - Error inserting message:', error);
+      throw error;
+    }
+
+    console.log('handleSubmit - Successfully inserted message:', data);
     return true;
   } catch (error) {
-    console.error('Error submitting feed item:', error);
+    console.error('handleSubmit - Error submitting feed item:', error);
     return false;
   }
 };

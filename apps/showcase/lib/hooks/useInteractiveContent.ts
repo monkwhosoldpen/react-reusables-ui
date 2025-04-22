@@ -108,8 +108,8 @@ export function useInteractiveContent(feedItem: FormDataType) {
       const { data: messageData, error: messageError } = await supabase
         .from('channels_messages')
         .insert({
-          username: feedItem.channel_username,
-          message_text: feedItem.content,
+          username: user?.email || feedItem.channel_username,
+          message_text: feedItem.content || feedItem.message || feedItem.interactive_content?.survey?.title || 'Survey',
           type: feedItem.type,
           media: feedItem.media,
           metadata: feedItem.metadata,
@@ -122,7 +122,7 @@ export function useInteractiveContent(feedItem: FormDataType) {
       if (messageError) throw messageError;
 
       // Determine the correct response type based on feedItem type
-      const responseType = feedItem.type === 'message' ? 'text' : feedItem.type;
+      const responseType = feedItem.type === 'message' ? 'poll' : feedItem.type;
 
       // Then create the response using the message ID
       const { data: responseData, error: responseError } = await supabase

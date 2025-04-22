@@ -6,26 +6,39 @@ import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { Card } from '~/components/ui/card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '~/components/ui/button';
-import { FormDataType, MediaLayout, FeedItemType, DisplayMode, Visibility } from '~/lib/enhanced-chat/types/superfeed';
+import { 
+  FormDataType, 
+  MediaLayout, 
+  FeedItemType, 
+  DisplayMode, 
+  VisibilitySettings,
+  DEFAULT_METADATA,
+  MediaItem,
+  InteractiveContent
+} from '~/lib/enhanced-chat/types/superfeed';
 import { useFeedForm } from '~/lib/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
-import { DEFAULT_METADATA } from '~/lib/utils/feedData';
 import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { debounce } from 'lodash';
+import { createClient } from '@supabase/supabase-js';
+
+const janedoe_tenant_supabase_url = 'https://risbemjewosmlvzntjkd.supabase.co';
+const janedoe_tenant_supabase_anon_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM';
+
+const supabase = createClient(janedoe_tenant_supabase_url, janedoe_tenant_supabase_anon_key);
 
 export default function CreateMessageScreen() {
-  const router = useRouter();
   const { username } = useLocalSearchParams<{ username: string }>();
   const { colorScheme } = useColorScheme();
-  const { design } = useDesign();
-  const [selectedType, setSelectedType] = useState<'message' | 'poll' | 'quiz' | 'survey'>('message');
+  const [selectedType, setSelectedType] = useState<FeedItemType>('all');
   const [isInteractive, setIsInteractive] = useState(false);
   const [includeMedia, setIncludeMedia] = useState(false);
   const [includeContent, setIncludeContent] = useState(true);
-  const [contentType, setContentType] = useState<'small' | 'long'>('small');
   const [mediaLayout, setMediaLayout] = useState<MediaLayout>('grid');
   const [selectedInteractiveType, setSelectedInteractiveType] = useState<'poll' | 'quiz' | 'survey'>('poll');
+  const [messageCount, setMessageCount] = useState<number>(0);
+  const [messages, setMessages] = useState<any[]>([]);
 
   const {
     formData,
@@ -39,26 +52,27 @@ export default function CreateMessageScreen() {
 
   const handleQuickAction = (type: 'poll' | 'quiz' | 'survey' | 'media' | 'video' | 'small' | 'long') => {
     // Reset form state completely
-    handleFormDataChangeWithPreview({
-      type: 'message',
+    const initialData: Partial<FormDataType> = {
+      type: 'all',
       content: '',
       media: [],
       metadata: {
         ...DEFAULT_METADATA,
         mediaLayout: 'grid'
       }
-    });
+    };
+    handleFormDataChangeWithPreview(initialData);
     setIsInteractive(false);
     setIncludeMedia(false);
     setIncludeContent(true);
-    setSelectedType('message');
+    setSelectedType('all');
     setSelectedInteractiveType('poll');
 
     // Prefill form based on type
     switch (type) {
       case 'small':
         handleFormDataChange({
-          type: 'message',
+          type: 'all',
           content: 'This is a short message that gets straight to the point.',
           media: [],
           metadata: {
@@ -71,7 +85,7 @@ export default function CreateMessageScreen() {
 
       case 'long':
         handleFormDataChange({
-          type: 'message',
+          type: 'all',
           content: `In today's fast-paced digital world, effective communication is more important than ever. This longer message format allows you to express complex ideas, share detailed information, and engage your audience with rich content. Whether you're discussing important updates, sharing insights, or providing comprehensive explanations, the long text format gives you the space you need to communicate effectively.
 
 Use this format when you need to:
@@ -112,8 +126,6 @@ Remember to structure your content with clear paragraphs and formatting to ensur
           },
           metadata: {
             ...DEFAULT_METADATA,
-            requireAuth: true,
-            allowResubmit: false,
             isCollapsible: true,
             mediaLayout: 'grid'
           }
@@ -148,8 +160,6 @@ Remember to structure your content with clear paragraphs and formatting to ensur
           },
           metadata: {
             ...DEFAULT_METADATA,
-            requireAuth: true,
-            allowResubmit: false,
             isCollapsible: true,
             mediaLayout: 'grid'
           }
@@ -183,8 +193,6 @@ Remember to structure your content with clear paragraphs and formatting to ensur
           },
           metadata: {
             ...DEFAULT_METADATA,
-            requireAuth: true,
-            allowResubmit: false,
             isCollapsible: true,
             mediaLayout: 'grid'
           }
@@ -194,38 +202,26 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       case 'media':
         setIncludeMedia(true);
         handleFormDataChange({
-          type: 'message',
+          type: 'all',
           content: 'Check out these amazing images from our latest product launch!',
           media: [
             {
               type: 'image',
               url: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              caption: 'Our new product in action'
+              caption: 'Our new product in action',
+              metadata: {
+                width: 1000,
+                height: 600
+              }
             },
             {
               type: 'image',
               url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              caption: 'Product close-up'
-            },
-            {
-              type: 'image',
-              url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              caption: 'Product in use'
-            },
-            {
-              type: 'image',
-              url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              caption: 'Product features'
-            },
-            {
-              type: 'image',
-              url: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              caption: 'Product packaging'
-            },
-            {
-              type: 'image',
-              url: 'https://images.unsplash.com/photo-1572635196237-14b3f281049f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              caption: 'Product lifestyle'
+              caption: 'Product close-up',
+              metadata: {
+                width: 1000,
+                height: 600
+              }
             }
           ],
           metadata: {
@@ -239,50 +235,28 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       case 'video':
         setIncludeMedia(true);
         handleFormDataChange({
-          type: 'message',
+          type: 'all',
           content: 'Watch our latest product demo and tutorial videos to get the most out of our platform!',
           media: [
             {
               type: 'video',
               url: 'https://example.com/product-demo.mp4',
               caption: 'Product Demo: Getting Started',
-              thumbnail: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              duration: 180
+              metadata: {
+                width: 1280,
+                height: 720,
+                duration: 180
+              }
             },
             {
               type: 'video',
               url: 'https://example.com/advanced-features.mp4',
               caption: 'Advanced Features Tutorial',
-              thumbnail: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              duration: 240
-            },
-            {
-              type: 'video',
-              url: 'https://example.com/tips-tricks.mp4',
-              caption: 'Tips and Tricks',
-              thumbnail: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              duration: 120
-            },
-            {
-              type: 'video',
-              url: 'https://example.com/case-study.mp4',
-              caption: 'Customer Success Story',
-              thumbnail: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              duration: 300
-            },
-            {
-              type: 'video',
-              url: 'https://example.com/faq.mp4',
-              caption: 'Frequently Asked Questions',
-              thumbnail: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              duration: 150
-            },
-            {
-              type: 'video',
-              url: 'https://example.com/roadmap.mp4',
-              caption: 'Product Roadmap',
-              thumbnail: 'https://images.unsplash.com/photo-1572635196237-14b3f281049f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              duration: 200
+              metadata: {
+                width: 1280,
+                height: 720,
+                duration: 240
+              }
             }
           ],
           metadata: {
@@ -311,19 +285,16 @@ Remember to structure your content with clear paragraphs and formatting to ensur
 
   // Update preview data memo with better synchronization
   const previewData = useMemo(() => {
-    console.log('Recalculating preview data...');
     const data: FormDataType = {
       ...formData,
-      type: formData.type || 'message',
+      type: formData.type || 'all',
       channel_username: username || 'anonymous',
       metadata: {
         ...DEFAULT_METADATA,
         ...formData.metadata,
-        mediaLayout: mediaLayout,
-        isCollapsible: formData.metadata?.isCollapsible ?? true,
-        displayMode: formData.metadata?.displayMode ?? 'default' as DisplayMode,
+        displayMode: formData.metadata?.displayMode ?? 'default',
         maxHeight: formData.metadata?.maxHeight ?? 300,
-        visibility: formData.metadata?.visibility ?? 'public' as unknown as Visibility,
+        visibility: formData.metadata?.visibility ?? DEFAULT_METADATA.visibility,
         requireAuth: formData.metadata?.requireAuth ?? false,
         allowResubmit: formData.metadata?.allowResubmit ?? false,
         timestamp: formData.metadata?.timestamp ?? new Date().toISOString()
@@ -331,54 +302,8 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     };
 
     // Only include interactive content if isInteractive is true
-    if (isInteractive) {
-      switch (selectedInteractiveType) {
-        case 'poll':
-          data.type = 'poll';
-          data.interactive_content = {
-            poll: {
-              question: formData.interactive_content?.poll?.question || 'Poll Question',
-              options: formData.interactive_content?.poll?.options || ['Option 1', 'Option 2']
-            }
-          };
-          break;
-        case 'quiz':
-          data.type = 'quiz';
-          data.interactive_content = {
-            quiz: {
-              title: formData.interactive_content?.quiz?.title || 'Quiz Title',
-              questions: formData.interactive_content?.quiz?.questions || [{
-                text: 'Quiz Question',
-                options: ['Option 1', 'Option 2'],
-                correct_option: 0
-              }]
-            }
-          };
-          break;
-        case 'survey':
-          data.type = 'survey';
-          data.interactive_content = {
-            survey: {
-              title: formData.interactive_content?.survey?.title || 'Survey Title',
-              questions: formData.interactive_content?.survey?.questions || [{
-                text: 'Survey Question',
-                options: ['Option 1', 'Option 2']
-              }]
-            }
-          };
-          break;
-      }
-    } else {
-      // Clear interactive content when toggled off
-      data.type = 'message';
-      data.interactive_content = undefined;
-    }
-
-    // Ensure content is set
-    if (!data.content) {
-      data.content = isInteractive 
-        ? `This is a ${selectedInteractiveType} content.` 
-        : 'Enter your message here.';
+    if (isInteractive && formData.interactive_content) {
+      data.interactive_content = formData.interactive_content;
     }
 
     // Ensure media array is properly structured
@@ -387,14 +312,13 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         ...item,
         type: item.type || 'image',
         url: item.url || '',
-        caption: item.caption || ''
+        caption: item.caption || '',
+        metadata: item.metadata || {}
       }));
     } else {
       data.media = [];
     }
 
-    // Log the final preview data
-    console.log('Final Preview Data:', data);
     return data;
   }, [formData, mediaLayout, isInteractive, selectedInteractiveType, username, includeMedia]);
 
@@ -428,7 +352,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       media: includeMedia ? (updates.media || formData.media || []) : [],
       interactive_content: isInteractive ? updates.interactive_content : undefined
     };
-    handleFormDataChange(newFormData);
+    handleFormDataChange(newFormData as Partial<FormDataType>);
     debouncedPreviewUpdate();
   }, [formData, handleFormDataChange, debouncedPreviewUpdate, includeMedia, isInteractive]);
 
@@ -857,10 +781,58 @@ Remember to structure your content with clear paragraphs and formatting to ensur
 
   const handleCreateItem = async () => {
     try {
-      const response = await submitResponse(formData);
-      console.log('Create response:', response);
+      if (!username) {
+        console.error('No username found');
+        return;
+      }
+
+      const createData = {
+        ...formData,
+        channel_username: username,
+        type: formData.type || 'all',
+        metadata: {
+          ...DEFAULT_METADATA,
+          ...formData.metadata,
+          displayMode: formData.metadata?.displayMode ?? 'default',
+          maxHeight: formData.metadata?.maxHeight ?? 300,
+          visibility: formData.metadata?.visibility ?? DEFAULT_METADATA.visibility,
+          requireAuth: formData.metadata?.requireAuth ?? false,
+          allowResubmit: formData.metadata?.allowResubmit ?? false,
+          timestamp: formData.metadata?.timestamp ?? new Date().toISOString()
+        }
+      };
+
+      const { data, error } = await supabase
+        .from('superfeed')
+        .insert([createData])
+        .select();
+
+      if (error) {
+        console.error('Error creating message:', error);
+        return;
+      }
+
+      // Refresh the message count and list
+      const { data: countData, error: countError } = await supabase
+        .from('superfeed')
+        .select('id', { count: 'exact' })
+        .eq('channel_username', username);
+
+      if (!countError) {
+        setMessageCount(countData?.length || 0);
+      }
+
+      // Reset form data after successful creation
+      handleFormDataChange({
+        type: 'all',
+        content: '',
+        media: [],
+        metadata: DEFAULT_METADATA,
+        interactive_content: undefined
+      });
+
     } catch (error) {
-      console.error('Error creating item:', error);
+      console.error('Error in handleCreateItem:', error);
     }
   };
 
@@ -890,6 +862,127 @@ Remember to structure your content with clear paragraphs and formatting to ensur
 
   // Force preview update when layout changes
   const [previewKey, setPreviewKey] = useState(0);
+
+  // Add useEffect to fetch message count
+  useEffect(() => {
+    const fetchMessageCount = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('superfeed')
+          .select('id', { count: 'exact' })
+          .eq('channel_username', username);
+
+        if (error) {
+          console.error('Error fetching message count:', error);
+          return;
+        }
+
+        console.log('Message count:', data?.length || 0);
+        setMessageCount(data?.length || 0);
+      } catch (error) {
+        console.error('Error in fetchMessageCount:', error);
+      }
+    };
+
+    fetchMessageCount();
+  }, [username]);
+
+  // Update fetchMessages to have minimal logging
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('superfeed')
+          .select('*')
+          .eq('channel_username', username)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching messages:', error);
+          return;
+        }
+
+        setMessages(data || []);
+        setMessageCount(data?.length || 0);
+      } catch (error) {
+        console.error('Error in fetchMessages:', error);
+      }
+    };
+
+    fetchMessages();
+  }, [username]);
+
+  const handleEditMessage = (message: any) => {
+    console.log('Editing message:', {
+      id: message.id,
+      type: message.type,
+      content: message.content,
+      hasMedia: !!message.media?.length,
+      hasInteractiveContent: !!message.interactive_content
+    });
+
+    // Initialize default interactive content if needed
+    const interactiveContent = message.interactive_content || {
+      poll: {
+        question: 'Poll Question',
+        options: ['Option 1', 'Option 2']
+      },
+      quiz: {
+        title: 'Quiz Title',
+        questions: [{
+          text: 'Quiz Question',
+          options: ['Option 1', 'Option 2'],
+          correct_option: 0
+        }]
+      },
+      survey: {
+        title: 'Survey Title',
+        questions: [{
+          text: 'Survey Question',
+          options: ['Option 1', 'Option 2']
+        }]
+      }
+    };
+
+    // Update form data with the selected message
+    const updatedFormData = {
+      type: message.type || 'all',
+      content: message.content || '',
+      message: message.message || '',
+      caption: message.caption || '',
+      media: message.media || [],
+      metadata: {
+        ...DEFAULT_METADATA,
+        ...message.metadata,
+        displayMode: message.metadata?.displayMode ?? 'default',
+        maxHeight: message.metadata?.maxHeight ?? 300,
+        visibility: message.metadata?.visibility ?? DEFAULT_METADATA.visibility,
+        requireAuth: message.metadata?.requireAuth ?? false,
+        allowResubmit: message.metadata?.allowResubmit ?? false,
+        timestamp: message.metadata?.timestamp ?? new Date().toISOString()
+      },
+      interactive_content: interactiveContent,
+      channel_username: username
+    };
+
+    // Update all relevant states
+    handleFormDataChange(updatedFormData);
+    setSelectedType(message.type || 'all');
+    setIsInteractive(!!message.interactive_content);
+    if (message.interactive_content) {
+      setSelectedInteractiveType(
+        message.interactive_content.poll ? 'poll' :
+        message.interactive_content.quiz ? 'quiz' :
+        message.interactive_content.survey ? 'survey' : 'poll'
+      );
+    }
+    setMediaLayout(message.metadata?.mediaLayout || 'grid');
+    setIncludeMedia(!!message.media?.length);
+    setIncludeContent(!!message.content);
+
+    // Force preview update with the actual message data
+    setPreviewKey(prev => prev + 1);
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -1096,6 +1189,44 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       color: colorScheme.colors.text,
       opacity: 0.7,
       transform: [{ rotate: '-45deg' }],
+    },
+    messageCount: {
+      fontSize: 16,
+      marginTop: 20,
+      textAlign: 'center',
+    },
+    messageList: {
+      flex: 1,
+      marginTop: 20,
+      width: '100%',
+    },
+    messageItem: {
+      padding: 10,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    messageId: {
+      fontSize: 12,
+      flex: 1,
+    },
+    messageType: {
+      fontSize: 12,
+      marginLeft: 10,
+      flex: 1,
+    },
+    editButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 4,
+      marginLeft: 10,
+    },
+    editButtonText: {
+      color: '#fff',
+      fontSize: 12,
     },
   });
 
@@ -1344,6 +1475,28 @@ Remember to structure your content with clear paragraphs and formatting to ensur
 
         <View style={styles.comingSoonContainer}>
           <Text style={styles.comingSoonText}>Coming Soon</Text>
+          <Text style={[styles.messageCount, { color: colorScheme.colors.text }]}>
+            Total Messages: {messageCount}
+          </Text>
+          
+          <ScrollView style={styles.messageList}>
+            {messages.map((message) => (
+              <View key={message.id} style={[styles.messageItem, { borderColor: colorScheme.colors.border }]}>
+                <Text style={[styles.messageId, { color: colorScheme.colors.text }]}>
+                  ID: {message.id}
+                </Text>
+                <Text style={[styles.messageType, { color: colorScheme.colors.text }]}>
+                  Type: {message.type}
+                </Text>
+                <TouchableOpacity
+                  style={[styles.editButton, { backgroundColor: colorScheme.colors.primary }]}
+                  onPress={() => handleEditMessage(message)}
+                >
+                  <Text style={styles.editButtonText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
         </View>
 
         <View style={[styles.previewContainer, { backgroundColor: colorScheme.colors.background }]}>

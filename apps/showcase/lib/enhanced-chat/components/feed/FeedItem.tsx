@@ -161,92 +161,107 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     }
   };
 
-  const renderPoll = (poll: PollData) => (
-    <View style={styles.interactiveContent}>
-      <Text style={styles.quizTitle}>{poll.question}</Text>
-      {error && (
-        <Text style={styles.errorText}>{error.message}</Text>
-      )}
-      <View style={styles.questionContainer}>
-        {poll.options.map((option, index) => (
-          <Button
-            key={index}
-            variant={selectedPollOptions.includes(index) ? 'default' : 'secondary'}
-            onPress={() => !showResults && setSelectedPollOptions([index])}
-            style={styles.optionButton}
-            disabled={isSubmitting || (showResults && !isAuthenticated)}
-          >
-            <View style={styles.pollOptionContent}>
-              <Text>{option}</Text>
-              {showResults && (
-                <Text style={styles.pollPercentage}>
-                  {Math.floor(Math.random() * 100)}%
-                </Text>
-              )}
-            </View>
-            {showResults && (
-              <View style={[
-                styles.pollOptionProgress,
-                { width: `${Math.floor(Math.random() * 100)}%` }
-              ]} />
-            )}
-          </Button>
-        ))}
-      </View>
-      {!showResults && (
-        <Button 
-          variant="default" 
-          onPress={handlePollSubmit} 
-          style={styles.submitButton}
-          disabled={isSubmitting || selectedPollOptions.length === 0}
-        >
-          <Text>{isSubmitting ? 'Submitting...' : 'Vote'}</Text>
-        </Button>
-      )}
-      {showResults && (
-        <Text style={styles.pollVoteCount}>
-          {data.stats?.responses || 0} votes
-        </Text>
-      )}
-    </View>
-  );
+  const renderPoll = (poll: PollData) => {
+    if (!poll.question || !poll.options || poll.options.length === 0) {
+      return null;
+    }
 
-  const renderQuiz = (quiz: QuizData) => {
-    console.log('Rendering quiz:', quiz);
-    console.log('Quiz questions:', quiz.questions);
-    console.log('Quiz title:', quiz.title);
     return (
       <View style={styles.interactiveContent}>
-        <Text style={styles.quizTitle}>{quiz.title}</Text>
+        <Text style={styles.quizTitle}>{poll.question}</Text>
         {error && (
           <Text style={styles.errorText}>{error.message}</Text>
         )}
-        {quiz.questions.map((question, qIndex) => {
-          console.log('Rendering question:', question);
-          console.log('Question text:', question.text);
-          console.log('Question options:', question.options);
+        <View style={styles.optionsContainer}>
+          {poll.options.map((option, index) => (
+            <Button
+              key={index}
+              variant={selectedPollOptions.includes(index) ? 'default' : 'secondary'}
+              onPress={() => !showResults && setSelectedPollOptions([index])}
+              style={styles.optionButton}
+              disabled={isSubmitting || (showResults && !isAuthenticated)}
+            >
+              <View style={styles.pollOptionContent}>
+                <Text style={styles.optionButtonText}>{option}</Text>
+                {showResults && (
+                  <View style={styles.pollResults}>
+                    <Text style={styles.pollPercentage}>
+                      {Math.floor(Math.random() * 100)}%
+                    </Text>
+                    <View style={[
+                      styles.pollOptionProgress,
+                      { width: `${Math.floor(Math.random() * 100)}%` }
+                    ]} />
+                  </View>
+                )}
+              </View>
+            </Button>
+          ))}
+        </View>
+        {!showResults && (
+          <Button 
+            variant="default" 
+            onPress={handlePollSubmit} 
+            style={styles.submitButton}
+            disabled={isSubmitting || selectedPollOptions.length === 0}
+          >
+            <Text>Vote</Text>
+          </Button>
+        )}
+        {showResults && (
+          <View style={styles.pollFooter}>
+            <Text style={styles.pollVoteCount}>
+              {data.stats?.responses || 0} votes
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderQuiz = (quiz: QuizData) => {
+    if (!quiz.title && (!quiz.questions || quiz.questions.length === 0)) {
+      return null;
+    }
+
+    return (
+      <View style={styles.interactiveContent}>
+        {quiz.title && <Text style={styles.quizTitle}>{quiz.title}</Text>}
+        {error && (
+          <Text style={styles.errorText}>{error.message}</Text>
+        )}
+        {quiz.questions?.map((question, qIndex) => {
+          if (!question.text || !question.options || question.options.length === 0) {
+            return null;
+          }
+
           return (
             <View key={qIndex} style={styles.questionContainer}>
               <Text style={styles.questionText}>{question.text}</Text>
-              {question.options.map((option, oIndex) => {
-                console.log('Rendering option:', option);
-                return (
-                  <Button
-                    key={oIndex}
-                    variant={(quizAnswers[qIndex] ?? -1) === oIndex ? 'default' : 'secondary'}
-                    onPress={() => setQuizAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
-                    style={styles.optionButton}
-                    disabled={isSubmitting || (showResults && !isAuthenticated)}
-                  >
-                    <Text>{option}</Text>
-                    {showResults && (
-                      <Text style={styles.resultText}>
-                        {oIndex === question.correct_option ? '✅' : '❌'}
-                      </Text>
-                    )}
-                  </Button>
-                );
-              })}
+              <View style={styles.optionsContainer}>
+                {question.options.map((option, oIndex) => {
+                  if (!option) return null;
+                  
+                  return (
+                    <Button
+                      key={oIndex}
+                      variant={(quizAnswers[qIndex] ?? -1) === oIndex ? 'default' : 'secondary'}
+                      onPress={() => setQuizAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
+                      style={styles.optionButton}
+                      disabled={isSubmitting || (showResults && !isAuthenticated)}
+                    >
+                      <View style={styles.pollOptionContent}>
+                        <Text style={styles.optionButtonText}>{option}</Text>
+                        {showResults && (
+                          <Text style={styles.resultText}>
+                            {oIndex === question.correct_option ? '✅' : '❌'}
+                          </Text>
+                        )}
+                      </View>
+                    </Button>
+                  );
+                })}
+              </View>
             </View>
           );
         })}
@@ -255,68 +270,76 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             variant="default" 
             onPress={handleQuizSubmit} 
             style={styles.submitButton}
-            disabled={isSubmitting || Object.keys(quizAnswers).length !== quiz.questions.length}
+            disabled={isSubmitting || Object.keys(quizAnswers).length !== quiz.questions?.length}
           >
-            <Text>{isSubmitting ? 'Submitting...' : 'Submit Answers'}</Text>
+            <Text>Submit Answers</Text>
           </Button>
-        )}
-        {showResults && (
-          <Button 
-            variant="default" 
-            onPress={() => setShowResults(false)} 
-            style={styles.submitButton}
-            disabled={isSubmitting}
-          >
-            <Text>Try Again</Text>
-          </Button>
-        )}
-        {data.metadata?.requireAuth && !isAuthenticated && (
-          <Text style={styles.authRequiredText}>Sign in to participate in this quiz</Text>
         )}
       </View>
     );
   };
 
-  const renderSurvey = (survey: SurveyData) => (
-    <View style={styles.interactiveContent}>
-      <Text style={styles.surveyTitle}>{survey.title}</Text>
-      {error && (
-        <Text style={styles.errorText}>{error.message}</Text>
-      )}
-      {survey.questions.map((question, qIndex) => (
-        <View key={qIndex} style={styles.questionContainer}>
-          <Text style={styles.questionText}>{question.text}</Text>
-          {question.options.map((option, oIndex) => (
-            <Button
-              key={oIndex}
-              variant={surveyAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
-              onPress={() => setSurveyAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
-              style={styles.optionButton}
-              disabled={isSubmitting || (showResults && !isAuthenticated)}
-            >
-              <Text style={styles.optionButtonText} numberOfLines={0}>{option}</Text>
-            </Button>
-          ))}
-        </View>
-      ))}
-      {!showResults && (
-        <Button 
-          variant="default" 
-          onPress={handleSurveySubmit} 
-          style={styles.submitButton}
-          disabled={isSubmitting || Object.keys(surveyAnswers).length !== survey.questions.length}
-        >
-          <Text>{isSubmitting ? 'Submitting...' : 'Submit Survey'}</Text>
-        </Button>
-      )}
-      {showResults && (
-        <Text style={styles.thankYouText}>Thank you for your feedback!</Text>
-      )}
-      {data.metadata?.requireAuth && !isAuthenticated && (
-        <Text style={styles.authRequiredText}>Sign in to participate in this survey</Text>
-      )}
-    </View>
-  );
+  const renderSurvey = (survey: SurveyData) => {
+    if (!survey.title || !survey.questions || survey.questions.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.interactiveContent}>
+        <Text style={styles.surveyTitle}>{survey.title}</Text>
+        {error && (
+          <Text style={styles.errorText}>{error.message}</Text>
+        )}
+        {survey.questions.map((question, qIndex) => (
+          <View key={qIndex} style={styles.questionContainer}>
+            <Text style={styles.questionText}>{question.text}</Text>
+            <View style={styles.optionsContainer}>
+              {question.options.map((option, oIndex) => (
+                <Button
+                  key={oIndex}
+                  variant={surveyAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
+                  onPress={() => setSurveyAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
+                  style={styles.optionButton}
+                  disabled={isSubmitting || (showResults && !isAuthenticated)}
+                >
+                  <Text style={styles.optionButtonText}>{option}</Text>
+                </Button>
+              ))}
+            </View>
+          </View>
+        ))}
+        {!showResults && (
+          <Button 
+            variant="default" 
+            onPress={handleSurveySubmit} 
+            style={styles.submitButton}
+            disabled={isSubmitting || Object.keys(surveyAnswers).length !== survey.questions.length}
+          >
+            <Text>Submit Survey</Text>
+          </Button>
+        )}
+        {showResults && (
+          <View style={styles.surveyFooter}>
+            <Text style={styles.thankYouText}>Thank you for your feedback!</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderInteractiveContent = () => {
+    if (!data.interactive_content) return null;
+
+    const { poll, quiz, survey } = data.interactive_content;
+
+    return (
+      <View style={styles.interactiveFeaturesContainer}>
+        {poll && renderPoll(poll)}
+        {quiz && renderQuiz(quiz)}
+        {survey && renderSurvey(survey)}
+      </View>
+    );
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -596,45 +619,29 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       marginBottom: Number(design.spacing.margin.item),
       color: colorScheme.colors.text,
     },
+    optionsContainer: {
+      marginTop: 8,
+      gap: 8,
+    },
     pollOptionContent: {
       flex: 1,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      flexWrap: 'wrap',
     },
-    pollOptionProgress: {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      bottom: 0,
-      backgroundColor: colorScheme.colors.primary,
-      opacity: 0.1,
-      borderRadius: Number(design.radius.sm),
-    },
-    pollPercentage: {
-      fontSize: Number(design.spacing.fontSize.sm),
-      color: colorScheme.colors.text,
-      marginLeft: Number(design.spacing.margin.item),
-    },
-    pollFooter: {
+    pollResults: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: Number(design.spacing.margin.item),
-      flexWrap: 'wrap',
+      gap: 8,
     },
-    pollSubmitButton: {
-      backgroundColor: colorScheme.colors.primary,
-      borderRadius: Number(design.radius.full),
-      paddingHorizontal: Number(design.spacing.padding.item),
-      paddingVertical: Number(design.spacing.padding.item),
-      minWidth: 80,
+    pollPercentage: {
+      fontSize: 14,
+      color: '#666',
     },
-    pollSubmitText: {
-      color: colorScheme.colors.background,
-      fontSize: Number(design.spacing.fontSize.sm),
-      fontWeight: '600',
+    pollOptionProgress: {
+      height: 4,
+      backgroundColor: '#007AFF',
+      borderRadius: 2,
     },
     pollVoteCount: {
       fontSize: Number(design.spacing.fontSize.sm),
@@ -642,10 +649,10 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       opacity: Number(design.opacity.medium),
     },
     quizTitle: {
-      fontSize: Number(design.spacing.fontSize.lg),
-      fontWeight: '700',
-      color: colorScheme.colors.text,
+      fontSize: Number(design.spacing.fontSize.base),
+      fontWeight: 'bold',
       marginBottom: Number(design.spacing.margin.item),
+      color: colorScheme.colors.text,
     },
     surveyTitle: {
       fontSize: Number(design.spacing.fontSize.xl),
@@ -657,24 +664,18 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     },
     questionContainer: {
       marginBottom: Number(design.spacing.margin.item),
-      backgroundColor: colorScheme.colors.background,
-      borderRadius: Number(design.radius.lg),
       padding: Number(design.spacing.padding.card),
-      width: '100%',
-      maxWidth: '100%',
-      flexShrink: 1,
-      overflow: 'hidden'
+      backgroundColor: colorScheme.colors.background,
+      borderRadius: Number(design.radius.sm),
     },
     questionText: {
       fontSize: Number(design.spacing.fontSize.base),
       color: colorScheme.colors.text,
       marginBottom: Number(design.spacing.margin.item),
-      fontWeight: '600',
-      flexWrap: 'wrap',
-      width: '100%'
     },
     optionButton: {
       marginBottom: Number(design.spacing.margin.item),
+      width: '100%',
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -684,15 +685,12 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       borderRadius: Number(design.radius.sm),
       paddingVertical: Number(design.spacing.padding.item),
       paddingHorizontal: Number(design.spacing.padding.card),
-      width: '100%',
       minHeight: 44,
-      flexWrap: 'wrap'
     },
     optionButtonText: {
-      flex: 1,
-      flexWrap: 'wrap',
       fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text
+      color: colorScheme.colors.text,
+      flex: 1,
     },
     submitButton: {
       backgroundColor: colorScheme.colors.primary,
@@ -771,6 +769,14 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     markdownContainer: {
       overflow: 'hidden',
       width: '100%',
+    },
+    pollFooter: {
+      marginTop: Number(design.spacing.margin.item),
+      alignItems: 'center',
+    },
+    surveyFooter: {
+      marginTop: Number(design.spacing.margin.item),
+      alignItems: 'center',
     },
     pollContainer: {
       marginTop: Number(design.spacing.margin.item),
@@ -1011,21 +1017,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
           {data.media && data.media.length > 0 && renderMediaItems()}
 
           {/* Interactive Content */}
-          {!isCollapsed && (
-            <View style={styles.interactiveFeaturesContainer}>
-              {(data.type === 'poll' || data.interactive_content?.poll) && data.interactive_content?.poll && (
-                renderPoll(data.interactive_content.poll)
-              )}
-              
-              {(data.type === 'quiz' || data.interactive_content?.quiz) && data.interactive_content?.quiz && (
-                renderQuiz(data.interactive_content.quiz)
-              )}
-              
-              {(data.type === 'survey' || data.interactive_content?.survey) && data.interactive_content?.survey && (
-                renderSurvey(data.interactive_content.survey)
-              )}
-            </View>
-          )}
+          {!isCollapsed && renderInteractiveContent()}
 
           {isCollapsed && data.metadata?.isCollapsible && (
             <LinearGradient

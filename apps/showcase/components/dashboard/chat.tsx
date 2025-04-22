@@ -170,10 +170,12 @@ export default function ChatScreen({ username }: { username: string }) {
   const transformChannel = (channel: any): Channel => {
     return {
       ...channel,
+      username: channel.username || channel.owner_username,
       is_enhanced_chat: false,
       custom_properties: {},
       related_channels: channel.related_channels?.map((related: any) => ({
         ...related,
+        username: related.username || related.owner_username,
         is_enhanced_chat: false,
         custom_properties: {}
       })) || []

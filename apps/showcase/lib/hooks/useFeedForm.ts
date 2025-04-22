@@ -22,6 +22,7 @@ interface UseFeedFormReturn {
   error: Error | null;
   latestItem: FormDataType | null;
   handleFormDataChange: (updates: Partial<FormDataType>) => void;
+  handleFormDataChangeWithPreview: (updates: Partial<FormDataType>) => void;
   handleTabChange: (tab: FeedItemType) => void;
   createOrUpdateSuperFeedItem: (data: FormDataType) => Promise<boolean>;
   fetchLatestItem: () => Promise<void>;
@@ -134,37 +135,16 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
   const [latestItem, setLatestItem] = useState<FormDataType | null>(null);
 
   const handleFormDataChange = useCallback((updates: Partial<FormDataType>) => {
-    setFormData(prev => {
-      // Validate and sanitize updates
-      const sanitizedUpdates = { ...updates };
-      
-      // Ensure media is always an array
-      if ('media' in updates && !Array.isArray(updates.media)) {
-        sanitizedUpdates.media = [];
-      }
+    setFormData(prev => ({
+      ...prev,
+      ...updates,
+      channel_username: user.email
+    }));
+  }, [user.email]);
 
-      // Ensure metadata has required fields
-      if (updates.metadata) {
-        sanitizedUpdates.metadata = {
-          ...DEFAULT_METADATA,
-          ...updates.metadata
-        };
-      }
-
-      // Ensure stats has required fields
-      if (updates.stats) {
-        sanitizedUpdates.stats = {
-          ...DEFAULT_STATS,
-          ...updates.stats
-        };
-      }
-
-      return {
-        ...prev,
-        ...sanitizedUpdates,
-      };
-    });
-  }, []);
+  const handleFormDataChangeWithPreview = useCallback((updates: Partial<FormDataType>) => {
+    handleFormDataChange(updates);
+  }, [handleFormDataChange]);
 
   const handleTabChange = useCallback((tab: FeedItemType) => {
     if (!tab) {
@@ -281,6 +261,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
     error,
     latestItem,
     handleFormDataChange,
+    handleFormDataChangeWithPreview,
     handleTabChange,
     createOrUpdateSuperFeedItem,
     fetchLatestItem,
