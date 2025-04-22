@@ -6,11 +6,14 @@ import { ChannelMessage, Channel } from '@/lib/types/channel.types'
 import { MessageCircle, AlertCircle } from 'lucide-react'
 import { groupMessagesByDate } from '~/lib/dateUtils'
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
+import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem'
+import { DEFAULT_METADATA } from '~/lib/utils/feedData'
+import { FeedItemType, MediaItem, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed'
 
 interface ChannelMessagesProps {
   messages: ChannelMessage[]
   messagesLoading: boolean
-  messagesError: string | null
+  messagesError: Error | null
   messagesEndRef: React.RefObject<View>
   onRequestAccess?: () => void
   onLoadMore?: () => void
@@ -31,90 +34,87 @@ export function ChannelMessages({
 }: ChannelMessagesProps) {
   const { colorScheme } = useColorScheme();
 
+  if (messagesLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text>Loading messages...</Text>
+      </View>
+    );
+  }
+
+  if (messagesError) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text>Error loading messages: {messagesError.message}</Text>
+      </View>
+    );
+  }
+
+  if (!messages || messages.length === 0) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text>No messages yet</Text>
+      </View>
+    );
+  }
+
   // Group messages by date
-  const messageGroups = groupMessagesByDate(messages);
-
-  // Format date for display
-  const formatMessageDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
-
-  // Format time for display
-  const formatMessageTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString(undefined, { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  const groupedMessages = messages.reduce((acc, message) => {
+    const date = new Date(message.created_at).toLocaleDateString();
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(message);
+    return acc;
+  }, {} as Record<string, ChannelMessage[]>);
 
   return (
-    <View className="flex-1 p-4">
-      {/* Show loading spinner when messages are loading */}
-      {messagesLoading ? (
-        <View className="flex-1 justify-center items-center py-12">
-          <Text className="mt-2 text-base text-muted-foreground">
-            Loading messages...
-          </Text>
-        </View>
-      ) : messagesError ? (
-        <View className="flex-1 justify-center items-center p-6">
-          <AlertCircle size={40} color="#ef4444" className="mb-2" />
-          <Text className="text-lg text-destructive mb-2">
-            {messagesError}
-          </Text>
-          <Text className="text-base text-muted-foreground">
-            Unable to load messages at this time.
-          </Text>
-        </View>
-      ) : messages.length === 0 ? (
-        <View className="flex-1 justify-center items-center p-6">
-          <MessageCircle size={40} color={colorScheme.colors.text} className="mb-2" />
-          <Text className="text-lg text-foreground mb-2">
-            No messages yet
-          </Text>
-          <Text className="text-base text-muted-foreground">
-            This channel has no messages yet.
-          </Text>
-        </View>
-      ) : (
-        // Display message groups
-        messageGroups.map((group) => (
-          <View key={group.date} className="mb-4">
-            {/* Date separator */}
-            <View className="items-center mb-2">
-              <Text className="text-xs font-medium px-2 py-1 rounded bg-background">
-                {formatMessageDate(group.date)}
-              </Text>
-            </View>
-            
-            {/* Messages for this date */}
-            {group.messages.map((message: ChannelMessage) => (
-              <View key={message.id} className="p-3 mb-2 rounded-lg border border-border bg-card">
-                <View className="flex-row justify-between items-start mb-1">
-                  <Text className="text-sm font-semibold text-foreground">
-                    {message.username}
-                  </Text>
-                  <Text className="text-xs text-muted-foreground">
-                    {formatMessageTime(message.created_at)}
-                  </Text>
-                </View>
-                <Text className="text-sm text-foreground">
-                  {message.message_text}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ))
-      )}
+    <ScrollView className="flex-1">
+      {Object.entries(groupedMessages).map(([date, dateMessages]) => (
+        <View key={date} className="mb-4">
+          <Text className="text-sm text-gray-500 mb-2">{date}</Text>
+          {dateMessages.map((message) => {
+            // Parse message_text as JSON to extract media and interactive content
+            let media: MediaItem[] = [];
+            let interactive_content: { poll?: PollData; quiz?: QuizData; survey?: SurveyData } = {};
+            let content = message.message_text;
 
-      {/* Reference for scrolling to bottom */}
+            try {
+              const parsed = JSON.parse(message.message_text);
+              if (parsed.media) media = parsed.media;
+              if (parsed.interactive_content) interactive_content = parsed.interactive_content;
+              if (parsed.content) content = parsed.content;
+            } catch (e) {
+              // If parsing fails, use the message_text as is
+            }
+
+            return (
+              <View key={message.id} className="mb-4">
+                <FeedItem
+                  data={{
+                    id: message.id,
+                    type: 'message' as FeedItemType,
+                    content: content,
+                    media: media,
+                    metadata: {
+                      ...DEFAULT_METADATA,
+                      timestamp: message.created_at,
+                      isCollapsible: true
+                    },
+                    channel_username: username,
+                    interactive_content: interactive_content,
+                    created_at: message.created_at,
+                    updated_at: message.updated_at
+                  }}
+                  showHeader={true}
+                  showFooter={true}
+                />
+              </View>
+            );
+          })}
+        </View>
+      ))}
       <View ref={messagesEndRef} />
-    </View>
+    </ScrollView>
   );
 } 

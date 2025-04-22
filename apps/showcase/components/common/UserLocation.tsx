@@ -282,8 +282,8 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
 
   return (
     <>
-      <Card className="mb-4">
-        <CardContent className="p-4">
+      <Card>
+        <CardContent>
           {isEditing && user ? (
             <div className="space-y-4">
               <div className="flex justify-between items-center">

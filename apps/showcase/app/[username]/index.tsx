@@ -19,7 +19,7 @@ import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 import { useWindowDimensions } from 'react-native';
 import { useRealtime } from '~/lib/providers/RealtimeProvider';
 import { AgentChat } from '~/components/agent-chat/AgentChat';
-import ChannelInfoSection from './ChannelInfoSection';
+import ChannelInfoSection from '~/components/ChannelInfoSection';
 
 export default function ChannelPage() {
   const router = useRouter();
@@ -191,11 +191,9 @@ export default function ChannelPage() {
             <ChannelMessages
               messages={messages || []}
               messagesLoading={loadingMessages}
-              messagesError={messageError}
               messagesEndRef={messagesEndRef}
               channelDetails={channel}
-              username={usernameStr}
-            />
+              username={usernameStr} messagesError={undefined}            />
 
           </ScrollView>
         </View>

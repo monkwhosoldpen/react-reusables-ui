@@ -32,7 +32,7 @@ export default function CreateMessageScreen() {
     handleFormDataChange,
     isSubmitting
   } = useFeedForm({
-    user: { email: 'johndoe' }
+    user: { email: username }
   });
 
   const { submitResponse } = useInteractiveContent(formData as FormDataType);
@@ -891,6 +891,214 @@ Remember to structure your content with clear paragraphs and formatting to ensur
   // Force preview update when layout changes
   const [previewKey, setPreviewKey] = useState(0);
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    quickActions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      padding: 16,
+      gap: 8,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colorScheme.colors.border,
+    },
+    quickActionButton: {
+      flex: 1,
+      minWidth: 100,
+    },
+    dialogContent: {
+      flex: 1,
+      flexDirection: 'row',
+      overflow: 'hidden',
+    },
+    formContainer: {
+      width: '30%',
+      borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: colorScheme.colors.border,
+      padding: 16,
+    },
+    formScroll: {
+      flex: 1,
+    },
+    section: {
+      marginBottom: 16,
+      padding: 16,
+      backgroundColor: colorScheme.colors.card,
+      borderRadius: 8,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 12,
+      color: colorScheme.colors.text,
+    },
+    toggleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+      paddingVertical: 4,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colorScheme.colors.border,
+      borderRadius: 6,
+      padding: 12,
+      marginBottom: 12,
+      fontSize: 16,
+      backgroundColor: colorScheme.colors.background,
+      color: colorScheme.colors.text,
+    },
+    interactiveSection: {
+      marginTop: 16,
+      gap: 12,
+    },
+    optionRow: {
+      flexDirection: 'row',
+      gap: 8,
+      alignItems: 'center',
+    },
+    questionSection: {
+      marginTop: 16,
+      padding: 16,
+      backgroundColor: colorScheme.colors.card,
+      borderRadius: 8,
+      gap: 12,
+    },
+    questionTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colorScheme.colors.text,
+    },
+    correctOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    previewContainer: {
+      width: '30%',
+      padding: 16,
+      borderLeftWidth: StyleSheet.hairlineWidth,
+      borderLeftColor: colorScheme.colors.border,
+    },
+    previewScroll: {
+      flex: 1,
+    },
+    previewCard: {
+      flex: 1,
+      minHeight: 200,
+      borderRadius: 12,
+      overflow: 'hidden',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colorScheme.colors.border,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    dialogFooter: {
+      padding: 16,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colorScheme.colors.border,
+    },
+    mediaLayoutContainer: {
+      marginBottom: 20,
+    },
+    mediaLayoutTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 12,
+      color: colorScheme.colors.text,
+    },
+    mediaLayoutButtons: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    mediaLayoutButton: {
+      flex: 1,
+      minWidth: 100,
+      padding: 12,
+      borderRadius: 6,
+      borderWidth: 1,
+      alignItems: 'center',
+      backgroundColor: colorScheme.colors.background,
+      borderColor: colorScheme.colors.border,
+    },
+    selectedMediaLayoutButton: {
+      backgroundColor: colorScheme.colors.primary,
+      borderColor: colorScheme.colors.primary,
+    },
+    mediaLayoutButtonText: {
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    mediaItemsContainer: {
+      marginTop: 16,
+      gap: 16,
+    },
+    mediaItem: {
+      gap: 12,
+      padding: 12,
+      backgroundColor: colorScheme.colors.background,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colorScheme.colors.border,
+    },
+    mediaItemLabel: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colorScheme.colors.text,
+    },
+    mediaButtons: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 16,
+    },
+    mediaButton: {
+      flex: 1,
+      paddingVertical: 12,
+    },
+    radioGroup: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 16,
+    },
+    radioOption: {
+      flex: 1,
+      padding: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colorScheme.colors.border,
+      alignItems: 'center',
+      backgroundColor: colorScheme.colors.background,
+    },
+    radioOptionSelected: {
+      backgroundColor: colorScheme.colors.primary,
+      borderColor: colorScheme.colors.primary,
+    },
+    radioText: {
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    comingSoonContainer: {
+      width: '40%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colorScheme.colors.card,
+      borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: colorScheme.colors.border,
+    },
+    comingSoonText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colorScheme.colors.text,
+      opacity: 0.7,
+      transform: [{ rotate: '-45deg' }],
+    },
+  });
+
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
       {/* Quick Action Buttons */}
@@ -1169,208 +1377,4 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       </View>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  quickActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 16,
-    gap: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
-  },
-  quickActionButton: {
-    flex: 1,
-    minWidth: 100,
-  },
-  dialogContent: {
-    flex: 1,
-    flexDirection: 'row',
-    overflow: 'hidden',
-  },
-  formContainer: {
-    width: '30%',
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#ccc',
-    padding: 16,
-  },
-  formScroll: {
-    flex: 1,
-  },
-  section: {
-    marginBottom: 16,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#333',
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingVertical: 4,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
-    padding: 12,
-    marginBottom: 12,
-    fontSize: 16,
-    backgroundColor: '#fff',
-  },
-  interactiveSection: {
-    marginTop: 16,
-    gap: 12,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  questionSection: {
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    gap: 12,
-  },
-  questionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  correctOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  previewContainer: {
-    width: '30%',
-    padding: 16,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: '#ccc',
-  },
-  previewScroll: {
-    flex: 1,
-  },
-  previewCard: {
-    flex: 1,
-    minHeight: 200,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  dialogFooter: {
-    padding: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#ccc',
-  },
-  mediaLayoutContainer: {
-    marginBottom: 20,
-  },
-  mediaLayoutTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-    color: '#333',
-  },
-  mediaLayoutButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  mediaLayoutButton: {
-    flex: 1,
-    minWidth: 100,
-    padding: 12,
-    borderRadius: 6,
-    borderWidth: 1,
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  selectedMediaLayoutButton: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  mediaLayoutButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  mediaItemsContainer: {
-    marginTop: 16,
-    gap: 16,
-  },
-  mediaItem: {
-    gap: 12,
-    padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#eee',
-  },
-  mediaItemLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  mediaButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
-  mediaButton: {
-    flex: 1,
-    paddingVertical: 12,
-  },
-  radioGroup: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  radioOption: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  radioOptionSelected: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  radioText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  comingSoonContainer: {
-    width: '40%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#ccc',
-  },
-  comingSoonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#666',
-    transform: [{ rotate: '-45deg' }],
-  },
-}); 
+} 
