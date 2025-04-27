@@ -50,7 +50,7 @@ export default function CreateMessageScreen() {
 
   const { submitResponse } = useInteractiveContent(formData as FormDataType);
 
-  const handleQuickAction = (type: 'poll' | 'quiz' | 'survey' | 'media' | 'video' | 'small' | 'long') => {
+  const handleQuickAction = (type: 'poll' | 'quiz' | 'survey' | 'media' | 'video' | 'small' | 'long' | 'superfeed') => {
     // Reset form state completely
     const initialData: Partial<FormDataType> = {
       type: 'all',
@@ -70,6 +70,121 @@ export default function CreateMessageScreen() {
 
     // Prefill form based on type
     switch (type) {
+      case 'superfeed':
+        setIsInteractive(true);
+        setIncludeMedia(true);
+        setSelectedType('poll');
+        setSelectedInteractiveType('poll');
+        handleFormDataChange({
+          type: 'poll',
+          content: `We're excited to announce our latest product launch! 🚀
+
+After months of development and testing, we're proud to introduce our new platform that revolutionizes how teams collaborate and manage their workflows.
+
+Key Features:
+• Real-time collaboration
+• Advanced analytics
+• Customizable workflows
+• AI-powered insights
+• Mobile-first experience
+
+We'd love to know which features you're most excited about! Please take a moment to vote in our poll below.`,
+          media: [
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Team collaboration in action',
+              metadata: {
+                width: 1000,
+                height: 600
+              }
+            },
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Advanced analytics dashboard',
+              metadata: {
+                width: 1000,
+                height: 600
+              }
+            },
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Customizable workflow interface',
+              metadata: {
+                width: 1000,
+                height: 600
+              }
+            },
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'AI-powered insights visualization',
+              metadata: {
+                width: 1000,
+                height: 600
+              }
+            },
+            {
+              type: 'image',
+              url: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              caption: 'Mobile app interface',
+              metadata: {
+                width: 1000,
+                height: 600
+              }
+            },
+            {
+              type: 'video',
+              url: 'https://example.com/product-demo.mp4',
+              caption: 'Product Demo: Getting Started',
+              metadata: {
+                width: 1280,
+                height: 720,
+                duration: 180
+              }
+            },
+            {
+              type: 'video',
+              url: 'https://example.com/features-overview.mp4',
+              caption: 'Features Overview',
+              metadata: {
+                width: 1280,
+                height: 720,
+                duration: 240
+              }
+            }
+          ],
+          interactive_content: {
+            poll: {
+              question: 'Which of these new features are you most excited about?',
+              options: [
+                'Real-time collaboration with team members',
+                'Advanced analytics dashboard with custom reports',
+                'Customizable workflow automation templates',
+                'AI-powered content suggestions and optimizations',
+                'Mobile app with offline capabilities',
+                'Enhanced security and compliance features',
+                'Integration with third-party tools',
+                'Custom branding and white-labeling options'
+              ]
+            }
+          },
+          metadata: {
+            ...DEFAULT_METADATA,
+            isCollapsible: true,
+            mediaLayout: 'grid',
+            displayMode: 'default',
+            maxHeight: 500,
+            visibility: DEFAULT_METADATA.visibility,
+            requireAuth: true,
+            allowResubmit: false,
+            timestamp: new Date().toISOString()
+          }
+        });
+        break;
+
       case 'small':
         handleFormDataChange({
           type: 'all',
@@ -338,7 +453,27 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       } else {
         // Only keep the selected interactive content type
         data.interactive_content = {
-          [selectedInteractiveType]: formData.interactive_content[selectedInteractiveType]
+          [selectedInteractiveType]: formData.interactive_content[selectedInteractiveType] || {
+            poll: {
+              question: 'Poll Question',
+              options: ['Option 1', 'Option 2']
+            },
+            quiz: {
+              title: 'Quiz Title',
+              questions: [{
+                text: 'Quiz Question',
+                options: ['Option 1', 'Option 2'],
+                correct_option: 0
+              }]
+            },
+            survey: {
+              title: 'Survey Title',
+              questions: [{
+                text: 'Survey Question',
+                options: ['Option 1', 'Option 2']
+              }]
+            }
+          }[selectedInteractiveType]
         };
       }
     } else {
@@ -387,13 +522,37 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     const newFormData = {
       ...formData,
       ...updates,
-      type: updates.type || formData.type || 'message',
+      type: isInteractive ? selectedInteractiveType : (updates.type || formData.type || 'message'),
       media: includeMedia ? (updates.media || formData.media || []) : [],
-      interactive_content: isInteractive ? updates.interactive_content : undefined
+      interactive_content: isInteractive ? {
+        ...formData.interactive_content,
+        ...updates.interactive_content,
+        [selectedInteractiveType]: updates.interactive_content?.[selectedInteractiveType] || formData.interactive_content?.[selectedInteractiveType] || {
+          poll: {
+            question: 'Poll Question',
+            options: ['Option 1', 'Option 2']
+          },
+          quiz: {
+            title: 'Quiz Title',
+            questions: [{
+              text: 'Quiz Question',
+              options: ['Option 1', 'Option 2'],
+              correct_option: 0
+            }]
+          },
+          survey: {
+            title: 'Survey Title',
+            questions: [{
+              text: 'Survey Question',
+              options: ['Option 1', 'Option 2']
+            }]
+          }
+        }[selectedInteractiveType]
+      } : undefined
     };
     handleFormDataChange(newFormData as Partial<FormDataType>);
     debouncedPreviewUpdate();
-  }, [formData, handleFormDataChange, debouncedPreviewUpdate, includeMedia, isInteractive]);
+  }, [formData, handleFormDataChange, debouncedPreviewUpdate, includeMedia, isInteractive, selectedInteractiveType]);
 
   // Update all form change handlers to use the new function
   const handleMediaLayoutChange = useCallback((layout: MediaLayout) => {
@@ -1289,38 +1448,10 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         </Button>
         <Button
           variant="outline"
-          onPress={() => handleQuickAction('poll')}
+          onPress={() => handleQuickAction('superfeed')}
           style={styles.quickActionButton}
         >
-          <Text>Create Poll</Text>
-        </Button>
-        <Button
-          variant="outline"
-          onPress={() => handleQuickAction('quiz')}
-          style={styles.quickActionButton}
-        >
-          <Text>Create Quiz</Text>
-        </Button>
-        <Button
-          variant="outline"
-          onPress={() => handleQuickAction('survey')}
-          style={styles.quickActionButton}
-        >
-          <Text>Create Survey</Text>
-        </Button>
-        <Button
-          variant="outline"
-          onPress={() => handleQuickAction('media')}
-          style={styles.quickActionButton}
-        >
-          <Text>Add Image</Text>
-        </Button>
-        <Button
-          variant="outline"
-          onPress={() => handleQuickAction('video')}
-          style={styles.quickActionButton}
-        >
-          <Text>Add Video</Text>
+          <Text>Create SuperfeedItem</Text>
         </Button>
       </View>
 
@@ -1494,7 +1625,36 @@ Remember to structure your content with clear paragraphs and formatting to ensur
                           styles.radioOption,
                           selectedInteractiveType === type && styles.radioOptionSelected
                         ]}
-                        onPress={() => setSelectedInteractiveType(type)}
+                        onPress={() => {
+                          setSelectedInteractiveType(type);
+                          handleFormDataChangeWithPreview({
+                            type: type,
+                            interactive_content: {
+                              ...formData.interactive_content,
+                              [type]: formData.interactive_content?.[type] || {
+                                poll: {
+                                  question: 'Poll Question',
+                                  options: ['Option 1', 'Option 2']
+                                },
+                                quiz: {
+                                  title: 'Quiz Title',
+                                  questions: [{
+                                    text: 'Quiz Question',
+                                    options: ['Option 1', 'Option 2'],
+                                    correct_option: 0
+                                  }]
+                                },
+                                survey: {
+                                  title: 'Survey Title',
+                                  questions: [{
+                                    text: 'Survey Question',
+                                    options: ['Option 1', 'Option 2']
+                                  }]
+                                }
+                              }[type]
+                            }
+                          });
+                        }}
                       >
                         <Text style={[
                           styles.radioText,
