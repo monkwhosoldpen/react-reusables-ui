@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
 import { useColorScheme } from '@/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { MaterialIcons } from "@expo/vector-icons";
@@ -11,6 +11,7 @@ export default function LoginPage() {
   const { signIn, signInAnonymously, signInAsGuest, user } = useAuth();
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
+  const { width } = useWindowDimensions();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -33,6 +34,8 @@ export default function LoginPage() {
       marginBottom: 20,
       marginTop: 20,
       padding: Number(design.spacing.padding.card),
+      width: width > 768 ? 500 : '100%',
+      alignSelf: 'center',
     },
     header: {
       marginBottom: Number(design.spacing.padding.card),

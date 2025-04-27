@@ -1068,13 +1068,6 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
               <Text style={styles.metricIcon}>♡</Text>
               <Text style={styles.metricNumber}>{data.stats?.likes || 0}</Text>
             </Pressable>
-            <Pressable style={styles.metricItem}>
-              <Text style={styles.metricIcon}>📊</Text>
-              <Text style={styles.metricNumber}>{data.stats?.views || 0}</Text>
-            </Pressable>
-            <Pressable style={[styles.metricItem, styles.shareButton]}>
-              <Text style={styles.metricIcon}>↗️</Text>
-            </Pressable>
           </View>
         </View>
       )}

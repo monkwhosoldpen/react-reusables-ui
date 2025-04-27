@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Image, SafeAreaView, StyleSheet } from "react-native"
+import { View, TouchableOpacity, Image, SafeAreaView, StyleSheet, ScrollView } from "react-native"
 import { Text } from "~/components/ui/text"
 import { MaterialIcons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -29,15 +29,19 @@ export default function SuperMenuDesktop({
     container: {
       flex: 1,
       backgroundColor: colorScheme.colors.background,
-      padding: Number(design.spacing.padding.card),
-      maxWidth: 1200,
-      marginHorizontal: 'auto',
+      paddingTop: insets.top,
     },
     mainContent: {
       flex: 1,
+      maxWidth: 1200,
+      width: '100%',
+      marginHorizontal: 'auto',
+      padding: Number(design.spacing.padding.card),
+      paddingTop: Number(design.spacing.padding.section),
     },
     header: {
       padding: Number(design.spacing.padding.card),
+      paddingTop: Number(design.spacing.padding.section),
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colorScheme.colors.border,
       backgroundColor: colorScheme.colors.primary,
@@ -48,6 +52,7 @@ export default function SuperMenuDesktop({
       backgroundColor: colorScheme.colors.card,
       borderRadius: Number(design.radius.lg),
       padding: Number(design.spacing.padding.card),
+      marginTop: Number(design.spacing.margin.section),
       marginBottom: Number(design.spacing.margin.section),
     },
     sectionTitle: {
@@ -132,58 +137,66 @@ export default function SuperMenuDesktop({
 
   return (
     <SafeAreaView style={[styles.container, style]}>
-      <View style={styles.mainContent}>
-        {/* Header Section */}
-        <View style={styles.header}>
-          <Text style={{ color: colorScheme.colors.background, fontSize: Number(design.spacing.fontSize['2xl']), fontWeight: '700' }}>
-            SuperMenu
-          </Text>
-        </View>
+      <ScrollView 
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + Number(design.spacing.padding.card),
+          paddingTop: Number(design.spacing.padding.card)
+        }}
+      >
+        <View style={styles.mainContent}>
+          {/* Header Section */}
+          <View style={styles.header}>
+            <Text style={{ color: colorScheme.colors.background, fontSize: Number(design.spacing.fontSize['2xl']), fontWeight: '700' }}>
+              SuperMenu
+            </Text>
+          </View>
 
-        {/* Main Content Row */}
-        <View style={styles.row}>
-          {/* Essential Services Section */}
-          <View style={[styles.section, styles.col, { flex: 2 }]}>
-            <Text style={styles.sectionTitle}>Essential Services</Text>
+          {/* Main Content Row */}
+          <View style={styles.row}>
+            {/* Essential Services Section */}
+            <View style={[styles.section, styles.col, { flex: 2 }]}>
+              <Text style={styles.sectionTitle}>Essential Services</Text>
+              <View style={styles.sectionGrid}>
+                {essentialServices.map((service, index) => renderServiceCard(service))}
+              </View>
+            </View>
+
+            {/* Quick Links Section */}
+            <View style={[styles.section, styles.col, { flex: 1 }]}>
+              <Text style={styles.sectionTitle}>Quick Links</Text>
+              <View style={styles.quickLinks}>
+                {quickLinks.map((link, index) => (
+                  <TouchableOpacity 
+                    key={index} 
+                    style={styles.quickLinkItem}
+                    onPress={() => onQuickLinkPress?.(link)}
+                  >
+                    <MaterialIcons name={link.icon as any} size={20} color={colorScheme.colors.primary} />
+                    <Text style={styles.serviceTitle}>{link.title}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+
+          {/* Citizen Services Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Citizen Services</Text>
             <View style={styles.sectionGrid}>
-              {essentialServices.map((service, index) => renderServiceCard(service))}
+              {citizenServices.map((service, index) => renderServiceCard(service))}
             </View>
           </View>
 
-          {/* Quick Links Section */}
-          <View style={[styles.section, styles.col, { flex: 1 }]}>
-            <Text style={styles.sectionTitle}>Quick Links</Text>
-            <View style={styles.quickLinks}>
-              {quickLinks.map((link, index) => (
-                <TouchableOpacity 
-                  key={index} 
-                  style={styles.quickLinkItem}
-                  onPress={() => onQuickLinkPress?.(link)}
-                >
-                  <MaterialIcons name={link.icon as any} size={20} color={colorScheme.colors.primary} />
-                  <Text style={styles.serviceTitle}>{link.title}</Text>
-                </TouchableOpacity>
-              ))}
+          {/* Patriotic Store Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Patriotic Store</Text>
+            <View style={styles.sectionGrid}>
+              {patrioticStore.map((item, index) => renderServiceCard(item))}
             </View>
           </View>
         </View>
-
-        {/* Citizen Services Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Citizen Services</Text>
-          <View style={styles.sectionGrid}>
-            {citizenServices.map((service, index) => renderServiceCard(service))}
-          </View>
-        </View>
-
-        {/* Patriotic Store Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Patriotic Store</Text>
-          <View style={styles.sectionGrid}>
-            {patrioticStore.map((item, index) => renderServiceCard(item))}
-          </View>
-        </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   )
 } 

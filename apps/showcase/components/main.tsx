@@ -33,6 +33,9 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const { user, loading: authLoading, userInfo } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+
+  const isDesktop = width >= 768;
 
   const [followedChannels, setFollowedChannels] = useState<any[]>(initialData?.follows || []);
   const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>(initialData?.requests || []);
@@ -54,6 +57,33 @@ export function MainScreen({ initialData }: MainScreenProps) {
     container: {
       flex: 1,
       backgroundColor: colorScheme.colors.background,
+    },
+    contentContainer: {
+      flex: 1,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: insets.bottom + 20,
+    },
+    desktopContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingTop: insets.top + 20,
+      paddingBottom: insets.bottom + 20,
+      paddingHorizontal: 20,
+    },
+    sectionContainer: {
+      marginBottom: 32,
+      paddingHorizontal: 4,
+      width: isDesktop ? '50%' : '100%',
+    },
+    sectionContainerLeft: {
+      paddingRight: isDesktop ? 16 : 0,
+    },
+    sectionContainerRight: {
+      paddingLeft: isDesktop ? 16 : 0,
     },
     header: {
       paddingHorizontal: 16,
@@ -148,6 +178,139 @@ export function MainScreen({ initialData }: MainScreenProps) {
       fontSize: 24,
       fontWeight: '700',
       color: '#1E293B',
+    },
+    loadingCard: {
+      padding: 24,
+      borderRadius: 12,
+      backgroundColor: colorScheme.colors.card,
+      marginTop: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 4
+    },
+    loadingText: {
+      color: colorScheme.colors.text,
+      fontSize: 24,
+      fontWeight: '700',
+      textAlign: 'center'
+    },
+    loadingSubtext: {
+      color: colorScheme.colors.text,
+      opacity: 0.7,
+      marginTop: 8,
+      fontSize: 16,
+      textAlign: 'center'
+    },
+    signInButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      marginTop: 24,
+      backgroundColor: colorScheme.colors.primary,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 4
+    },
+    signInButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '700'
+    },
+    cardContainer: {
+      padding: 16,
+      borderRadius: 12,
+      backgroundColor: colorScheme.colors.card,
+      marginTop: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    emptyStateContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    emptyStateCard: {
+      padding: 24,
+      borderRadius: 12,
+      backgroundColor: colorScheme.colors.card,
+      width: '100%',
+      maxWidth: 400,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 4
+    },
+    emptyStateTitle: {
+      color: colorScheme.colors.text,
+      fontSize: 24,
+      fontWeight: '700',
+      textAlign: 'center'
+    },
+    emptyStateSubtext: {
+      color: colorScheme.colors.text,
+      opacity: 0.7,
+      marginTop: 8,
+      fontSize: 16,
+      textAlign: 'center'
+    },
+    exploreButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      marginTop: 24,
+      backgroundColor: colorScheme.colors.primary,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 4
+    },
+    exploreButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '700'
+    },
+    channelsContainer: {
+      padding: 16,
+      borderRadius: 12,
+      backgroundColor: colorScheme.colors.card,
+      marginTop: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    fab: {
+      position: 'absolute',
+      right: 16,
+      bottom: 16,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colorScheme.colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 12,
+      elevation: 6
     },
   });
 
@@ -346,37 +509,12 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   if (authLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: insets.top }}>
-          <View style={{
-            padding: 24,
-            borderRadius: 12,
-            backgroundColor: colorScheme.colors.card,
-            marginTop: 24,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 12,
-            elevation: 4
-          }}>
-            <ActivityIndicator size="large" color={colorScheme.colors.primary} style={{ alignSelf: 'center', marginBottom: 16 }} />
-            <Text style={[styles.itemTitle, {
-              color: colorScheme.colors.text,
-              fontSize: 24,
-              fontWeight: '700',
-              textAlign: 'center'
-            }]}>
-              Loading...
-            </Text>
-            <Text style={[styles.itemSubtitle, {
-              color: colorScheme.colors.text,
-              opacity: 0.7,
-              marginTop: 8,
-              fontSize: 16,
-              textAlign: 'center'
-            }]}>
-              Please wait while we initialize the app
-            </Text>
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.contentContainer, { justifyContent: 'center' }]}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color={colorScheme.colors.primary} />
+            <Text style={styles.loadingText}>Loading...</Text>
+            <Text style={styles.loadingSubtext}>Please wait while we initialize the app</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -385,62 +523,19 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   if (!user) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: insets.top }}>
-          <View style={{
-            padding: 24,
-            borderRadius: 12,
-            backgroundColor: colorScheme.colors.card,
-            marginTop: 24,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 12,
-            elevation: 4
-          }}>
-            <Text style={[styles.itemTitle, {
-              color: colorScheme.colors.text,
-              fontSize: 24,
-              fontWeight: '700',
-              textAlign: 'center'
-            }]}>
-              Welcome to NChat
-            </Text>
-            <Text style={[styles.itemSubtitle, {
-              color: colorScheme.colors.text,
-              opacity: 0.7,
-              marginTop: 8,
-              fontSize: 16,
-              textAlign: 'center'
-            }]}>
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.contentContainer, { justifyContent: 'center' }]}>
+          <View style={styles.loadingCard}>
+            <Text style={styles.loadingText}>Welcome to NChat</Text>
+            <Text style={styles.loadingSubtext}>
               Sign in to access your channels and manage your requests
             </Text>
             <TouchableOpacity
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 16,
-                paddingHorizontal: 24,
-                borderRadius: 12,
-                marginTop: 24,
-                backgroundColor: colorScheme.colors.primary,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 12,
-                elevation: 4
-              }}
+              style={styles.signInButton}
               onPress={() => router.push('/login')}
             >
               <LogIn size={20} color="white" style={{ marginRight: 8 }} />
-              <Text style={{
-                color: '#FFFFFF',
-                fontSize: 16,
-                fontWeight: '700'
-              }}>
-                Sign In
-              </Text>
+              <Text style={styles.signInButtonText}>Sign In</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -450,37 +545,12 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: insets.top }}>
-          <View style={{
-            padding: 24,
-            borderRadius: 12,
-            backgroundColor: colorScheme.colors.card,
-            marginTop: 24,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 12,
-            elevation: 4
-          }}>
-            <ActivityIndicator size="large" color={colorScheme.colors.primary} style={{ alignSelf: 'center', marginBottom: 16 }} />
-            <Text style={[styles.itemTitle, {
-              color: colorScheme.colors.text,
-              fontSize: 24,
-              fontWeight: '700',
-              textAlign: 'center'
-            }]}>
-              Loading Your Data
-            </Text>
-            <Text style={[styles.itemSubtitle, {
-              color: colorScheme.colors.text,
-              opacity: 0.7,
-              marginTop: 8,
-              fontSize: 16,
-              textAlign: 'center'
-            }]}>
-              Please wait while we load your channels
-            </Text>
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.contentContainer, { justifyContent: 'center' }]}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color={colorScheme.colors.primary} />
+            <Text style={styles.loadingText}>Loading Your Data</Text>
+            <Text style={styles.loadingSubtext}>Please wait while we load your channels</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -517,100 +587,75 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const data = [...tenantRequests, ...followedChannels];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+    <SafeAreaView style={styles.container}>
       <ScrollView
-        style={{ flex: 1, backgroundColor: colorScheme.colors.background }}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={isDesktop ? styles.desktopContainer : styles.contentContainer}
+        showsVerticalScrollIndicator={false}
       >
-        {data.length === 0 ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-            <View style={{
-              padding: 24,
-              borderRadius: 12,
-              backgroundColor: colorScheme.colors.card,
-              width: '100%',
-              maxWidth: 400,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.1,
-              shadowRadius: 12,
-              elevation: 4
-            }}>
-              <Text style={[styles.itemTitle, {
-                color: colorScheme.colors.text,
-                fontSize: 24,
-                fontWeight: '700',
-                textAlign: 'center'
-              }]}>
-                No Channels Yet
-              </Text>
-              <Text style={[styles.itemSubtitle, {
-                color: colorScheme.colors.text,
-                opacity: 0.7,
-                marginTop: 8,
-                fontSize: 16,
-                textAlign: 'center'
-              }]}>
-                Start by following some channels or creating new ones!
-              </Text>
+        {/* Left Column */}
+        <View style={[styles.sectionContainer, styles.sectionContainerLeft]}>
+          {/* Banners Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionHeaderText}>FEATURES</Text>
+          </View>
+          <View style={styles.cardContainer}>
+            {bannersData.map((banner, index) => (
               <TouchableOpacity
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: 16,
-                  paddingHorizontal: 24,
-                  borderRadius: 12,
-                  marginTop: 24,
-                  backgroundColor: colorScheme.colors.primary,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 12,
-                  elevation: 4
-                }}
+                key={index}
+                style={[styles.item, { backgroundColor: banner.color }]}
                 onPress={() => router.push('/explore')}
               >
-                <Plus size={20} color="white" style={{ marginRight: 8 }} />
-                <Text style={{
-                  color: '#FFFFFF',
-                  fontSize: 16,
-                  fontWeight: '700'
-                }}>
-                  Explore Channels
-                </Text>
+                <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.background}1A` }]}>
+                  <MaterialIcons name={banner.icon as any} size={24} color={colorScheme.colors.background} />
+                </View>
+                <View style={styles.itemContent}>
+                  <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
+                    {banner.title}
+                  </Text>
+                  <Text style={[styles.itemSubtitle, { color: colorScheme.colors.background, opacity: 0.8 }]}>
+                    {banner.subtitle}
+                  </Text>
+                </View>
               </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Right Column */}
+        <View style={[styles.sectionContainer, styles.sectionContainerRight]}>
+          {/* Channels Section */}
+          {data.length === 0 ? (
+            <View style={styles.emptyStateContainer}>
+              <View style={styles.emptyStateCard}>
+                <Text style={styles.emptyStateTitle}>No Channels Yet</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Start by following some channels or creating new ones!
+                </Text>
+                <TouchableOpacity
+                  style={styles.exploreButton}
+                  onPress={() => router.push('/explore')}
+                >
+                  <Plus size={20} color="white" style={{ marginRight: 8 }} />
+                  <Text style={styles.exploreButtonText}>Explore Channels</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        ) : (
-          <View style={{ paddingHorizontal: 16 }}>
-            <FlashList
-              data={data}
-              estimatedItemSize={72}
-              renderItem={renderItem}
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
-        )}
+          ) : (
+            <View style={styles.channelsContainer}>
+              <FlashList
+                data={data}
+                estimatedItemSize={72}
+                renderItem={renderItem}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
+          )}
+        </View>
       </ScrollView>
 
       <TouchableOpacity
-        style={{
-          position: 'absolute',
-          right: 16,
-          bottom: 16,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: colorScheme.colors.primary,
-          justifyContent: 'center',
-          alignItems: 'center',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.2,
-          shadowRadius: 12,
-          elevation: 6
-        }}
+        style={styles.fab}
         onPress={() => router.push('/explore')}
       >
         <Plus size={24} color="white" />

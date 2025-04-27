@@ -287,7 +287,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
   const previewData = useMemo(() => {
     const data: FormDataType = {
       ...formData,
-      type: formData.type || 'all',
+      type: isInteractive ? selectedInteractiveType : (formData.type || 'all'),
       channel_username: username || 'anonymous',
       metadata: {
         ...DEFAULT_METADATA,
@@ -301,9 +301,48 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       }
     };
 
-    // Only include interactive content if isInteractive is true
-    if (isInteractive && formData.interactive_content) {
-      data.interactive_content = formData.interactive_content;
+    // Only include content if includeContent is true
+    if (!includeContent) {
+      data.content = '';
+    }
+
+    // Handle interactive content
+    if (isInteractive) {
+      if (!formData.interactive_content) {
+        // Initialize only the selected interactive content type
+        const defaultContent = {
+          poll: {
+            question: 'Poll Question',
+            options: ['Option 1', 'Option 2']
+          },
+          quiz: {
+            title: 'Quiz Title',
+            questions: [{
+              text: 'Quiz Question',
+              options: ['Option 1', 'Option 2'],
+              correct_option: 0
+            }]
+          },
+          survey: {
+            title: 'Survey Title',
+            questions: [{
+              text: 'Survey Question',
+              options: ['Option 1', 'Option 2']
+            }]
+          }
+        };
+
+        data.interactive_content = {
+          [selectedInteractiveType]: defaultContent[selectedInteractiveType]
+        };
+      } else {
+        // Only keep the selected interactive content type
+        data.interactive_content = {
+          [selectedInteractiveType]: formData.interactive_content[selectedInteractiveType]
+        };
+      }
+    } else {
+      data.interactive_content = undefined;
     }
 
     // Ensure media array is properly structured
@@ -320,7 +359,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     }
 
     return data;
-  }, [formData, mediaLayout, isInteractive, selectedInteractiveType, username, includeMedia]);
+  }, [formData, mediaLayout, isInteractive, selectedInteractiveType, username, includeMedia, includeContent]);
 
   // Update preview key effect to include more dependencies
   useEffect(() => {
