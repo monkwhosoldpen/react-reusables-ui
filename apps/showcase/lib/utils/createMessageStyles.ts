@@ -5,6 +5,31 @@ export const createMessageStyles = (colorScheme: ColorSchemeConfig) => StyleShee
   container: {
     flex: 1,
   },
+  mainContent: {
+    flex: 1,
+    flexDirection: 'row',
+    padding: 16,
+    gap: 16,
+  },
+  leftSection: {
+    flex: 0.3,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: colorScheme.colors.border,
+    paddingRight: 16,
+  },
+  centerSection: {
+    flex: 0.3,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: colorScheme.colors.border,
+    paddingRight: 16,
+  },
+  centerScroll: {
+    flex: 1,
+    padding: 16,
+  },
+  rightSection: {
+    flex: 0.4,
+  },
   errorContainer: {
     padding: 16,
     backgroundColor: colorScheme.colors.notification,
@@ -26,14 +51,6 @@ export const createMessageStyles = (colorScheme: ColorSchemeConfig) => StyleShee
   quickActionButton: {
     flex: 1,
     minWidth: 120,
-  },
-  dialogContent: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  formContainer: {
-    flex: 1,
-    padding: 16,
   },
   formScroll: {
     flex: 1,
@@ -175,14 +192,6 @@ export const createMessageStyles = (colorScheme: ColorSchemeConfig) => StyleShee
     fontSize: 16,
     color: colorScheme.colors.text,
   },
-  comingSoonContainer: {
-    width: 300,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colorScheme.colors.card,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: colorScheme.colors.border,
-  },
   comingSoonText: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -236,5 +245,44 @@ export const createMessageStyles = (colorScheme: ColorSchemeConfig) => StyleShee
   questionActions: {
     flexDirection: 'row',
     gap: 8,
+  },
+  questionSection: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: colorScheme.colors.background,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colorScheme.colors.border,
+  },
+  questionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: colorScheme.colors.text,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  removeButton: {
+    padding: 8,
+    borderRadius: 4,
+  },
+  removeButtonText: {
+    color: '#fff',
+    textAlign: 'center',
+  },
+  addButton: {
+    padding: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  addButtonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '500',
   },
 }); 

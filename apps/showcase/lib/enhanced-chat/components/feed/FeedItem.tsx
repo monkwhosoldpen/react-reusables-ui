@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Pressable, Image, ViewStyle, TextStyle } from 'react-native';
+import { View, StyleSheet, Pressable, Image, ViewStyle, TextStyle, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
-import { FormDataType, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
+import { FormDataType, InteractiveContent, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
 import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
 import { LinearGradient } from 'expo-linear-gradient';
 import Markdown from 'react-native-markdown-display';
@@ -112,6 +112,13 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSurveyResponse = (questionIndex: number, optionIndex: number) => {
+    setSurveyAnswers(prev => ({
+      ...prev,
+      [questionIndex]: optionIndex
+    }));
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -307,7 +314,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
                 <Button
                   key={oIndex}
                   variant={surveyAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
-                  onPress={() => setSurveyAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
+                  onPress={() => handleSurveyResponse(qIndex, oIndex)}
                   style={styles.optionButton}
                   disabled={isSubmitting || (showResults && !isAuthenticated)}
                 >
@@ -337,18 +344,38 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   };
 
   const renderInteractiveContent = () => {
-    if (!data.interactive_content) return null;
+    console.log('Rendering interactive content with data:', {
+      interactive_content: data.interactive_content,
+      survey: data.interactive_content?.survey,
+      hasSurvey: !!data.interactive_content?.survey
+    });
+
+    if (!data.interactive_content) {
+      console.log('No interactive content found');
+      return null;
+    }
 
     const { poll, quiz, survey } = data.interactive_content;
-    console.log('Interactive Content:', { poll, quiz, survey });
+    console.log('Destructured interactive content:', { poll, quiz, survey });
 
-    return (
-      <View style={styles.interactiveFeaturesContainer}>
-        {poll && renderPoll(poll)}
-        {quiz && renderQuiz(quiz)}
-        {survey && renderSurvey(survey)}
-      </View>
-    );
+    if (survey) {
+      console.log('Rendering survey with data:', {
+        title: survey.title,
+        description: survey.description,
+        questions: survey.questions
+      });
+      return renderSurvey(survey);
+    }
+
+    if (poll) {
+      return renderPoll(poll);
+    }
+
+    if (quiz) {
+      return renderQuiz(quiz);
+    }
+
+    return null;
   };
 
   // Add this near the top of the component
@@ -490,6 +517,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       marginTop: Number(design.spacing.margin.item),
       width: '100%',
       overflow: 'hidden',
+      paddingHorizontal: Number(design.spacing.padding.card),
     },
     mediaItem: {
       borderRadius: Number(design.radius.md),
@@ -847,6 +875,32 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       opacity: Number(design.opacity.medium),
       marginBottom: Number(design.spacing.margin.item),
     },
+    surveyQuestions: {
+      marginTop: 16,
+      gap: 16,
+    },
+    surveyQuestion: {
+      backgroundColor: '#f5f5f5',
+      padding: 16,
+      borderRadius: 8,
+      gap: 8,
+    },
+    surveyQuestionText: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    surveyOptionButton: {
+      backgroundColor: '#fff',
+      padding: 12,
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor: '#e5e7eb',
+    },
+    optionText: {
+      fontSize: 14,
+      color: '#374151',
+    },
   });
 
   const markdownStyles = StyleSheet.create({
@@ -933,44 +987,32 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     if (data.metadata?.mediaLayout === 'carousel') {
       return (
         <View style={mediaContainerStyle}>
-          <View style={styles.carouselItem}>
-            <Image
-              source={{ uri: data.media[currentSlide].type === 'video' ? data.media[currentSlide].thumbnail : data.media[currentSlide].url }}
-              style={styles.mediaImage}
-              resizeMode="cover"
-            />
-            {data.media[currentSlide].caption && (
-              <Text style={styles.mediaCaption}>
-                {data.media[currentSlide].type === 'video' ? '🎥 ' : ''}{data.media[currentSlide].caption}
-              </Text>
-            )}
-          </View>
-          <View style={styles.carouselControls}>
-            <Button
-              variant="ghost"
-              onPress={handlePrevSlide}
-              disabled={currentSlide === 0}
-            >
-              <Text>Previous</Text>
-            </Button>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {data.media.map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.carouselDot,
-                    currentSlide === index && styles.carouselDotActive
-                  ]}
-                />
-              ))}
+          <View style={styles.carouselContainer}>
+            <View style={styles.carouselItem}>
+              <Image
+                source={{ uri: data.media[currentSlide].type === 'video' ? data.media[currentSlide].thumbnail : data.media[currentSlide].url }}
+                style={styles.mediaImage}
+                resizeMode="cover"
+              />
+              {data.media[currentSlide].caption && (
+                <Text style={styles.mediaCaption}>
+                  {data.media[currentSlide].type === 'video' ? '🎥 ' : ''}{data.media[currentSlide].caption}
+                </Text>
+              )}
             </View>
-            <Button
-              variant="ghost"
-              onPress={handleNextSlide}
-              disabled={currentSlide === data.media.length - 1}
-            >
-              <Text>Next</Text>
-            </Button>
+            {data.media.length > 1 && (
+              <View style={styles.carouselControls}>
+                {data.media.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.carouselDot,
+                      currentSlide === index && styles.carouselDotActive
+                    ]}
+                  />
+                ))}
+              </View>
+            )}
           </View>
         </View>
       );
@@ -1046,13 +1088,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         {data.media && data.media.length > 0 && renderMediaItems()}
 
         {/* Interactive Content */}
-        {data.interactive_content && (
-          <View style={styles.interactiveFeaturesContainer}>
-            {data.interactive_content.poll && renderPoll(data.interactive_content.poll)}
-            {data.interactive_content.quiz && renderQuiz(data.interactive_content.quiz)}
-            {data.interactive_content.survey && renderSurvey(data.interactive_content.survey)}
-          </View>
-        )}
+        {renderInteractiveContent()}
       </View>
     );
   };

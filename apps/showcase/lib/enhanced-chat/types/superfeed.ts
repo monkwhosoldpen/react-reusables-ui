@@ -10,6 +10,7 @@ export type ShowExplanation = 'after_question' | 'after_quiz' | 'never';
 export type ShowQuizResults = 'immediately' | 'after_quiz' | 'never';
 export type QuestionType = 'text' | 'single_choice' | 'multiple_choice';
 export type FillRequirement = 'partial' | 'strict';
+export type InteractiveType = 'poll' | 'quiz' | 'survey';
 
 export interface MediaItem {
   type: MediaType;
@@ -94,12 +95,16 @@ export interface Stats {
 
 export interface Metadata {
   isCollapsible: boolean;
-  displayMode: DisplayMode;
-  maxHeight: number;
-  visibility: VisibilitySettings;
+  displayMode: 'default' | 'compact' | 'expanded';
+  maxHeight?: number;
+  visibility: {
+    stats: boolean;
+    shareButtons: boolean;
+    header: boolean;
+  };
   mediaLayout: MediaLayout;
+  interactiveType?: InteractiveType;
   requireAuth?: boolean;
-  allowResubmit?: boolean;
   timestamp?: string;
 }
 
@@ -173,10 +178,11 @@ export const DEFAULT_METADATA: Metadata = {
   visibility: {
     stats: true,
     shareButtons: true,
-    header: true,
-    footer: true
+    header: true
   },
-  mediaLayout: 'grid'
+  mediaLayout: 'grid',
+  requireAuth: false,
+  timestamp: new Date().toISOString()
 };
 
 export const DEFAULT_INTERACTIVE_CONTENT: InteractiveContent = {

@@ -7,13 +7,11 @@ type StateSetter<T> = (value: T | ((prev: T) => T)) => void;
 interface HandleQuickActionProps {
   template: Partial<FormDataType>;
   handleFormDataChange: (updates: Partial<FormDataType>) => void;
-  setIsInteractive: StateSetter<boolean>;
-  setIncludeMedia: StateSetter<boolean>;
-  setIncludeContent: StateSetter<boolean>;
-  setSelectedType: StateSetter<FeedItemType>;
-  setSelectedInteractiveType: StateSetter<InteractiveType>;
-  setMediaLayout: StateSetter<MediaLayout>;
-  setPreviewKey: StateSetter<number>;
+  setIsInteractive: React.Dispatch<React.SetStateAction<boolean>>;
+  setIncludeMedia: React.Dispatch<React.SetStateAction<boolean>>;
+  setIncludeContent: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedType: React.Dispatch<React.SetStateAction<FeedItemType>>;
+  setPreviewKey: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const getInteractiveType = (content: InteractiveContent | undefined): InteractiveType => {
@@ -31,8 +29,6 @@ export const handleQuickAction = ({
   setIncludeMedia,
   setIncludeContent,
   setSelectedType,
-  setSelectedInteractiveType,
-  setMediaLayout,
   setPreviewKey
 }: HandleQuickActionProps) => {
   if (template) {
@@ -41,10 +37,6 @@ export const handleQuickAction = ({
     setIncludeMedia(!!template.media?.length);
     setIncludeContent(!!template.content);
     setSelectedType(template.type || 'all');
-    if (template.interactive_content) {
-      setSelectedInteractiveType(getInteractiveType(template.interactive_content));
-    }
-    setMediaLayout(template.metadata?.mediaLayout || 'grid');
     setPreviewKey(prev => prev + 1);
   }
 }; 

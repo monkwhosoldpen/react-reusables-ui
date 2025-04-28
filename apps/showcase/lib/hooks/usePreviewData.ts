@@ -55,26 +55,13 @@ export const usePreviewData = ({
         visibility: formData.metadata?.visibility ?? {
           stats: true,
           shareButtons: true,
-          header: true,
-          footer: true
+          header: true
         },
         requireAuth: formData.metadata?.requireAuth ?? false,
-        allowResubmit: formData.metadata?.allowResubmit ?? false,
         timestamp: formData.metadata?.timestamp ?? new Date().toISOString(),
         mediaLayout: mediaLayout
       }
     };
-
-    console.log('📊 Preview Data Generated:', {
-      type: data.type,
-      mediaLayout: data.metadata.mediaLayout,
-      isInteractive: !!data.interactive_content,
-      mediaCount: data.media?.length || 0,
-      hasContent: !!data.content,
-      includeMedia,
-      isCollapsible: data.metadata.isCollapsible,
-      maxHeight: data.metadata.maxHeight
-    });
 
     // Handle media dimensions
     if (includeMedia && formData.media) {
@@ -118,27 +105,40 @@ export const usePreviewData = ({
     }
 
     // Handle interactive content
-    if (isInteractive) {
-      if (!formData.interactive_content) {
-        data.interactive_content = {
-          [selectedInteractiveType]: {
-            poll: { question: '', options: [] },
-            quiz: { title: '', questions: [] },
-            survey: { title: '', questions: [] }
-          }[selectedInteractiveType]
-        };
-      } else {
-        data.interactive_content = {
-          [selectedInteractiveType]: formData.interactive_content[selectedInteractiveType] || {
-            poll: { question: '', options: [] },
-            quiz: { title: '', questions: [] },
-            survey: { title: '', questions: [] }
-          }[selectedInteractiveType]
-        };
-      }
+    if (isInteractive && selectedInteractiveType) {
+      // Initialize with default structure for the selected type
+      const defaultInteractiveContent = {
+        poll: { question: '', options: [] },
+        quiz: { title: '', questions: [] },
+        survey: { title: '', questions: [] }
+      };
+
+      // Only include the selected interactive type
+      data.interactive_content = {
+        [selectedInteractiveType]: formData.interactive_content?.[selectedInteractiveType] || defaultInteractiveContent[selectedInteractiveType]
+      };
+
+      // Ensure type matches the interactive content
+      data.type = selectedInteractiveType;
     } else {
+      // Clear interactive content if not interactive
       data.interactive_content = undefined;
+      data.type = 'all';
     }
+
+    // Log the final state for debugging
+    console.log('📊 Preview Data Generated:', {
+      type: data.type,
+      mediaLayout: data.metadata.mediaLayout,
+      isInteractive: !!data.interactive_content,
+      mediaCount: data.media?.length || 0,
+      hasContent: !!data.content,
+      includeMedia,
+      isCollapsible: data.metadata.isCollapsible,
+      maxHeight: data.metadata.maxHeight,
+      interactiveType: selectedInteractiveType,
+      interactiveContent: data.interactive_content
+    });
 
     return data;
   }, [formData, mediaLayout, isInteractive, selectedInteractiveType, username, includeMedia, includeContent]);

@@ -47,8 +47,6 @@ export default function CreateMessageScreen() {
   const [isInteractive, setIsInteractive] = useState<boolean>(false);
   const [includeMedia, setIncludeMedia] = useState<boolean>(false);
   const [includeContent, setIncludeContent] = useState<boolean>(true);
-  const [mediaLayout, setMediaLayout] = useState<MediaLayout>('grid');
-  const [selectedInteractiveType, setSelectedInteractiveType] = useState<InteractiveType>('poll');
   const [previewKey, setPreviewKey] = useState<number>(0);
   const [error, setError] = useState<Error | null>(null);
 
@@ -96,8 +94,6 @@ export default function CreateMessageScreen() {
         setIncludeMedia,
         setIncludeContent,
         setSelectedType,
-        setSelectedInteractiveType,
-        setMediaLayout,
         setPreviewKey
       });
     } catch (err) {
@@ -110,9 +106,9 @@ export default function CreateMessageScreen() {
   // Use the new usePreviewData hook
   const previewData = usePreviewData({
     formData,
-    mediaLayout,
+    mediaLayout: formData.metadata?.mediaLayout,
     isInteractive,
-    selectedInteractiveType,
+    selectedInteractiveType: formData.metadata?.interactiveType,
     username,
     includeMedia,
     includeContent
@@ -127,7 +123,7 @@ export default function CreateMessageScreen() {
       setError(error);
       console.error('Error in height calculation:', error);
     }
-  }, [formData.metadata?.isCollapsible, formData.metadata?.maxHeight, mediaLayout, formData.media]);
+  }, [formData.metadata?.isCollapsible, formData.metadata?.maxHeight, formData.metadata?.mediaLayout, formData.media]);
 
   // Add effect to monitor preview container dimensions
   useEffect(() => {
@@ -194,8 +190,9 @@ export default function CreateMessageScreen() {
         </Button>
       </View>
 
-      <View style={styles.dialogContent}>
-        <View style={styles.formContainer}>
+      <View style={styles.mainContent}>
+        {/* Left Section - Form (30%) */}
+        <View style={styles.leftSection}>
           <ScrollView style={styles.formScroll}>
             {/* Content Section */}
             <View style={styles.section}>
@@ -252,14 +249,14 @@ export default function CreateMessageScreen() {
                           key={layout}
                           style={[
                             styles.mediaLayoutButton,
-                            mediaLayout === layout && styles.selectedMediaLayoutButton,
+                            formData.metadata?.mediaLayout === layout && styles.selectedMediaLayoutButton,
                             { borderColor: colorScheme.colors.border }
                           ]}
                           onPress={() => handleMediaLayoutChange(layout)}
                         >
                           <Text style={[
                             styles.mediaLayoutButtonText,
-                            { color: mediaLayout === layout ? '#fff' : colorScheme.colors.text }
+                            { color: formData.metadata?.mediaLayout === layout ? '#fff' : colorScheme.colors.text }
                           ]}>
                             {getMediaLayoutLabel(layout)}
                           </Text>
@@ -328,8 +325,13 @@ export default function CreateMessageScreen() {
               {isInteractive && (
                 <InteractiveContentSection
                   formData={formData}
-                  selectedInteractiveType={selectedInteractiveType}
-                  onTypeChange={setSelectedInteractiveType}
+                  selectedInteractiveType={formData.metadata?.interactiveType}
+                  onTypeChange={(type) => handleFormDataChange({
+                    metadata: {
+                      ...formData.metadata,
+                      interactiveType: type
+                    }
+                  })}
                   onFormDataChange={handleFormDataChange}
                 />
               )}
@@ -337,7 +339,15 @@ export default function CreateMessageScreen() {
           </ScrollView>
         </View>
 
-        <View style={styles.comingSoonContainer}>
+        {/* Center Section - Preview (30%) */}
+        <View style={styles.centerSection}>
+          <ScrollView style={styles.centerScroll}>
+            <FeedItemPreview previewData={previewData} previewKey={previewKey} />
+          </ScrollView>
+        </View>
+
+        {/* Right Section - Feed Items List (40%) */}
+        <View style={styles.rightSection}>
           <Text style={styles.comingSoonText}>Coming Soon</Text>
           <Text style={[styles.messageCount, { color: colorScheme.colors.text }]}>
             Total Messages: {messageCount}
@@ -362,8 +372,6 @@ export default function CreateMessageScreen() {
             ))}
           </ScrollView>
         </View>
-
-        <FeedItemPreview previewData={previewData} previewKey={previewKey} />
       </View>
 
       <View style={styles.dialogFooter}>
@@ -378,3 +386,166 @@ export default function CreateMessageScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  mainContent: {
+    flex: 1,
+    flexDirection: 'row',
+    padding: 16,
+    gap: 16,
+  },
+  leftSection: {
+    flex: 0.3,
+    borderRightWidth: 1,
+    borderRightColor: '#e5e7eb',
+    paddingRight: 16,
+  },
+  centerSection: {
+    flex: 0.3,
+    borderRightWidth: 1,
+    borderRightColor: '#e5e7eb',
+    paddingRight: 16,
+  },
+  rightSection: {
+    flex: 0.4,
+  },
+  errorContainer: {
+    padding: 16,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 8,
+    padding: 16,
+  },
+  quickActionButton: {
+    flex: 1,
+  },
+  formScroll: {
+    padding: 16,
+  },
+  section: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  input: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+  },
+  mediaLayoutContainer: {
+    marginBottom: 16,
+  },
+  mediaLayoutTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  mediaLayoutButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  mediaLayoutButton: {
+    flex: 1,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+  },
+  selectedMediaLayoutButton: {
+    borderColor: '#000',
+  },
+  mediaLayoutButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  mediaItemsContainer: {
+    marginBottom: 16,
+  },
+  mediaItem: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+  },
+  mediaItemLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  mediaButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  mediaButton: {
+    flex: 1,
+  },
+  comingSoonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 16,
+  },
+  messageCount: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 16,
+  },
+  messageList: {
+    padding: 16,
+  },
+  messageItem: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  messageId: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  messageType: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  editButton: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  dialogFooter: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  centerScroll: {
+    padding: 16,
+  },
+});

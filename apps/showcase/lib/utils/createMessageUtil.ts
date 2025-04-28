@@ -47,23 +47,37 @@ export const fetchMessages = async (username: string) => {
 
 export const createMessage = async (formData: FormDataType, username: string) => {
   try {
-    const createData: FormDataType = {
-      ...formData,
-      channel_username: username,
-      type: formData.type || 'all',
+    const createData = {
+      username,
+      type: formData.type || 'message',
+      message_text: formData.content,
+      caption: formData.caption,
+      media: formData.media || [],
       metadata: {
         ...formData.metadata,
         displayMode: formData.metadata?.displayMode ?? 'default',
         maxHeight: formData.metadata?.maxHeight ?? 300,
-        visibility: formData.metadata?.visibility ?? 'public',
+        visibility: {
+          stats: true,
+          shareButtons: true,
+          header: true
+        },
+        mediaLayout: formData.metadata?.mediaLayout ?? 'grid',
         requireAuth: formData.metadata?.requireAuth ?? false,
-        allowResubmit: formData.metadata?.allowResubmit ?? false,
         timestamp: formData.metadata?.timestamp ?? new Date().toISOString()
-      }
+      },
+      interactive_content: formData.interactive_content || {}
     };
 
+    console.log('Creating message with data:', {
+      type: createData.type,
+      message_text: createData.message_text,
+      interactive_content: createData.interactive_content,
+      media: createData.media
+    });
+
     const { data, error } = await supabase
-      .from('superfeed')
+      .from('channels_messages')
       .insert([createData])
       .select();
 

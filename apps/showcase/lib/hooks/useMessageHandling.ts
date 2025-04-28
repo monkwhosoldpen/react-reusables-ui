@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
-import { fetchMessageCount, fetchMessages, createMessage } from '~/lib/utils/createMessageUtil';
+import { FormDataType, InteractiveContent, Metadata } from '~/lib/enhanced-chat/types/superfeed';
+import { createMessage, fetchMessageCount } from '~/lib/utils/createMessageUtil';
 import { DEFAULT_METADATA } from '~/lib/enhanced-chat/types/superfeed';
+import { fetchFeedItems } from '../utils/feedData';
 
 interface UseMessageHandlingProps {
   username: string;
@@ -32,16 +33,34 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
 
       setIsSubmitting(true);
       setError(null);
+
+      // Log the form data before submission
+      console.log('Creating message with data:', {
+        type: formData.type,
+        content: formData.content,
+        interactive_content: formData.interactive_content,
+        media: formData.media
+      });
+
       const data = await createMessage(formData, username);
       if (data) {
+        // Fetch updated message count
         const count = await fetchMessageCount(username);
         setMessageCount(count);
+
+        // Fetch updated messages
+        const updatedMessages = await fetchFeedItems(username);
+        setMessages(updatedMessages);
+
+        // Reset form but preserve interactive content type
         handleFormDataChange({
-          type: 'all',
+          type: formData.type || 'all',
           content: '',
           media: [],
           metadata: DEFAULT_METADATA,
-          interactive_content: undefined
+          interactive_content: formData.interactive_content ? {
+            [formData.type as keyof InteractiveContent]: formData.interactive_content[formData.type as keyof InteractiveContent]
+          } : undefined
         } as FormDataType);
       }
     } catch (err) {
@@ -54,35 +73,8 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
   }, [formData, username, handleFormDataChange]);
 
   const handleEditMessage = useCallback((message: FormDataType) => {
-    try {
-      // Update form data with the selected message
-      const updatedFormData: FormDataType = {
-        type: message.type || 'all',
-        content: message.content || '',
-        message: message.message || '',
-        caption: message.caption || '',
-        media: message.media || [],
-        metadata: {
-          ...DEFAULT_METADATA,
-          ...message.metadata,
-          displayMode: message.metadata?.displayMode ?? 'default',
-          maxHeight: message.metadata?.maxHeight ?? 300,
-          visibility: message.metadata?.visibility ?? DEFAULT_METADATA.visibility,
-          requireAuth: message.metadata?.requireAuth ?? false,
-          allowResubmit: message.metadata?.allowResubmit ?? false,
-          timestamp: message.metadata?.timestamp ?? new Date().toISOString()
-        },
-        interactive_content: message.interactive_content,
-        channel_username: username
-      };
-
-      handleFormDataChange(updatedFormData);
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to edit message');
-      setError(error);
-      console.error('Error in handleEditMessage:', error);
-    }
-  }, [username, handleFormDataChange]);
+    handleFormDataChange(message);
+  }, [handleFormDataChange]);
 
   // Fetch message count
   useEffect(() => {
@@ -107,7 +99,7 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
     const fetchMessagesList = async () => {
       try {
         if (username) {
-          const messagesList = await fetchMessages(username);
+          const messagesList = await fetchFeedItems(username);
           setMessages(messagesList);
           setMessageCount(messagesList.length);
         }
