@@ -177,4 +177,19 @@ export const DEFAULT_METADATA: Metadata = {
     footer: true
   },
   mediaLayout: 'grid'
+};
+
+export const DEFAULT_INTERACTIVE_CONTENT: InteractiveContent = {
+  poll: {
+    question: '',
+    options: []
+  },
+  quiz: {
+    title: '',
+    questions: []
+  },
+  survey: {
+    title: '',
+    questions: []
+  }
 }; 

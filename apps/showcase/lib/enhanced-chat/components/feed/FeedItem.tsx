@@ -360,10 +360,10 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   const styles = StyleSheet.create({
     container: {
       backgroundColor: colorScheme.colors.background,
-      borderRadius: Number(design.radius.lg),
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: colorScheme.colors.border,
-      margin: Number(design.spacing.margin.item),
+      marginBottom: 8,
       overflow: 'hidden',
       width: '100%',
       maxWidth: 600,
@@ -435,9 +435,10 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     content: {
       position: 'relative',
       width: '100%',
+      paddingHorizontal: 16,
     },
     contentWrapper: {
-      padding: Number(design.spacing.padding.card),
+      paddingVertical: 12,
       position: 'relative',
       overflow: 'hidden',
       width: '100%',
@@ -461,19 +462,20 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       overflow: 'hidden'
     },
     contentText: {
-      fontSize: Number(design.spacing.fontSize.base),
-      lineHeight: Number(design.spacing.lineHeight.normal),
+      fontSize: 15,
+      lineHeight: 20,
       color: colorScheme.colors.text,
+      letterSpacing: 0.2,
     },
     interactiveDescriptionContainer: {
       marginTop: Number(design.spacing.margin.item),
       paddingHorizontal: Number(design.spacing.padding.card),
     },
     interactiveDescription: {
-      fontSize: Number(design.spacing.fontSize.base),
+      fontSize: 15,
+      lineHeight: 20,
       color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      lineHeight: Number(design.spacing.lineHeight.normal),
+      letterSpacing: 0.2,
     },
     previewDescription: {
       fontSize: Number(design.spacing.fontSize.base),
