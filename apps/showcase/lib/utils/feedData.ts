@@ -1,5 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
-import { FormDataType, MediaLayout, Visibility, Metadata, PollData, QuizData, SurveyData, Stats, MediaItem, MediaType, InteractiveContent } from '~/lib/enhanced-chat/types/superfeed';
+import { 
+  FormDataType, 
+  MediaLayout, 
+  Metadata, 
+  PollData, 
+  QuizData, 
+  SurveyData, 
+  Stats, 
+  MediaItem, 
+  MediaType, 
+  InteractiveContent,
+  VisibilitySettings,
+  DisplayMode
+} from '~/lib/enhanced-chat/types/superfeed';
 
 // Initialize Supabase client with environment variables
 const supabase = createClient(
@@ -7,7 +20,7 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM',
 );
 
-export const DEFAULT_VISIBILITY: Visibility = {
+export const DEFAULT_VISIBILITY: VisibilitySettings = {
   stats: true,
   shareButtons: true,
   header: true,
@@ -247,35 +260,43 @@ export const REALISTIC_MEDIA = {
   video: [
     {
       type: 'video' as const,
-      url: 'https://example.com/product-demo.mp4',
-      thumbnail: 'https://picsum.photos/800/450',
-      caption: 'Product demo walkthrough',
-      duration: 180,
-      dimensions: { width: 1280, height: 720 }
+      url: 'https://placehold.co/1280x720/FF6B6B/ffffff/png?text=Product+Demo',
+      caption: 'Product Demo: Getting Started',
+      metadata: {
+        width: 1280,
+        height: 720,
+        duration: 180
+      }
     },
     {
       type: 'video' as const,
-      url: 'https://example.com/feature-overview.mp4',
-      thumbnail: 'https://picsum.photos/1600/900',
-      caption: 'New features overview',
-      duration: 240,
-      dimensions: { width: 1920, height: 1080 }
+      url: 'https://placehold.co/1280x720/4ECDC4/ffffff/png?text=Features+Overview',
+      caption: 'Features Overview',
+      metadata: {
+        width: 1280,
+        height: 720,
+        duration: 240
+      }
     },
     {
       type: 'video' as const,
-      url: 'https://example.com/tutorial.mp4',
-      thumbnail: 'https://picsum.photos/1200/675',
-      caption: 'Getting started tutorial',
-      duration: 300,
-      dimensions: { width: 1280, height: 720 }
+      url: 'https://placehold.co/1280x720/45B7D1/ffffff/png?text=Tutorial',
+      caption: 'Getting Started Tutorial',
+      metadata: {
+        width: 1280,
+        height: 720,
+        duration: 300
+      }
     },
     {
       type: 'video' as const,
-      url: 'https://example.com/team-update.mp4',
-      thumbnail: 'https://picsum.photos/1920/1080',
-      caption: 'Monthly team update',
-      duration: 420,
-      dimensions: { width: 1920, height: 1080 }
+      url: 'https://placehold.co/1280x720/96CEB4/ffffff/png?text=Team+Update',
+      caption: 'Team Update Video',
+      metadata: {
+        width: 1280,
+        height: 720,
+        duration: 180
+      }
     }
   ]
 };
@@ -515,16 +536,22 @@ export const PLACEHOLDER_VIDEOS: MediaItem[] = [
     type: 'video' as const,
     url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     thumbnail: 'https://placehold.co/1200x675/4287f5/ffffff/png?text=Video+Thumbnail+1',
-    duration: 180,
-    dimensions: { width: 1280, height: 720 },
+    metadata: {
+      width: 1280,
+      height: 720,
+      duration: 180
+    },
     caption: 'Big Buck Bunny'
   },
   {
     type: 'video' as const,
     url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     thumbnail: 'https://placehold.co/1200x675/42f545/ffffff/png?text=Video+Thumbnail+2',
-    duration: 240,
-    dimensions: { width: 1280, height: 720 },
+    metadata: {
+      width: 1280,
+      height: 720,
+      duration: 240
+    },
     caption: 'Elephant Dreams'
   }
 ];
@@ -579,7 +606,7 @@ export const createRichMock = (formData: FormDataType): Partial<FormDataType> =>
 * Range improvement: \`+15%\`
 * Production rate: \`1,200/day\`
 
-Here's a [link to our latest blog post](https://example.com/blog)
+Here's a [link to our latest blog post](https://placehold.co/800x400/FFD93D/000000/png?text=Blog+Post)
 
 ---
 
@@ -700,7 +727,7 @@ Innovation = f(ambition × execution)
     mediaLayout: 'grid' as const,
     maxHeight: 600,
     isCollapsible: true,
-    displayMode: 'expanded' as const,
+    displayMode: 'default' as DisplayMode,
     visibility: {
       stats: true,
       shareButtons: true,

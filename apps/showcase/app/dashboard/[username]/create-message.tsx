@@ -1,25 +1,23 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Dimensions, TextInput, Switch, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TextInput, Switch, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { Card } from '~/components/ui/card';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '~/components/ui/button';
 import { 
   FormDataType, 
   MediaLayout, 
   FeedItemType, 
-  DisplayMode, 
-  VisibilitySettings,
   DEFAULT_METADATA,
-  MediaItem,
-  InteractiveContent
+  InteractiveContent,
+  Metadata,
+  QuizData,
+  SurveyData
 } from '~/lib/enhanced-chat/types/superfeed';
 import { useFeedForm } from '~/lib/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { debounce } from 'lodash';
 import { createClient } from '@supabase/supabase-js';
 
@@ -38,7 +36,7 @@ export default function CreateMessageScreen() {
   const [mediaLayout, setMediaLayout] = useState<MediaLayout>('grid');
   const [selectedInteractiveType, setSelectedInteractiveType] = useState<'poll' | 'quiz' | 'survey'>('poll');
   const [messageCount, setMessageCount] = useState<number>(0);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<FormDataType[]>([]);
 
   const {
     formData,
@@ -137,7 +135,7 @@ We'd love to know which features you're most excited about! Please take a moment
             },
             {
               type: 'video',
-              url: 'https://example.com/product-demo.mp4',
+              url: 'https://placehold.co/1280x720/FF6B6B/ffffff/png?text=Product+Demo',
               caption: 'Product Demo: Getting Started',
               metadata: {
                 width: 1280,
@@ -147,7 +145,7 @@ We'd love to know which features you're most excited about! Please take a moment
             },
             {
               type: 'video',
-              url: 'https://example.com/features-overview.mp4',
+              url: 'https://placehold.co/1280x720/4ECDC4/ffffff/png?text=Features+Overview',
               caption: 'Features Overview',
               metadata: {
                 width: 1280,
@@ -219,202 +217,100 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         });
         break;
 
-      case 'poll':
-        setIsInteractive(true);
-        setSelectedType('poll');
-        setSelectedInteractiveType('poll');
-        handleFormDataChange({
-          type: 'poll',
-          content: 'We\'re planning our next feature release! Which of these capabilities would be most valuable for your workflow?',
-          media: [],
-          interactive_content: {
-            poll: {
-              question: 'Which upcoming feature would be most valuable for your workflow?',
-              options: [
-                'Advanced analytics dashboard with real-time insights',
-                'Customizable workflow automation templates',
-                'Enhanced collaboration tools with threaded discussions',
-                'AI-powered content suggestions and optimizations',
-                'Mobile app with offline capabilities'
-              ]
-            }
-          },
-          metadata: {
-            ...DEFAULT_METADATA,
-            isCollapsible: true,
-            mediaLayout: 'grid'
-          }
-        });
-        break;
-
-      case 'quiz':
-        setIsInteractive(true);
-        setSelectedType('quiz');
-        setSelectedInteractiveType('quiz');
-        handleFormDataChange({
-          type: 'quiz',
-          content: 'Test your knowledge about our platform\'s features and best practices with this comprehensive quiz!',
-          media: [],
-          interactive_content: {
-            quiz: {
-              title: 'Platform Mastery Quiz',
-              questions: [
-                {
-                  text: 'Which feature allows you to automate repetitive tasks and create custom workflows?',
-                  options: [
-                    'Workflow Builder with drag-and-drop interface',
-                    'Content Scheduler with calendar view',
-                    'Analytics Dashboard with real-time metrics',
-                    'Team Collaboration Hub with threaded discussions',
-                    'Integration Manager with API connections'
-                  ],
-                  correct_option: 0
-                }
-              ]
-            }
-          },
-          metadata: {
-            ...DEFAULT_METADATA,
-            isCollapsible: true,
-            mediaLayout: 'grid'
-          }
-        });
-        break;
-
-      case 'survey':
-        setIsInteractive(true);
-        setSelectedType('survey');
-        setSelectedInteractiveType('survey');
-        handleFormDataChange({
-          type: 'survey',
-          content: 'Help us improve our platform by sharing your feedback on these key aspects of your experience.',
-          media: [],
-          interactive_content: {
-            survey: {
-              title: 'Platform Experience Survey',
-              questions: [
-                {
-                  text: 'How satisfied are you with the platform\'s performance and reliability?',
-                  options: [
-                    'Extremely satisfied - Everything works perfectly',
-                    'Very satisfied - Minor issues but overall great',
-                    'Somewhat satisfied - Some areas need improvement',
-                    'Not very satisfied - Several issues need addressing',
-                    'Not satisfied at all - Major problems need fixing'
-                  ]
-                }
-              ]
-            }
-          },
-          metadata: {
-            ...DEFAULT_METADATA,
-            isCollapsible: true,
-            mediaLayout: 'grid'
-          }
-        });
-        break;
-
-      case 'media':
-        setIncludeMedia(true);
-        handleFormDataChange({
-          type: 'all',
-          content: 'Check out these amazing images from our latest product launch!',
-          media: [
-            {
-              type: 'image',
-              url: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              caption: 'Our new product in action',
-              metadata: {
-                width: 1000,
-                height: 600
-              }
-            },
-            {
-              type: 'image',
-              url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-              caption: 'Product close-up',
-              metadata: {
-                width: 1000,
-                height: 600
-              }
-            }
-          ],
-          metadata: {
-            ...DEFAULT_METADATA,
-            mediaLayout: 'grid',
-            isCollapsible: true
-          }
-        });
-        break;
-
-      case 'video':
-        setIncludeMedia(true);
-        handleFormDataChange({
-          type: 'all',
-          content: 'Watch our latest product demo and tutorial videos to get the most out of our platform!',
-          media: [
-            {
-              type: 'video',
-              url: 'https://example.com/product-demo.mp4',
-              caption: 'Product Demo: Getting Started',
-              metadata: {
-                width: 1280,
-                height: 720,
-                duration: 180
-              }
-            },
-            {
-              type: 'video',
-              url: 'https://example.com/advanced-features.mp4',
-              caption: 'Advanced Features Tutorial',
-              metadata: {
-                width: 1280,
-                height: 720,
-                duration: 240
-              }
-            }
-          ],
-          metadata: {
-            ...DEFAULT_METADATA,
-            mediaLayout: 'carousel',
-            isCollapsible: true
-          }
-        });
-        break;
     }
 
     // Force preview update
     setPreviewKey(prev => prev + 1);
   };
 
-  // Add debug logging for form data changes
-  useEffect(() => {
-    console.log('Form Data Changed:', {
-      type: formData.type,
-      content: formData.content,
-      media: formData.media?.length,
-      interactive_content: formData.interactive_content,
-      metadata: formData.metadata
-    });
-  }, [formData]);
-
   // Update preview data memo with better synchronization
   const previewData = useMemo(() => {
+    console.log('🔄 Preview Data Update:', {
+      formData: {
+        type: formData.type,
+        mediaLayout: formData.metadata?.mediaLayout,
+        isInteractive,
+        selectedInteractiveType,
+        includeMedia,
+        includeContent
+      },
+      currentState: {
+        mediaLayout,
+        isInteractive,
+        selectedInteractiveType,
+        includeMedia
+      }
+    });
+
+    // Calculate fixed height based on collapsible state
+    const fixedHeight = formData.metadata?.isCollapsible ? 400 : undefined;
+    
     const data: FormDataType = {
       ...formData,
       type: isInteractive ? selectedInteractiveType : (formData.type || 'all'),
       channel_username: username || 'anonymous',
+      media: includeMedia ? formData.media : [],
       metadata: {
         ...DEFAULT_METADATA,
         ...formData.metadata,
         displayMode: formData.metadata?.displayMode ?? 'default',
-        maxHeight: formData.metadata?.maxHeight ?? 300,
+        maxHeight: fixedHeight, // Always use fixed height for collapsible items
+        isCollapsible: formData.metadata?.isCollapsible ?? false,
         visibility: formData.metadata?.visibility ?? DEFAULT_METADATA.visibility,
         requireAuth: formData.metadata?.requireAuth ?? false,
         allowResubmit: formData.metadata?.allowResubmit ?? false,
-        timestamp: formData.metadata?.timestamp ?? new Date().toISOString()
+        timestamp: formData.metadata?.timestamp ?? new Date().toISOString(),
+        mediaLayout: mediaLayout // Ensure mediaLayout is always in sync
       }
     };
+
+    console.log('📊 Preview Data Generated:', {
+      type: data.type,
+      mediaLayout: data.metadata.mediaLayout,
+      isInteractive: !!data.interactive_content,
+      mediaCount: data.media?.length || 0,
+      hasContent: !!data.content,
+      includeMedia,
+      isCollapsible: data.metadata.isCollapsible,
+      maxHeight: data.metadata.maxHeight
+    });
+
+    // Handle media dimensions
+    if (includeMedia && formData.media) {
+      data.media = formData.media.map(item => {
+        const maxWidth = 800; // Fixed max width for media
+        const maxHeight = fixedHeight ? fixedHeight * 0.6 : 600; // Use 60% of fixed height for media if collapsible
+        
+        const originalWidth = item.metadata?.width || 800;
+        const originalHeight = item.metadata?.height || 600;
+        
+        // Calculate aspect ratio preserving dimensions
+        const aspectRatio = originalWidth / originalHeight;
+        let constrainedWidth = originalWidth;
+        let constrainedHeight = originalHeight;
+        
+        if (originalWidth > maxWidth) {
+          constrainedWidth = maxWidth;
+          constrainedHeight = maxWidth / aspectRatio;
+        }
+        if (constrainedHeight > maxHeight) {
+          constrainedHeight = maxHeight;
+          constrainedWidth = maxHeight * aspectRatio;
+        }
+
+        return {
+          ...item,
+          type: item.type || 'image',
+          url: item.url || '',
+          caption: item.caption || '',
+          metadata: {
+            ...item.metadata,
+            width: Math.round(constrainedWidth),
+            height: Math.round(constrainedHeight)
+          }
+        };
+      });
+    }
 
     // Only include content if includeContent is true
     if (!includeContent) {
@@ -480,27 +376,14 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       data.interactive_content = undefined;
     }
 
-    // Ensure media array is properly structured
-    if (includeMedia && formData.media) {
-      data.media = formData.media.map(item => ({
-        ...item,
-        type: item.type || 'image',
-        url: item.url || '',
-        caption: item.caption || '',
-        metadata: item.metadata || {}
-      }));
-    } else {
-      data.media = [];
-    }
-
     return data;
   }, [formData, mediaLayout, isInteractive, selectedInteractiveType, username, includeMedia, includeContent]);
 
   // Update preview key effect to include more dependencies
   useEffect(() => {
-    console.log('Updating preview key due to changes in:', {
+    console.log('🔑 Preview Key Update:', {
       mediaLayout,
-      formDataMedia: formData.media,
+      mediaCount: formData.media?.length,
       isInteractive,
       selectedInteractiveType
     });
@@ -510,63 +393,119 @@ Remember to structure your content with clear paragraphs and formatting to ensur
   // Add debounced preview update
   const debouncedPreviewUpdate = useCallback(
     debounce(() => {
-      console.log('Debounced preview update triggered');
+      console.log('⏱️ Debounced Preview Update');
       setPreviewKey(prev => prev + 1);
     }, 300),
     []
   );
 
   // Update handleFormDataChangeWithPreview to handle interactive content state
-  const handleFormDataChangeWithPreview = useCallback((updates: Partial<FormDataType>) => {
-    console.log('Form data change with preview:', updates);
-    const newFormData = {
+  const handleFormDataChangeWithPreview = useCallback((updates: Partial<FormDataType> & {
+    metadata?: Partial<Metadata>;
+    interactive_content?: Partial<InteractiveContent>;
+  }) => {
+    console.log('📝 Form Data Change:', {
+      updates,
+      currentState: {
+        type: formData.type,
+        mediaLayout: formData.metadata?.mediaLayout,
+        isInteractive,
+        selectedInteractiveType,
+        includeMedia
+      }
+    });
+
+    const newFormData: FormDataType = {
       ...formData,
       ...updates,
-      type: isInteractive ? selectedInteractiveType : (updates.type || formData.type || 'message'),
+      type: isInteractive ? selectedInteractiveType : (updates.type || formData.type || 'all') as FeedItemType,
       media: includeMedia ? (updates.media || formData.media || []) : [],
       interactive_content: isInteractive ? {
         ...formData.interactive_content,
         ...updates.interactive_content,
-        [selectedInteractiveType]: updates.interactive_content?.[selectedInteractiveType] || formData.interactive_content?.[selectedInteractiveType] || {
-          poll: {
-            question: 'Poll Question',
-            options: ['Option 1', 'Option 2']
-          },
-          quiz: {
-            title: 'Quiz Title',
-            questions: [{
-              text: 'Quiz Question',
-              options: ['Option 1', 'Option 2'],
-              correct_option: 0
-            }]
-          },
-          survey: {
-            title: 'Survey Title',
-            questions: [{
-              text: 'Survey Question',
-              options: ['Option 1', 'Option 2']
-            }]
-          }
-        }[selectedInteractiveType]
-      } : undefined
+        [selectedInteractiveType]: {
+          ...formData.interactive_content?.[selectedInteractiveType],
+          ...updates.interactive_content?.[selectedInteractiveType],
+          ...(selectedInteractiveType === 'quiz' || selectedInteractiveType === 'survey' ? {
+            questions: updates.interactive_content?.[selectedInteractiveType]?.questions?.map(q => ({
+              text: q.text || '',
+              options: q.options || ['', ''],
+              correct_option: q.correct_option || 0
+            })) || formData.interactive_content?.[selectedInteractiveType]?.questions || []
+          } : {
+            question: updates.interactive_content?.[selectedInteractiveType]?.question || '',
+            options: updates.interactive_content?.[selectedInteractiveType]?.options || ['', '']
+          })
+        }
+      } : undefined,
+      metadata: {
+        ...DEFAULT_METADATA,
+        ...formData.metadata,
+        ...updates.metadata,
+        mediaLayout: mediaLayout, // Ensure mediaLayout is always in sync
+        requireAuth: updates.metadata?.requireAuth ?? formData.metadata?.requireAuth ?? false,
+        allowResubmit: updates.metadata?.allowResubmit ?? formData.metadata?.allowResubmit ?? false,
+        timestamp: updates.metadata?.timestamp ?? formData.metadata?.timestamp ?? new Date().toISOString()
+      }
     };
-    handleFormDataChange(newFormData as Partial<FormDataType>);
-    debouncedPreviewUpdate();
-  }, [formData, handleFormDataChange, debouncedPreviewUpdate, includeMedia, isInteractive, selectedInteractiveType]);
+
+    console.log('✅ New Form Data:', {
+      type: newFormData.type,
+      mediaLayout: newFormData.metadata.mediaLayout,
+      isInteractive: !!newFormData.interactive_content,
+      mediaCount: newFormData.media?.length || 0,
+      hasContent: !!newFormData.content,
+      includeMedia
+    });
+
+    handleFormDataChange(newFormData);
+    setPreviewKey(prev => prev + 1);
+  }, [formData, handleFormDataChange, includeMedia, isInteractive, selectedInteractiveType, mediaLayout]);
+
+  // Update the Add Question button handler
+  const handleAddQuestion = useCallback(() => {
+    if (selectedInteractiveType === 'poll') return; // Polls don't have questions
+    
+    const currentContent = formData.interactive_content?.[selectedInteractiveType];
+    const newQuestions = [
+      ...(selectedInteractiveType === 'quiz' || selectedInteractiveType === 'survey' 
+        ? (currentContent as QuizData | SurveyData)?.questions || [] 
+        : []),
+      {
+        text: 'New Question',
+        options: ['Option 1', 'Option 2'],
+        correct_option: 0
+      }
+    ];
+    
+    handleFormDataChangeWithPreview({
+      interactive_content: {
+        [selectedInteractiveType]: {
+          ...currentContent,
+          questions: newQuestions
+        }
+      }
+    });
+  }, [formData, selectedInteractiveType, handleFormDataChangeWithPreview]);
 
   // Update all form change handlers to use the new function
   const handleMediaLayoutChange = useCallback((layout: MediaLayout) => {
-    console.log('Media layout changed to:', layout);
+    console.log('🖼️ Media Layout Change:', {
+      from: mediaLayout,
+      to: layout,
+      currentMediaCount: formData.media?.length || 0
+    });
+    
     setMediaLayout(layout);
-    // Preserve existing media data when changing layout
     handleFormDataChangeWithPreview({
-      ...formData,
       metadata: {
         ...formData.metadata,
         mediaLayout: layout
       }
     });
-  }, [formData, handleFormDataChangeWithPreview]);
+    // Force immediate preview update
+    setPreviewKey(prev => prev + 1);
+  }, [formData, handleFormDataChangeWithPreview, mediaLayout]);
 
   const handleMediaUrlChange = useCallback((index: number, url: string) => {
     const newMedia = [...(formData.media || [])];
@@ -603,13 +542,6 @@ Remember to structure your content with clear paragraphs and formatting to ensur
             <Text style={styles.sectionTitle}>Poll Settings</Text>
             <TextInput
               style={styles.input}
-              value={formData.content}
-              onChangeText={(text) => handleFormDataChange({ ...formData, content: text })}
-              placeholder="Poll Description"
-              multiline
-            />
-            <TextInput
-              style={styles.input}
               value={formData.interactive_content?.poll?.question}
               onChangeText={(text) => handleFormDataChange({
                 ...formData,
@@ -618,7 +550,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
                   poll: { ...formData.interactive_content?.poll, question: text }
                 }
               })}
-              placeholder="Poll Question"
+              placeholder="Enter poll question"
             />
             {formData.interactive_content?.poll?.options.map((option, index) => (
               <View key={index} style={styles.optionRow}>
@@ -680,13 +612,6 @@ Remember to structure your content with clear paragraphs and formatting to ensur
             <Text style={styles.sectionTitle}>Quiz Settings</Text>
             <TextInput
               style={styles.input}
-              value={formData.content}
-              onChangeText={(text) => handleFormDataChange({ ...formData, content: text })}
-              placeholder="Quiz Description"
-              multiline
-            />
-            <TextInput
-              style={styles.input}
               value={formData.interactive_content?.quiz?.title}
               onChangeText={(text) => handleFormDataChange({
                 ...formData,
@@ -695,7 +620,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
                   quiz: { ...formData.interactive_content?.quiz, title: text }
                 }
               })}
-              placeholder="Quiz Title"
+              placeholder="Enter quiz title"
             />
             {formData.interactive_content?.quiz?.questions.map((question, qIndex) => (
               <View key={qIndex} style={styles.questionSection}>
@@ -759,20 +684,9 @@ Remember to structure your content with clear paragraphs and formatting to ensur
                 ))}
                 <Button
                   variant="outline"
-                  onPress={() => {
-                    const newQuestions = [...(formData.interactive_content?.quiz?.questions || [])];
-                    const newOptions = [...question.options, ''];
-                    newQuestions[qIndex] = { ...question, options: newOptions };
-                    handleFormDataChange({
-                      ...formData,
-                      interactive_content: {
-                        ...formData.interactive_content,
-                        quiz: { ...formData.interactive_content?.quiz, questions: newQuestions }
-                      }
-                    });
-                  }}
+                  onPress={handleAddQuestion}
                 >
-                  <Text>Add Option</Text>
+                  <Text>Add Question</Text>
                 </Button>
                 <View style={styles.correctOption}>
                   <Text style={{ color: colorScheme.colors.text }}>Correct Option:</Text>
@@ -811,25 +725,6 @@ Remember to structure your content with clear paragraphs and formatting to ensur
                 </Button>
               </View>
             ))}
-            <Button
-              variant="outline"
-              onPress={() => {
-                const newQuestions = [...(formData.interactive_content?.quiz?.questions || []), {
-                  text: '',
-                  options: ['', ''],
-                  correct_option: 0
-                }];
-                handleFormDataChange({
-                  ...formData,
-                  interactive_content: {
-                    ...formData.interactive_content,
-                    quiz: { ...formData.interactive_content?.quiz, questions: newQuestions }
-                  }
-                });
-              }}
-            >
-              <Text>Add Question</Text>
-            </Button>
           </View>
         );
 
@@ -837,13 +732,6 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         return (
           <View style={styles.interactiveSection}>
             <Text style={styles.sectionTitle}>Survey Settings</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.content}
-              onChangeText={(text) => handleFormDataChange({ ...formData, content: text })}
-              placeholder="Survey Description"
-              multiline
-            />
             <TextInput
               style={styles.input}
               value={formData.interactive_content?.survey?.title}
@@ -854,7 +742,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
                   survey: { ...formData.interactive_content?.survey, title: text }
                 }
               })}
-              placeholder="Survey Title"
+              placeholder="Enter survey title"
             />
             {formData.interactive_content?.survey?.questions.map((question, qIndex) => (
               <View key={qIndex} style={styles.questionSection}>
@@ -876,99 +764,108 @@ Remember to structure your content with clear paragraphs and formatting to ensur
                   placeholder="Question Text"
                   multiline
                 />
-                {question.options.map((option, oIndex) => (
-                  <View key={oIndex} style={styles.optionRow}>
-                    <TextInput
-                      style={[styles.input, { flex: 1 }]}
-                      value={option}
-                      onChangeText={(text) => {
-                        const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
-                        const newOptions = [...question.options];
-                        newOptions[oIndex] = text;
-                        newQuestions[qIndex] = { ...question, options: newOptions };
-                        handleFormDataChange({
-                          ...formData,
-                          interactive_content: {
-                            ...formData.interactive_content,
-                            survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                          }
-                        });
-                      }}
-                      placeholder={`Option ${oIndex + 1}`}
-                    />
-                    <Button
-                      variant="ghost"
-                      onPress={() => {
-                        const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
-                        const newOptions = [...question.options];
-                        newOptions.splice(oIndex, 1);
-                        newQuestions[qIndex] = { ...question, options: newOptions };
-                        handleFormDataChange({
-                          ...formData,
-                          interactive_content: {
-                            ...formData.interactive_content,
-                            survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                          }
-                        });
-                      }}
-                    >
-                      <Text>Remove</Text>
-                    </Button>
-                  </View>
-                ))}
-                <Button
-                  variant="outline"
-                  onPress={() => {
-                    const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
-                    const newOptions = [...question.options, ''];
-                    newQuestions[qIndex] = { ...question, options: newOptions };
-                    handleFormDataChange({
-                      ...formData,
-                      interactive_content: {
-                        ...formData.interactive_content,
-                        survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                      }
-                    });
-                  }}
-                >
-                  <Text>Add Option</Text>
-                </Button>
-                <Button
-                  variant="ghost"
-                  onPress={() => {
-                    const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
-                    newQuestions.splice(qIndex, 1);
-                    handleFormDataChange({
-                      ...formData,
-                      interactive_content: {
-                        ...formData.interactive_content,
-                        survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                      }
-                    });
-                  }}
-                >
-                  <Text>Remove Question</Text>
-                </Button>
+                <View style={styles.optionContainer}>
+                  <TextInput
+                    style={styles.optionInput}
+                    value={question.options[0]}
+                    onChangeText={(text) => {
+                      const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
+                      const newOptions = [...question.options];
+                      newOptions[0] = text;
+                      newQuestions[qIndex] = { ...question, options: newOptions };
+                      handleFormDataChange({
+                        ...formData,
+                        interactive_content: {
+                          ...formData.interactive_content,
+                          survey: { ...formData.interactive_content?.survey, questions: newQuestions }
+                        }
+                      });
+                    }}
+                    placeholder={`Option 1`}
+                  />
+                  <Button
+                    variant="ghost"
+                    onPress={() => {
+                      const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
+                      const newOptions = [...question.options];
+                      newOptions.splice(0, 1);
+                      newQuestions[qIndex] = { ...question, options: newOptions };
+                      handleFormDataChange({
+                        ...formData,
+                        interactive_content: {
+                          ...formData.interactive_content,
+                          survey: { ...formData.interactive_content?.survey, questions: newQuestions }
+                        }
+                      });
+                    }}
+                  >
+                    <Text>Remove</Text>
+                  </Button>
+                </View>
+                <View style={styles.optionContainer}>
+                  <TextInput
+                    style={styles.optionInput}
+                    value={question.options[1]}
+                    onChangeText={(text) => {
+                      const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
+                      const newOptions = [...question.options];
+                      newOptions[1] = text;
+                      newQuestions[qIndex] = { ...question, options: newOptions };
+                      handleFormDataChange({
+                        ...formData,
+                        interactive_content: {
+                          ...formData.interactive_content,
+                          survey: { ...formData.interactive_content?.survey, questions: newQuestions }
+                        }
+                      });
+                    }}
+                    placeholder={`Option 2`}
+                  />
+                  <Button
+                    variant="ghost"
+                    onPress={() => {
+                      const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
+                      const newOptions = [...question.options];
+                      newOptions.splice(1, 1);
+                      newQuestions[qIndex] = { ...question, options: newOptions };
+                      handleFormDataChange({
+                        ...formData,
+                        interactive_content: {
+                          ...formData.interactive_content,
+                          survey: { ...formData.interactive_content?.survey, questions: newQuestions }
+                        }
+                      });
+                    }}
+                  >
+                    <Text>Remove</Text>
+                  </Button>
+                </View>
+                <View style={styles.questionActions}>
+                  <Button
+                    variant="outline"
+                    onPress={handleAddQuestion}
+                  >
+                    <Text>Add Question</Text>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onPress={() => {
+                      const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
+                      newQuestions.splice(qIndex, 1);
+                      handleFormDataChange({
+                        ...formData,
+                        interactive_content: {
+                          ...formData.interactive_content,
+                          survey: { ...formData.interactive_content?.survey, questions: newQuestions }
+                        }
+                      });
+                    }}
+                  >
+                    <Text>Remove Question</Text>
+                  </Button>
+                </View>
               </View>
             ))}
-            <Button
-              variant="outline"
-              onPress={() => {
-                const newQuestions = [...(formData.interactive_content?.survey?.questions || []), {
-                  text: '',
-                  options: ['', '']
-                }];
-                handleFormDataChange({
-                  ...formData,
-                  interactive_content: {
-                    ...formData.interactive_content,
-                    survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                  }
-                });
-              }}
-            >
-              <Text>Add Question</Text>
-            </Button>
           </View>
         );
 
@@ -984,7 +881,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         return;
       }
 
-      const createData = {
+      const createData: FormDataType = {
         ...formData,
         channel_username: username,
         type: formData.type || 'all',
@@ -1027,36 +924,12 @@ Remember to structure your content with clear paragraphs and formatting to ensur
         media: [],
         metadata: DEFAULT_METADATA,
         interactive_content: undefined
-      });
+      } as FormDataType);
 
     } catch (error) {
       console.error('Error in handleCreateItem:', error);
     }
   };
-
-  // Log when formData changes
-  useEffect(() => {
-    console.log('Form data changed:', {
-      ...formData,
-      media: formData.media?.map(m => ({ ...m, url: m.url.substring(0, 30) + '...' }))
-    });
-  }, [formData]);
-
-  // Log when mediaLayout changes
-  useEffect(() => {
-    console.log('Media layout state changed:', mediaLayout);
-  }, [mediaLayout]);
-
-  // Add debug logging for preview data
-  useEffect(() => {
-    console.log('Preview Data Changed:', {
-      type: previewData.type,
-      content: previewData.content,
-      media: previewData.media?.length,
-      interactive_content: previewData.interactive_content,
-      metadata: previewData.metadata
-    });
-  }, [previewData]);
 
   // Force preview update when layout changes
   const [previewKey, setPreviewKey] = useState(0);
@@ -1075,7 +948,6 @@ Remember to structure your content with clear paragraphs and formatting to ensur
           return;
         }
 
-        console.log('Message count:', data?.length || 0);
         setMessageCount(data?.length || 0);
       } catch (error) {
         console.error('Error in fetchMessageCount:', error);
@@ -1110,17 +982,10 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     fetchMessages();
   }, [username]);
 
-  const handleEditMessage = (message: any) => {
-    console.log('Editing message:', {
-      id: message.id,
-      type: message.type,
-      content: message.content,
-      hasMedia: !!message.media?.length,
-      hasInteractiveContent: !!message.interactive_content
-    });
+  const handleEditMessage = (message: FormDataType) => {
 
     // Initialize default interactive content if needed
-    const interactiveContent = message.interactive_content || {
+    const interactiveContent: InteractiveContent = message.interactive_content || {
       poll: {
         question: 'Poll Question',
         options: ['Option 1', 'Option 2']
@@ -1143,7 +1008,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     };
 
     // Update form data with the selected message
-    const updatedFormData = {
+    const updatedFormData: FormDataType = {
       type: message.type || 'all',
       content: message.content || '',
       message: message.message || '',
@@ -1169,9 +1034,9 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     setIsInteractive(!!message.interactive_content);
     if (message.interactive_content) {
       setSelectedInteractiveType(
-        message.interactive_content.poll ? 'poll' :
-        message.interactive_content.quiz ? 'quiz' :
-        message.interactive_content.survey ? 'survey' : 'poll'
+        'poll' in message.interactive_content ? 'poll' :
+        'quiz' in message.interactive_content ? 'quiz' :
+        'survey' in message.interactive_content ? 'survey' : 'poll'
       );
     }
     setMediaLayout(message.metadata?.mediaLayout || 'grid');
@@ -1181,6 +1046,46 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     // Force preview update with the actual message data
     setPreviewKey(prev => prev + 1);
   };
+
+  // Add effect to monitor collapsible state changes
+  useEffect(() => {
+    const baseMaxHeight = formData.metadata?.isCollapsible ? 400 : 600;
+    const mediaMaxHeight = formData.media?.length ? 500 : baseMaxHeight;
+    const forcedMaxHeight = Math.min(mediaMaxHeight, formData.metadata?.maxHeight ?? baseMaxHeight);
+    
+    console.log('Height Calculation:', {
+      isCollapsible: formData.metadata?.isCollapsible,
+      baseMaxHeight,
+      mediaMaxHeight,
+      forcedMaxHeight,
+      hasMedia: !!formData.media?.length
+    });
+  }, [formData.metadata?.isCollapsible, formData.metadata?.maxHeight, mediaLayout, formData.media]);
+
+  // Add effect to monitor preview container dimensions
+  useEffect(() => {
+    const previewContainer = document.querySelector('.preview-container');
+    if (previewContainer) {
+      const observer = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          const baseMaxHeight = formData.metadata?.isCollapsible ? 400 : 600;
+          const mediaMaxHeight = formData.media?.length ? 500 : baseMaxHeight;
+          const forcedMaxHeight = Math.min(mediaMaxHeight, formData.metadata?.maxHeight ?? baseMaxHeight);
+          
+          console.log('Preview Container Dimensions:', {
+            width: entry.contentRect.width,
+            height: entry.contentRect.height,
+            isCollapsible: formData.metadata?.isCollapsible,
+            hasMedia: !!formData.media?.length,
+            expectedHeight: forcedMaxHeight,
+            difference: entry.contentRect.height - forcedMaxHeight
+          });
+        }
+      });
+      observer.observe(previewContainer);
+      return () => observer.disconnect();
+    }
+  }, [formData.metadata?.isCollapsible, formData.media]);
 
   const styles = StyleSheet.create({
     container: {
@@ -1268,7 +1173,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       gap: 8,
     },
     previewContainer: {
-      width: '30%',
+      width: '50%',
       padding: 16,
       borderLeftWidth: StyleSheet.hairlineWidth,
       borderLeftColor: colorScheme.colors.border,
@@ -1374,7 +1279,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       fontWeight: '500',
     },
     comingSoonContainer: {
-      width: '40%',
+      width: '20%',
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: colorScheme.colors.card,
@@ -1425,6 +1330,26 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     editButtonText: {
       color: '#fff',
       fontSize: 12,
+    },
+    optionContainer: {
+      flexDirection: 'row',
+      gap: 8,
+      alignItems: 'center',
+    },
+    optionInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colorScheme.colors.border,
+      borderRadius: 6,
+      padding: 12,
+      fontSize: 16,
+      backgroundColor: colorScheme.colors.background,
+      color: colorScheme.colors.text,
+    },
+    questionActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
   });
 
@@ -1581,7 +1506,7 @@ Remember to structure your content with clear paragraphs and formatting to ensur
                       onPress={() => {
                         const newMedia = [...(formData.media || []), {
                           type: 'video' as const,
-                          url: 'https://example.com/sample-video.mp4',
+                          url: 'https://placehold.co/1280x720/45B7D1/ffffff/png?text=Sample+Video',
                           caption: `Video ${(formData.media?.length || 0) + 1}`,
                           metadata: {
                             width: 1280,

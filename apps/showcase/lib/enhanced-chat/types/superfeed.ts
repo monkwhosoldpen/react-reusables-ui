@@ -31,6 +31,7 @@ export interface PollSettings {
 
 export interface PollData {
   question: string;
+  description?: string;
   options: string[];
 }
 
@@ -130,6 +131,7 @@ export interface InteractiveContent {
 }
 
 export interface FormDataType {
+  id?: string;
   type: FeedItemType;
   content: string;
   message?: string;
@@ -141,6 +143,8 @@ export interface FormDataType {
   fill_requirement?: FillRequirement;
   channel_username?: string;
   expires_at?: Date;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface SuperFeedItemPreviewProps {

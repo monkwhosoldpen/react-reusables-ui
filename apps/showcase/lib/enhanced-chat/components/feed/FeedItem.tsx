@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Pressable, Image } from 'react-native';
+import { View, StyleSheet, Pressable, Image, ViewStyle, TextStyle } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
 import { FormDataType, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
@@ -168,7 +168,10 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
 
     return (
       <View style={styles.interactiveContent}>
-        <Text style={styles.quizTitle}>{poll.question}</Text>
+        <Text style={styles.pollTitle}>{poll.question}</Text>
+        {poll.description && (
+          <Text style={styles.pollDescription}>{poll.description}</Text>
+        )}
         {error && (
           <Text style={styles.errorText}>{error.message}</Text>
         )}
@@ -227,6 +230,9 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     return (
       <View style={styles.interactiveContent}>
         {quiz.title && <Text style={styles.quizTitle}>{quiz.title}</Text>}
+        {quiz.description && (
+          <Text style={styles.quizDescription}>{quiz.description}</Text>
+        )}
         {error && (
           <Text style={styles.errorText}>{error.message}</Text>
         )}
@@ -287,6 +293,9 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     return (
       <View style={styles.interactiveContent}>
         <Text style={styles.surveyTitle}>{survey.title}</Text>
+        {survey.description && (
+          <Text style={styles.surveyDescription}>{survey.description}</Text>
+        )}
         {error && (
           <Text style={styles.errorText}>{error.message}</Text>
         )}
@@ -331,6 +340,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     if (!data.interactive_content) return null;
 
     const { poll, quiz, survey } = data.interactive_content;
+    console.log('Interactive Content:', { poll, quiz, survey });
 
     return (
       <View style={styles.interactiveFeaturesContainer}>
@@ -341,13 +351,19 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     );
   };
 
+  // Add this near the top of the component
+  React.useEffect(() => {
+    console.log('FeedItem Data:', data);
+    console.log('Interactive Content:', data.interactive_content);
+  }, [data]);
+
   const styles = StyleSheet.create({
     container: {
-      backgroundColor: colorScheme.colors.card,
+      backgroundColor: colorScheme.colors.background,
       borderRadius: Number(design.radius.lg),
       borderWidth: 1,
       borderColor: colorScheme.colors.border,
-      margin: Number(design.spacing.padding.card),
+      margin: Number(design.spacing.margin.item),
       overflow: 'hidden',
       width: '100%',
       maxWidth: 600,
@@ -425,6 +441,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       position: 'relative',
       overflow: 'hidden',
       width: '100%',
+      maxHeight: isCollapsed ? 300 : undefined,
     },
     interactiveFeaturesContainer: {
       gap: Number(design.spacing.padding.card),
@@ -448,12 +465,29 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       lineHeight: Number(design.spacing.lineHeight.normal),
       color: colorScheme.colors.text,
     },
+    interactiveDescriptionContainer: {
+      marginTop: Number(design.spacing.margin.item),
+      paddingHorizontal: Number(design.spacing.padding.card),
+    },
+    interactiveDescription: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+      lineHeight: Number(design.spacing.lineHeight.normal),
+    },
+    previewDescription: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+      marginBottom: Number(design.spacing.margin.item),
+    },
     mediaContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: Number(design.spacing.padding.item),
       marginTop: Number(design.spacing.margin.item),
       width: '100%',
+      overflow: 'hidden',
     },
     mediaItem: {
       borderRadius: Number(design.radius.md),
@@ -662,6 +696,12 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       flexWrap: 'wrap',
       paddingHorizontal: Number(design.spacing.padding.item)
     },
+    surveyDescription: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+      marginBottom: Number(design.spacing.margin.item),
+    },
     questionContainer: {
       marginBottom: Number(design.spacing.margin.item),
       padding: Number(design.spacing.padding.card),
@@ -716,6 +756,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     },
     collapsed: {
       overflow: 'hidden',
+      maxHeight: 300,
     },
     contentOverlay: {
       position: 'absolute',
@@ -757,7 +798,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       paddingVertical: Number(design.spacing.padding.item),
       paddingHorizontal: Number(design.spacing.padding.item),
       borderRadius: Number(design.radius.full),
-      backgroundColor: colorScheme.colors.notification,
+      backgroundColor: colorScheme.colors.background,
       borderWidth: 1,
       borderColor: colorScheme.colors.border,
     },
@@ -784,6 +825,25 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       backgroundColor: colorScheme.colors.notification,
       borderRadius: Number(design.radius.md),
       width: '100%',
+    },
+    pollTitle: {
+      fontSize: Number(design.spacing.fontSize.base),
+      fontWeight: 'bold',
+      marginBottom: Number(design.spacing.margin.item),
+      color: colorScheme.colors.text,
+    },
+    pollDescription: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+      marginBottom: Number(design.spacing.margin.item),
+    },
+  
+    quizDescription: {
+      fontSize: Number(design.spacing.fontSize.base),
+      color: colorScheme.colors.text,
+      opacity: Number(design.opacity.medium),
+      marginBottom: Number(design.spacing.margin.item),
     },
   });
 
@@ -863,22 +923,25 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   const renderMediaItems = () => {
     if (!data.media || data.media.length === 0) return null;
 
+    const mediaContainerStyle = [
+      styles.mediaContainer,
+      isCollapsed && { maxHeight: 300 }
+    ];
+
     if (data.metadata?.mediaLayout === 'carousel') {
       return (
-        <>
-          <View style={styles.carouselContainer}>
-            <View style={styles.carouselItem}>
-              <Image
-                source={{ uri: data.media[currentSlide].type === 'video' ? data.media[currentSlide].thumbnail : data.media[currentSlide].url }}
-                style={styles.mediaImage}
-                resizeMode="cover"
-              />
-              {data.media[currentSlide].caption && (
-                <Text style={styles.mediaCaption}>
-                  {data.media[currentSlide].type === 'video' ? '🎥 ' : ''}{data.media[currentSlide].caption}
-                </Text>
-              )}
-            </View>
+        <View style={mediaContainerStyle}>
+          <View style={styles.carouselItem}>
+            <Image
+              source={{ uri: data.media[currentSlide].type === 'video' ? data.media[currentSlide].thumbnail : data.media[currentSlide].url }}
+              style={styles.mediaImage}
+              resizeMode="cover"
+            />
+            {data.media[currentSlide].caption && (
+              <Text style={styles.mediaCaption}>
+                {data.media[currentSlide].type === 'video' ? '🎥 ' : ''}{data.media[currentSlide].caption}
+              </Text>
+            )}
           </View>
           <View style={styles.carouselControls}>
             <Button
@@ -907,7 +970,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
               <Text>Next</Text>
             </Button>
           </View>
-        </>
+        </View>
       );
     }
 
@@ -938,13 +1001,14 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     };
 
     return (
-      <View style={[styles.mediaContainer]}>
+      <View style={mediaContainerStyle}>
         {data.media.map((item, index) => (
           <View 
             key={index} 
             style={[
               styles.mediaItem,
-              getMediaItemStyle(index)
+              getMediaItemStyle(index),
+              isCollapsed && { maxHeight: 300 }
             ]}
           >
             <Image
@@ -963,6 +1027,34 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     );
   };
 
+  const renderContent = () => {
+    return (
+      <View style={[
+        styles.contentWrapper,
+        isCollapsed && { maxHeight: 300 }
+      ]}>
+        {/* Content Text */}
+        {data.content && (
+          <View style={styles.interactiveDescriptionContainer}>
+            <Text style={styles.interactiveDescription}>{data.content}</Text>
+          </View>
+        )}
+
+        {/* Media Items */}
+        {data.media && data.media.length > 0 && renderMediaItems()}
+
+        {/* Interactive Content */}
+        {data.interactive_content && (
+          <View style={styles.interactiveFeaturesContainer}>
+            {data.interactive_content.poll && renderPoll(data.interactive_content.poll)}
+            {data.interactive_content.quiz && renderQuiz(data.interactive_content.quiz)}
+            {data.interactive_content.survey && renderSurvey(data.interactive_content.survey)}
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.card }]}>
       {showHeader && (
@@ -972,8 +1064,8 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
               <Image 
                 source={{ 
                   uri: data.channel_username === 'elonmusk' 
-                    ? 'https://placehold.co/400x400/1DA1F2/ffffff/png?text=X'
-                    : 'https://placehold.co/400x400/666666/ffffff/png?text=U'
+                    ? 'https://placehold.co/400x400/FF6B6B/ffffff/png?text=X'
+                    : 'https://placehold.co/400x400/4ECDC4/ffffff/png?text=U'
                 }} 
                 style={styles.avatarImage}
               />
@@ -1000,43 +1092,29 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         styles.content,
         isCollapsed && styles.collapsed
       ]}>
-        <View style={styles.contentWrapper}>
-          {/* Content Text */}
-          {data.content && (
-            <View style={[
-              styles.markdownContainer,
-              isCollapsed && { maxHeight: 72 }
-            ]}>
-              <Markdown style={markdownStyles}>
-                {data.content}
-              </Markdown>
+        {renderContent()}
+
+        {isCollapsed && data.metadata?.isCollapsible && (
+          <LinearGradient
+            colors={[
+              'rgba(255, 255, 255, 0)',
+              `rgba(${colorScheme.colors.background}, 0.95)`,
+              colorScheme.colors.background
+            ]}
+            style={styles.contentOverlay}
+            pointerEvents="box-none"
+          >
+            <View style={styles.collapseButtonContainer}>
+              <Button
+                variant="ghost"
+                onPress={toggleCollapse}
+                style={styles.overlayCollapseButton}
+              >
+                <Text style={styles.overlayCollapseButtonText}>Show more</Text>
+              </Button>
             </View>
-          )}
-
-          {/* Media Items */}
-          {data.media && data.media.length > 0 && renderMediaItems()}
-
-          {/* Interactive Content */}
-          {!isCollapsed && renderInteractiveContent()}
-
-          {isCollapsed && data.metadata?.isCollapsible && (
-            <LinearGradient
-              colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 1)']}
-              style={styles.contentOverlay}
-              pointerEvents="box-none"
-            >
-              <View style={styles.collapseButtonContainer}>
-                <Button
-                  variant="ghost"
-                  onPress={toggleCollapse}
-                  style={styles.overlayCollapseButton}
-                >
-                  <Text style={styles.overlayCollapseButtonText}>Show more</Text>
-                </Button>
-              </View>
-            </LinearGradient>
-          )}
-        </View>
+          </LinearGradient>
+        )}
 
         {!isCollapsed && data.metadata?.isCollapsible && (
           <View style={styles.showLessContainer}>

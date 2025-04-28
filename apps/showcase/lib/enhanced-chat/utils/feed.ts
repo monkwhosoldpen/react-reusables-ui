@@ -3,6 +3,7 @@ import { FEED_CONSTANTS } from '../constants/feed';
 
 export const DEFAULT_POLL: PollData = {
   question: '',
+  description: '',
   options: ['', '']
 };
 
