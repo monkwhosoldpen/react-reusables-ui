@@ -43,7 +43,7 @@ export default function CreateMessageScreen() {
   const styles = createMessageStyles(colorScheme);
 
   // State declarations with proper types
-  const [selectedType, setSelectedType] = useState<FeedItemType>('all');
+  const [selectedType, setSelectedType] = useState<FeedItemType>('whatsapp');
   const [isInteractive, setIsInteractive] = useState<boolean>(false);
   const [includeMedia, setIncludeMedia] = useState<boolean>(false);
   const [includeContent, setIncludeContent] = useState<boolean>(true);
@@ -348,7 +348,6 @@ export default function CreateMessageScreen() {
 
         {/* Right Section - Feed Items List (40%) */}
         <View style={styles.rightSection}>
-          <Text style={styles.comingSoonText}>Coming Soon</Text>
           <Text style={[styles.messageCount, { color: colorScheme.colors.text }]}>
             Total Messages: {messageCount}
           </Text>
@@ -356,12 +355,11 @@ export default function CreateMessageScreen() {
           <ScrollView style={styles.messageList}>
             {messages.map((message) => (
               <View key={message.id} style={[styles.messageItem, { borderColor: colorScheme.colors.border }]}>
-                <Text style={[styles.messageId, { color: colorScheme.colors.text }]}>
-                  ID: {message.id}
-                </Text>
-                <Text style={[styles.messageType, { color: colorScheme.colors.text }]}>
-                  Type: {message.type}
-                </Text>
+                <FeedItem
+                  data={message}
+                  showHeader={true}
+                  showFooter={true}
+                />
                 <TouchableOpacity
                   style={[styles.editButton, { backgroundColor: colorScheme.colors.primary }]}
                   onPress={() => handleEditMessage(message)}
@@ -515,28 +513,22 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   messageItem: {
-    padding: 12,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 8,
-    marginBottom: 8,
+    overflow: 'hidden',
   },
-  messageId: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  messageType: {
-    fontSize: 14,
-    fontWeight: '500',
+  feedItem: {
+    borderRadius: 8,
   },
   editButton: {
     padding: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
   },
   editButtonText: {
+    color: '#fff',
     fontSize: 14,
     fontWeight: '500',
   },

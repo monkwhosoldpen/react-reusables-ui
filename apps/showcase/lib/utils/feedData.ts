@@ -13,6 +13,7 @@ import {
   VisibilitySettings,
   DisplayMode
 } from '~/lib/enhanced-chat/types/superfeed';
+import { DEFAULT_INTERACTIVE_CONTENT } from '~/lib/enhanced-chat/types/superfeed';
 
 // Initialize Supabase client with environment variables
 const supabase = createClient(
@@ -34,7 +35,6 @@ export const DEFAULT_METADATA: Metadata = {
   visibility: DEFAULT_VISIBILITY,
   mediaLayout: 'grid' as const,
   requireAuth: false,
-  allowResubmit: false,
 };
 
 export const DEFAULT_POLL: PollData = {
@@ -138,13 +138,36 @@ export const prepareSubmissionData = (formData: FormDataType): FormDataType => (
 export const fetchFeedItems = async (username: string): Promise<FormDataType[]> => {
   try {
     const { data, error } = await supabase
-      .from('channels_messages')
+      .from('superfeed')
       .select('*')
-      .eq('username', username)
+      .eq('channel_username', username)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+
+    // Transform the raw data to ensure it matches FormDataType
+    return (data || []).map(item => ({
+      id: item.id,
+      type: item.type || 'whatsapp',
+      content: item.content || '',
+      message: item.message,
+      caption: item.caption,
+      media: Array.isArray(item.media) ? item.media : [],
+      metadata: {
+        ...DEFAULT_METADATA,
+        ...(item.metadata || {}),
+      },
+      stats: item.stats || {
+        likes: 0,
+        shares: 0,
+        views: 0,
+        responses: 0
+      },
+      interactive_content: item.interactive_content || DEFAULT_INTERACTIVE_CONTENT,
+      channel_username: item.channel_username || username,
+      created_at: item.created_at,
+      updated_at: item.updated_at
+    }));
   } catch (error) {
     console.error('Error fetching feed items:', error);
     return [];
@@ -154,12 +177,11 @@ export const fetchFeedItems = async (username: string): Promise<FormDataType[]> 
 export const createFeedItem = async (item: FormDataType, username: string): Promise<FormDataType | null> => {
   try {
     const { data, error } = await supabase
-      .from('channels_messages')
+      .from('superfeed')
       .insert([{
         ...item,
-        username,
-        message_text: item.content,
-        channel_username: item.channel_username
+        channel_username: username,
+        content: item.content
       }])
       .select()
       .single();
@@ -179,14 +201,14 @@ export const setupRealtimeSubscription = (
   onDelete: (id: string) => void
 ) => {
   const channel = supabase
-    .channel('channels_messages_changes')
+    .channel('superfeed_changes')
     .on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
-        table: 'channels_messages',
-        filter: `username=eq.${username}`
+        table: 'superfeed',
+        filter: `channel_username=eq.${username}`
       },
       (payload) => {
         if (payload.eventType === 'INSERT') {
@@ -772,9 +794,9 @@ export const handleEditItem = (item: FormDataType): Partial<FormDataType> => ({
 export const refreshFeed = async (username: string): Promise<FormDataType[]> => {
   try {
     const { data, error } = await supabase
-      .from('channels_messages')
+      .from('superfeed')
       .select('*')
-      .eq('username', username)
+      .eq('channel_username', username)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -822,7 +844,7 @@ export const handleSubmit = async (formData: FormDataType, username: string): Pr
     console.log('handleSubmit - Prepared submission data:', submissionData);
 
     const { data, error } = await supabase
-      .from('channels_messages')
+      .from('superfeed')
       .insert([submissionData])
       .select();
 

@@ -35,8 +35,7 @@ const DEFAULT_METADATA: Metadata = {
   visibility: {
     stats: true,
     shareButtons: true,
-    header: true,
-    footer: true
+    header: true
   },
   mediaLayout: 'grid'
 };
@@ -52,7 +51,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
   const [formData, setFormData] = useState<FormDataType>(() => {
     // Initialize with proper defaults and validation
     const baseData = initialData || {
-      type: 'poll' as FeedItemType,
+      type: 'whatsapp' as FeedItemType,
       content: '',
       media: [],
       channel_username: user.email,
@@ -87,7 +86,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
     return {
       ...baseData,
       // Ensure required fields have defaults
-      type: baseData.type || 'poll',
+      type: baseData.type || 'whatsapp',
       content: baseData.content || '',
       media: Array.isArray(baseData.media) ? baseData.media : [],
       channel_username: baseData.channel_username || user.email,
@@ -161,7 +160,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('channels_messages')
+        .from('superfeed')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -172,8 +171,8 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       if (data && typeof data === 'object') {
         // Transform the raw data to ensure it matches FormDataType
         const transformedData: FormDataType = {
-          type: (data.type as FeedItemType) || 'poll',
-          content: typeof data.message_text === 'string' ? data.message_text : '',
+          type: (data.type as FeedItemType) || 'whatsapp',
+          content: typeof data.content === 'string' ? data.content : '',
           media: Array.isArray(data.media) ? data.media : [],
           caption: typeof data.caption === 'string' ? data.caption : undefined,
           message: typeof data.message === 'string' ? data.message : undefined,
@@ -186,7 +185,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
             ...data.stats as Stats
           } : DEFAULT_STATS,
           interactive_content: typeof data.interactive_content === 'object' ? data.interactive_content as InteractiveContent : {},
-          channel_username: typeof data.username === 'string' ? data.username : user.email,
+          channel_username: typeof data.channel_username === 'string' ? data.channel_username : user.email,
           id: typeof data.id === 'string' ? data.id : undefined,
           created_at: typeof data.created_at === 'string' ? data.created_at : undefined,
           updated_at: typeof data.updated_at === 'string' ? data.updated_at : undefined,
@@ -216,8 +215,8 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       // Prepare the data for submission
       const submissionData = {
         type: data.type,
-        username: data.channel_username || user.email,
-        message_text: data.content.trim(),
+        channel_username: data.channel_username || user.email,
+        content: data.content.trim(),
         caption: data.caption?.trim(),
         message: data.message?.trim(),
         media: Array.isArray(data.media) ? data.media : [],
@@ -236,7 +235,7 @@ export function useFeedForm({ user, initialData }: UseFeedFormProps): UseFeedFor
       };
 
       const { error: upsertError } = await supabase
-        .from('channels_messages')
+        .from('superfeed')
         .upsert(submissionData);
 
       if (upsertError) throw upsertError;

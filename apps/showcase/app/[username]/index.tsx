@@ -6,11 +6,10 @@ import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import { ChannelSidebar } from '@/components/channel-profile/ChannelSidebar';
-import { ChannelMessages } from '@/components/channel-profile/ChannelMessages';
+import { ChannelSuperfeed } from '@/components/channel-profile/ChannelSuperfeed';
 import { ChannelDebugInfo } from '@/components/channel-profile/ChannelDebugInfo';
 import { Channel, ChannelResponse } from '@/lib/types/channel.types';
 import { config } from '~/lib/config';
-import { useChannelMessages } from '~/lib/hooks/useChannelMessages';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { Loader2 } from 'lucide-react';
@@ -20,6 +19,8 @@ import { useWindowDimensions } from 'react-native';
 import { useRealtime } from '~/lib/providers/RealtimeProvider';
 import { AgentChat } from '~/components/agent-chat/AgentChat';
 import ChannelInfoSection from '~/components/ChannelInfoSection';
+import { fetchFeedItems } from '~/lib/utils/feedData';
+import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
 
 export default function ChannelPage() {
   const router = useRouter();
@@ -65,6 +66,9 @@ export default function ChannelPage() {
   const [channel, setChannel] = useState<Channel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<FormDataType[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const [messageError, setMessageError] = useState<string | null>(null);
 
   // Theme and design
   const { colorScheme } = useColorScheme();
@@ -72,7 +76,7 @@ export default function ChannelPage() {
 
   const messagesEndRef = useRef<View>(null);
 
-  // Fetch channel data only once
+  // Fetch channel data
   useEffect(() => {
     let isMounted = true;
 
@@ -108,12 +112,38 @@ export default function ChannelPage() {
     };
   }, [usernameStr]);
 
-  // Fetch messages only when channel exists (optimized to run once)
-  const {
-    messages,
-    isLoading: loadingMessages,
-    error: messageError,
-  } = useChannelMessages(channel ? { username: usernameStr } : { username: '' });
+  // Fetch feed items
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadFeedItems = async () => {
+      if (!channel) return;
+      
+      try {
+        setLoadingMessages(true);
+        const items = await fetchFeedItems(usernameStr);
+        if (isMounted) {
+          setMessages(items);
+          setMessageError(null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setMessageError(err instanceof Error ? err.message : 'Failed to load feed items');
+          setMessages([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingMessages(false);
+        }
+      }
+    };
+
+    loadFeedItems();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [channel, usernameStr]);
 
   if (loading) {
     return (
@@ -187,14 +217,12 @@ export default function ChannelPage() {
           </ChannelInfoSection>
 
           <ScrollView className="p-4">
-
-            <ChannelMessages
-              messages={messages || []}
+            <ChannelSuperfeed
+              messages={messages}
               messagesLoading={loadingMessages}
+              messagesError={messageError}
               messagesEndRef={messagesEndRef}
-              channelDetails={channel}
-              username={usernameStr} messagesError={undefined}            />
-
+            />
           </ScrollView>
         </View>
       </View>

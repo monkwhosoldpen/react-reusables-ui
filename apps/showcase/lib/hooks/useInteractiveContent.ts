@@ -72,10 +72,10 @@ export function useInteractiveContent(feedItem: FormDataType) {
       
       const response = await checkAuthAndRetry(async () => {
         const { data, error } = await supabase
-          .from('channels_message_responses')
+          .from('superfeed_responses')
           .select('*')
           .eq('user_id', user.id)
-          .eq('message_id', feedItem.id)
+          .eq('feed_item_id', feedItem.id)
           .single();
 
         if (error) throw error;
@@ -106,10 +106,10 @@ export function useInteractiveContent(feedItem: FormDataType) {
 
       // First, create the message
       const { data: messageData, error: messageError } = await supabase
-        .from('channels_messages')
+        .from('superfeed')
         .insert({
-          username: user?.email || feedItem.channel_username,
-          message_text: feedItem.content || feedItem.message || feedItem.interactive_content?.survey?.title || 'Survey',
+          channel_username: user?.email || feedItem.channel_username,
+          content: feedItem.content || feedItem.message || feedItem.interactive_content?.survey?.title || 'Survey',
           type: feedItem.type,
           media: feedItem.media,
           metadata: feedItem.metadata,
@@ -126,9 +126,9 @@ export function useInteractiveContent(feedItem: FormDataType) {
 
       // Then create the response using the message ID
       const { data: responseData, error: responseError } = await supabase
-        .from('channels_message_responses')
+        .from('superfeed_responses')
         .insert({
-          message_id: messageData.id,
+          feed_item_id: messageData.id,
           user_id: user?.id,
           response_type: responseType,
           response_data: response
@@ -140,7 +140,7 @@ export function useInteractiveContent(feedItem: FormDataType) {
 
       // Update the stats on the message
       const { error: updateError } = await supabase
-        .from('channels_messages')
+        .from('superfeed')
         .update({ 
           stats: {
             ...messageData.stats,

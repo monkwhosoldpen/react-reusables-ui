@@ -48,9 +48,9 @@ export const fetchMessages = async (username: string) => {
 export const createMessage = async (formData: FormDataType, username: string) => {
   try {
     const createData = {
-      username,
-      type: formData.type || 'message',
-      message_text: formData.content,
+      channel_username: username,
+      type: formData.type || 'whatsapp',
+      content: formData.content,
       caption: formData.caption,
       media: formData.media || [],
       metadata: {
@@ -71,13 +71,13 @@ export const createMessage = async (formData: FormDataType, username: string) =>
 
     console.log('Creating message with data:', {
       type: createData.type,
-      message_text: createData.message_text,
+      content: createData.content,
       interactive_content: createData.interactive_content,
       media: createData.media
     });
 
     const { data, error } = await supabase
-      .from('channels_messages')
+      .from('superfeed')
       .insert([createData])
       .select();
 
