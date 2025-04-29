@@ -15,7 +15,7 @@ interface UseMessageHandlingReturn {
   messages: FormDataType[];
   isSubmitting: boolean;
   error: Error | null;
-  handleCreateItem: () => Promise<void>;
+  handleCreateItem: (messageToCreate?: FormDataType) => Promise<void>;
   handleEditMessage: (message: FormDataType) => void;
 }
 
@@ -25,7 +25,7 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const handleCreateItem = useCallback(async () => {
+  const handleCreateItem = useCallback(async (messageToCreate?: FormDataType) => {
     try {
       if (!username) {
         throw new Error('No username found');
@@ -34,15 +34,17 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
       setIsSubmitting(true);
       setError(null);
 
+      const messageData = messageToCreate || formData;
+
       // Log the form data before submission
       console.log('Creating message with data:', {
-        type: formData.type,
-        content: formData.content,
-        interactive_content: formData.interactive_content,
-        media: formData.media
+        type: messageData.type,
+        content: messageData.content,
+        interactive_content: messageData.interactive_content,
+        media: messageData.media
       });
 
-      const data = await createMessage(formData, username);
+      const data = await createMessage(messageData, username);
       if (data) {
         // Fetch updated message count
         const count = await fetchMessageCount(username);
@@ -52,16 +54,19 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
         const updatedMessages = await fetchFeedItems(username);
         setMessages(updatedMessages);
 
-        // Reset form but preserve interactive content type
-        handleFormDataChange({
-          type: formData.type || 'all',
-          content: '',
-          media: [],
-          metadata: DEFAULT_METADATA,
-          interactive_content: formData.interactive_content ? {
-            [formData.type as keyof InteractiveContent]: formData.interactive_content[formData.type as keyof InteractiveContent]
-          } : undefined
-        } as FormDataType);
+        // Only reset form if we're not bulk creating
+        if (!messageToCreate) {
+          // Reset form but preserve interactive content type
+          handleFormDataChange({
+            type: messageData.type || 'all',
+            content: '',
+            media: [],
+            metadata: DEFAULT_METADATA,
+            interactive_content: messageData.interactive_content ? {
+              [messageData.type as keyof InteractiveContent]: messageData.interactive_content[messageData.type as keyof InteractiveContent]
+            } : undefined
+          } as FormDataType);
+        }
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to create message');

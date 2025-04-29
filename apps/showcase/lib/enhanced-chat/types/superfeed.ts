@@ -79,7 +79,7 @@ export interface SurveyData {
   questions: SurveyQuestion[];
 }
 
-export interface VisibilitySettings {
+export interface Visibility {
   stats: boolean;
   shareButtons: boolean;
   header: boolean;
@@ -101,6 +101,7 @@ export interface Metadata {
     stats: boolean;
     shareButtons: boolean;
     header: boolean;
+    footer: boolean;
   };
   mediaLayout: MediaLayout;
   interactiveType?: InteractiveType;
@@ -178,7 +179,8 @@ export const DEFAULT_METADATA: Metadata = {
   visibility: {
     stats: true,
     shareButtons: true,
-    header: true
+    header: true,
+    footer: true
   },
   mediaLayout: 'grid',
   requireAuth: false,

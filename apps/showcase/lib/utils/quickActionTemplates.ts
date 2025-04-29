@@ -11,7 +11,11 @@ export const QUICK_ACTION_TEMPLATES: Record<string, Partial<FormDataType>> = {
     metadata: {
       ...DEFAULT_METADATA,
       isCollapsible: false,
-      mediaLayout: 'grid'
+      mediaLayout: 'grid',
+      visibility: {
+        ...DEFAULT_METADATA.visibility,
+        footer: false
+      }
     }
   },
   long: {
@@ -29,7 +33,11 @@ Remember to structure your content with clear paragraphs and formatting to ensur
     metadata: {
       ...DEFAULT_METADATA,
       isCollapsible: true,
-      mediaLayout: 'grid'
+      mediaLayout: 'grid',
+      visibility: {
+        ...DEFAULT_METADATA.visibility,
+        footer: false
+      }
     }
   },
   superfeed: {
@@ -86,7 +94,7 @@ We'd love to know which features you're most excited about! Please take a moment
       maxHeight: 500,
       visibility: DEFAULT_METADATA.visibility,
       requireAuth: true,
-      allowResubmit: false,
+      // allowResubmit: false,
       timestamp: new Date().toISOString()
     }
   }

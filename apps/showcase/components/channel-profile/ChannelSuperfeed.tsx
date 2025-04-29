@@ -42,8 +42,8 @@ export function ChannelSuperfeed({
         <View key={message.id || index} style={[styles.messageItem, { borderColor: colorScheme.colors.border }]}>
           <FeedItem
             data={message}
-            showHeader={true}
-            showFooter={true}
+            showHeader={message.metadata?.visibility?.header ?? true}
+            showFooter={message.metadata?.visibility?.footer ?? false}
           />
         </View>
       ))}

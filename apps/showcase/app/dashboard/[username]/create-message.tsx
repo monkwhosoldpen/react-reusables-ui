@@ -30,6 +30,7 @@ import { usePreviewData } from '~/lib/hooks/usePreviewData';
 import { useMessageHandling } from '~/lib/hooks/useMessageHandling';
 import { useMediaHandling } from '~/lib/hooks/useMediaHandling';
 import { handleQuickAction } from '~/lib/utils/quickActionHandlers';
+import { generateBulkShortMessages, generateBulkLongMessages } from '~/lib/utils/bulkCreateTemplates';
 
 type InteractiveType = 'poll' | 'quiz' | 'survey';
 
@@ -154,6 +155,38 @@ export default function CreateMessageScreen() {
     }
   }, [formData.metadata?.isCollapsible, formData.media]);
 
+  const handleBulkCreateShort = useCallback(async () => {
+    try {
+      const messages = generateBulkShortMessages(20);
+      const batchSize = 5;
+      
+      for (let i = 0; i < messages.length; i += batchSize) {
+        const batch = messages.slice(i, i + batchSize);
+        await Promise.all(batch.map(message => handleCreateItem(message)));
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to bulk create short messages');
+      setError(error);
+      console.error('Error in handleBulkCreateShort:', error);
+    }
+  }, [handleCreateItem]);
+
+  const handleBulkCreateLong = useCallback(async () => {
+    try {
+      const messages = generateBulkLongMessages(20);
+      const batchSize = 5;
+      
+      for (let i = 0; i < messages.length; i += batchSize) {
+        const batch = messages.slice(i, i + batchSize);
+        await Promise.all(batch.map(message => handleCreateItem(message)));
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to bulk create long messages');
+      setError(error);
+      console.error('Error in handleBulkCreateLong:', error);
+    }
+  }, [handleCreateItem]);
+
   // Combine all errors
   const combinedError = error || messageError || mediaError;
 
@@ -188,6 +221,20 @@ export default function CreateMessageScreen() {
         >
           <Text>Create SuperfeedItem</Text>
         </Button>
+        <Button
+          variant="outline"
+          onPress={handleBulkCreateShort}
+          style={styles.quickActionButton}
+        >
+          <Text>Bulk Create Short</Text>
+        </Button>
+        <Button
+          variant="outline"
+          onPress={handleBulkCreateLong}
+          style={styles.quickActionButton}
+        >
+          <Text>Bulk Create Long</Text>
+        </Button>
       </View>
 
       <View style={styles.mainContent}>
@@ -215,6 +262,21 @@ export default function CreateMessageScreen() {
                 <Switch
                   value={includeContent}
                   onValueChange={setIncludeContent}
+                />
+              </View>
+              <View style={styles.toggleRow}>
+                <Text style={{ color: colorScheme.colors.text, fontSize: 16 }}>Show Footer</Text>
+                <Switch
+                  value={formData.metadata?.visibility?.footer ?? true}
+                  onValueChange={(value) => handleFormDataChange({
+                    metadata: {
+                      ...formData.metadata,
+                      visibility: {
+                        ...formData.metadata?.visibility,
+                        footer: value
+                      }
+                    }
+                  })}
                 />
               </View>
               {includeContent && (
@@ -357,8 +419,8 @@ export default function CreateMessageScreen() {
               <View key={message.id} style={[styles.messageItem, { borderColor: colorScheme.colors.border }]}>
                 <FeedItem
                   data={message}
-                  showHeader={true}
-                  showFooter={true}
+                  showHeader={message.metadata?.visibility?.header ?? true}
+                  showFooter={message.metadata?.visibility?.footer ?? false}
                 />
                 <TouchableOpacity
                   style={[styles.editButton, { backgroundColor: colorScheme.colors.primary }]}
@@ -375,7 +437,7 @@ export default function CreateMessageScreen() {
       <View style={styles.dialogFooter}>
         <Button
           variant="default"
-          onPress={handleCreateItem}
+          onPress={() => handleCreateItem(formData)}
           disabled={isSubmitting}
         >
           <Text>{isSubmitting ? 'Creating...' : 'Create'}</Text>

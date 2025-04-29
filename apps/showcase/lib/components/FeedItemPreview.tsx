@@ -28,8 +28,8 @@ export const FeedItemPreview: React.FC<FeedItemPreviewProps> = ({ previewData, p
           <FeedItem
             key={`preview-${previewKey}`}
             data={previewData}
-            showHeader={true}
-            showFooter={true}
+            showHeader={previewData.metadata?.visibility?.header ?? true}
+            showFooter={previewData.metadata?.visibility?.footer ?? false}
           />
         </Card>
       </ScrollView>

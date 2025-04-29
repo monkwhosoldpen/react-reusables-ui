@@ -27,6 +27,16 @@ export const createMessageStyles = (colorScheme: ColorSchemeConfig) => StyleShee
     flex: 1,
     padding: 16,
   },
+  previewContainer: {
+    flex: 1,
+  },
+  previewScroll: {
+    flex: 1,
+  },
+  previewCard: {
+    padding: 16,
+    marginBottom: 16,
+  },
   rightSection: {
     flex: 0.4,
   },
@@ -99,16 +109,6 @@ export const createMessageStyles = (colorScheme: ColorSchemeConfig) => StyleShee
     padding: 16,
     borderLeftWidth: StyleSheet.hairlineWidth,
     borderLeftColor: colorScheme.colors.border,
-  },
-  previewScroll: {
-    flex: 1,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colorScheme.colors.border,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   dialogFooter: {
     padding: 16,
