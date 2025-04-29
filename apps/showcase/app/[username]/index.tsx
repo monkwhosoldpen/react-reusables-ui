@@ -17,8 +17,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 import { useWindowDimensions } from 'react-native';
 import { useRealtime } from '~/lib/providers/RealtimeProvider';
-import { AgentChat } from '~/components/agent-chat/AgentChat';
-import ChannelInfoSection from '~/components/ChannelInfoSection';
+import ChannelInfoSection from '~/components/channel-profile/ChannelInfoSection';
 import { fetchFeedItems } from '~/lib/utils/feedData';
 import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
 

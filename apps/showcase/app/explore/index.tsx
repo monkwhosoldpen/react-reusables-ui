@@ -16,7 +16,7 @@ import { useDesign } from '@/lib/providers/theme/DesignSystemProvider';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from "@expo/vector-icons";
-import { CommonHeader } from '@/components/CommonHeader';
+import { CommonHeader } from '~/components/common/CommonHeader';
 
 export default function ExplorePage() {
   const { user } = useAuth();

@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { DashboardHeader } from '~/components/DashboardHeader';
+import { DashboardHeader } from '~/components/dashboard/DashboardHeader';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { StyleSheet, View } from 'react-native';
 

@@ -1,7 +1,7 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Menu, Settings } from 'lucide-react-native';
 import { LayoutPanelLeft } from '~/lib/icons/LayoutPanelLeft';
-import { CommonHeader } from '~/components/CommonHeader';
+import { CommonHeader } from '~/components/common/CommonHeader';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
 import { StyleSheet, View, useWindowDimensions, Pressable } from 'react-native';
@@ -67,11 +67,6 @@ export default function TabsLayout() {
       name: 'nchat',
       icon: LayoutPanelLeft,
       route: 'index',
-    },
-    {
-      name: 'Supermenu',
-      icon: Menu,
-      route: 'supermenu',
     },
     {
       name: 'Settings',

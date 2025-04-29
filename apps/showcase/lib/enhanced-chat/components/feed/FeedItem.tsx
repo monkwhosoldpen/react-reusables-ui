@@ -394,8 +394,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       marginBottom: 8,
       overflow: 'hidden',
       width: '100%',
-      maxWidth: 600,
-      alignSelf: 'center',
+      alignSelf: 'stretch',
     },
     header: {
       flexDirection: 'row',
@@ -464,6 +463,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       position: 'relative',
       width: '100%',
       paddingHorizontal: 16,
+      alignSelf: 'stretch',
     },
     contentWrapper: {
       paddingVertical: 12,
@@ -476,13 +476,13 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       padding: Number(design.spacing.padding.card),
       paddingTop: 0,
       width: '100%',
-      maxWidth: '100%',
+      alignSelf: 'stretch',
       overflow: 'hidden'
     },
     interactiveContent: {
       marginTop: Number(design.spacing.margin.item),
       width: '100%',
-      maxWidth: '100%',
+      alignSelf: 'stretch',
       overflow: 'hidden'
     },
     collapsible: {

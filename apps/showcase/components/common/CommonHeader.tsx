@@ -4,7 +4,6 @@ import { Link } from 'expo-router';
 import { useColorScheme } from '@/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '@/lib/providers/theme/DesignSystemProvider';
 import { ChevronLeft } from 'lucide-react-native';
-import { MaterialIcons } from "@expo/vector-icons";
 
 interface CommonHeaderProps {
   title?: string;
