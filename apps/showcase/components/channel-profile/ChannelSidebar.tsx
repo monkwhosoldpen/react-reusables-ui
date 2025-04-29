@@ -5,7 +5,6 @@ import { View, ScrollView, useWindowDimensions, Pressable } from 'react-native'
 import { Channel } from "@/lib/types/channel.types"
 import { Text } from '~/components/ui/text'
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider'
 import { Users, Settings } from 'lucide-react'
 import { useRouter } from 'expo-router'
 
@@ -22,7 +21,7 @@ export function ChannelSidebar({
 }: ChannelSidebarProps) {
   const { colorScheme } = useColorScheme()
   const { width: screenWidth } = useWindowDimensions()
-  const sidebarWidth = Math.floor(screenWidth * 0.3)
+  const sidebarWidth = Math.floor(screenWidth * 0.25)
   const isMobile = screenWidth < 768
   const router = useRouter()
 
@@ -36,15 +35,14 @@ export function ChannelSidebar({
         {/* Parent Channel */}
         {channelDetails.parent_channel && (
           <Pressable onPress={() => handleChannelPress(channelDetails.parent_channel.username)}>
-            <View className={`flex-col items-center p-1.5 rounded-lg m-0.5 ${
+            <View className={`flex-col items-center py-0.5 px-0 rounded-lg m-0. ${
               selectedChannel === channelDetails.parent_channel.username ? 'bg-muted' : 'bg-card'
             }`}>
-              <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
-                <Users size={18} color={colorScheme.colors.primary} />
+              <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
+                <Users size={16} color={colorScheme.colors.primary} />
               </View>
-              <Text className="text-[10px] text-center mt-0.5 font-medium">
+              <Text className="text-[9px] text-center mt-0.5 font-medium">
                 {channelDetails.parent_channel.username}
-                <Text className="text-[8px] text-muted-foreground"> (Parent)</Text>
               </Text>
             </View>
           </Pressable>
@@ -55,17 +53,14 @@ export function ChannelSidebar({
           ?.sort((a, b) => a.username.localeCompare(b.username))
           .map((related) => (
           <Pressable key={related.username} onPress={() => handleChannelPress(related.username)}>
-            <View className={`flex-col items-center p-1.5 rounded-lg m-0.5 ${
+            <View className={`flex-col items-center py-0.5 px-0 ${
               selectedChannel === related.username ? 'bg-muted' : 'bg-card'
             }`}>
-              <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
-                <Users size={18} color={colorScheme.colors.primary} />
+              <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
+                <Users size={16} color={colorScheme.colors.primary} />
               </View>
-              <Text className="text-[10px] text-center mt-0.5">
+              <Text className="text-[9px] text-center mt-0.5">
                 {related.username}
-                {related.is_agent && (
-                  <Text className="text-[8px] text-muted-foreground"> (Agent)</Text>
-                )}
               </Text>
             </View>
           </Pressable>

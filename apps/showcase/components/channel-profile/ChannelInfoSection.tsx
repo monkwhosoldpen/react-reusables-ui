@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Channel } from '@/lib/types/channel.types';
 import { MessageCircle } from 'lucide-react';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
@@ -22,8 +22,8 @@ const ChannelInfoSection = ({ username, channelDetails, messageCount, children }
   const hasAccess = channelDetails.is_public || user?.id;
 
   return (
-    <View style={styles.container}>
-      <View className="flex-row items-center gap-2 p-2 rounded bg-primary/10">
+    <View>
+      <View className="flex-row items-center gap-2 p-2 bg-primary/10">
         <MessageCircle size={12} color={colorScheme.colors.primary} />
         <Text className="text-xs text-primary">
           {messageCount}
@@ -44,42 +44,19 @@ const ChannelInfoSection = ({ username, channelDetails, messageCount, children }
         )}
       </View>
 
-      <View style={styles.contentWrapper}>
-        <View style={styles.contentContainer}>
+      <View className="flex-1 relative">
+        <View className="flex-1">
           {children}
         </View>
         {!hasAccess && (
-          <View style={[
-            styles.overlay,
-            { backgroundColor: colorScheme.colors.background }
-          ]} />
+          <View 
+            className="absolute inset-0 z-10 opacity-70"
+            style={{ backgroundColor: colorScheme.colors.background }}
+          />
         )}
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentWrapper: {
-    flex: 1,
-    position: 'relative',
-    marginTop: 8,
-  },
-  contentContainer: {
-    flex: 1,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.7,
-    zIndex: 1,
-  }
-});
 
 export default ChannelInfoSection; 

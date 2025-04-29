@@ -13,7 +13,10 @@ export const QUICK_ACTION_TEMPLATES: Record<string, Partial<FormDataType>> = {
       isCollapsible: true,
       mediaLayout: 'grid',
       displayMode: 'default',
-      visibility: DEFAULT_METADATA.visibility,
+      visibility: {
+        ...DEFAULT_METADATA.visibility,
+        footer: false
+      },
       requireAuth: true,
       timestamp: new Date().toISOString()
     }
@@ -35,7 +38,10 @@ Remember to structure your content with clear paragraphs and formatting to ensur
       isCollapsible: true,
       mediaLayout: 'grid',
       displayMode: 'default',
-      visibility: DEFAULT_METADATA.visibility,
+      visibility: {
+        ...DEFAULT_METADATA.visibility,
+        footer: false
+      },
       requireAuth: true,
       timestamp: new Date().toISOString()
     }
@@ -91,7 +97,10 @@ We'd love to know which features you're most excited about! Please take a moment
       isCollapsible: true,
       mediaLayout: 'grid',
       displayMode: 'default',
-      visibility: DEFAULT_METADATA.visibility,
+      visibility: {
+        ...DEFAULT_METADATA.visibility,
+        footer: false
+      },
       requireAuth: true,
       timestamp: new Date().toISOString()
     }

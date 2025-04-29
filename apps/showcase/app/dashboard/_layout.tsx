@@ -8,7 +8,7 @@ export default function DashboardLayout() {
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-      <DashboardHeader title="Dashboard" />
+      <DashboardHeader title="nchat" />
       <Stack
         screenOptions={{
           headerShown: false,

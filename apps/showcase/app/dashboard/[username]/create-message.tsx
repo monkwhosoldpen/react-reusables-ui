@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, Switch, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TextInput, Switch, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { Card } from '~/components/ui/card';
@@ -21,7 +21,6 @@ import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
 import { useLocalSearchParams } from 'expo-router';
 import { debounce } from 'lodash';
 import { createMessageStyles } from '~/lib/utils/createMessageStyles';
-import { FeedItemPreview } from '~/components/dashboard/FeedItemPreview';
 import { InteractiveContentSection } from '~/components/dashboard/InteractiveContentSection';
 import { QUICK_ACTION_TEMPLATES, INTERACTIVE_TYPES } from '~/lib/utils/quickActionTemplates';
 import { MEDIA_LAYOUTS, getMediaLayoutLabel, getMediaLayoutIcon } from '~/lib/utils/mediaLayouts';
@@ -191,61 +190,61 @@ export default function CreateMessageScreen() {
   const combinedError = error || messageError || mediaError;
 
   return (
-    <View style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+    <View className="flex-1 bg-background">
       {combinedError && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{combinedError.message}</Text>
+        <View className="p-4 bg-white border border-gray-200 rounded-lg">
+          <Text className="text-red-600 text-sm font-medium">{combinedError.message}</Text>
         </View>
       )}
       
       {/* Quick Action Buttons */}
-      <View style={styles.quickActions}>
+      <View className="flex-row gap-2 p-4">
         <Button
           variant="outline"
           onPress={() => handleQuickActionClick('small')}
-          style={styles.quickActionButton}
+          style={{ flex: 1 }}
         >
           <Text>Short Text</Text>
         </Button>
         <Button
           variant="outline"
           onPress={() => handleQuickActionClick('long')}
-          style={styles.quickActionButton}
+          style={{ flex: 1 }}
         >
           <Text>Long Text</Text>
         </Button>
         <Button
           variant="outline"
           onPress={() => handleQuickActionClick('superfeed')}
-          style={styles.quickActionButton}
+          style={{ flex: 1 }}
         >
           <Text>Create SuperfeedItem</Text>
         </Button>
         <Button
           variant="outline"
           onPress={handleBulkCreateShort}
-          style={styles.quickActionButton}
+          style={{ flex: 1 }}
         >
           <Text>Bulk Create Short</Text>
         </Button>
         <Button
           variant="outline"
           onPress={handleBulkCreateLong}
-          style={styles.quickActionButton}
+          style={{ flex: 1 }}
         >
           <Text>Bulk Create Long</Text>
         </Button>
       </View>
 
-      <View style={styles.mainContent}>
+      <View className="flex-1 flex-row p-4 gap-4">
         {/* Left Section - Form (30%) */}
-        <View style={styles.leftSection}>
-          <ScrollView style={styles.formScroll}>
+        <View className="flex-[0.3] border-r border-gray-200 pr-4">
+          <ScrollView className="p-4">
             {/* Content Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Content</Text>
-              <View style={styles.toggleRow}>
-                <Text style={{ color: colorScheme.colors.text, fontSize: 16 }}>Make Content Collapsible</Text>
+            <View className="p-4">
+              <Text className="text-lg font-semibold mb-4">Content</Text>
+              <View className="flex-row items-center mb-2">
+                <Text className="text-base">Make Content Collapsible</Text>
                 <Switch
                   value={formData.metadata?.isCollapsible ?? true}
                   onValueChange={(value) => handleFormDataChange({
@@ -257,15 +256,15 @@ export default function CreateMessageScreen() {
                   })}
                 />
               </View>
-              <View style={styles.toggleRow}>
-                <Text style={{ color: colorScheme.colors.text, fontSize: 16 }}>Include Content</Text>
+              <View className="flex-row items-center mb-2">
+                <Text className="text-base">Include Content</Text>
                 <Switch
                   value={includeContent}
                   onValueChange={setIncludeContent}
                 />
               </View>
-              <View style={styles.toggleRow}>
-                <Text style={{ color: colorScheme.colors.text, fontSize: 16 }}>Show Footer</Text>
+              <View className="flex-row items-center mb-2">
+                <Text className="text-base">Show Footer</Text>
                 <Switch
                   value={formData.metadata?.visibility?.footer ?? true}
                   onValueChange={(value) => handleFormDataChange({
@@ -281,7 +280,7 @@ export default function CreateMessageScreen() {
               </View>
               {includeContent && (
                 <TextInput
-                  style={styles.input}
+                  className="p-3 border border-gray-200 rounded-lg"
                   value={formData.content}
                   onChangeText={(text) => handleFormDataChange({ ...formData, content: text })}
                   placeholder="Enter your content"
@@ -292,10 +291,10 @@ export default function CreateMessageScreen() {
             </View>
 
             {/* Media Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Media</Text>
-              <View style={styles.toggleRow}>
-                <Text style={{ color: colorScheme.colors.text, fontSize: 16 }}>Include Media</Text>
+            <View className="p-4">
+              <Text className="text-lg font-semibold mb-4">Media</Text>
+              <View className="flex-row items-center mb-2">
+                <Text className="text-base">Include Media</Text>
                 <Switch
                   value={includeMedia}
                   onValueChange={setIncludeMedia}
@@ -303,23 +302,24 @@ export default function CreateMessageScreen() {
               </View>
               {includeMedia && (
                 <View>
-                  <View style={styles.mediaLayoutContainer}>
-                    <Text style={styles.mediaLayoutTitle}>Layout Style</Text>
-                    <View style={styles.mediaLayoutButtons}>
+                  <View className="mb-4">
+                    <Text className="text-base font-semibold mb-2">Layout Style</Text>
+                    <View className="flex-row gap-2">
                       {MEDIA_LAYOUTS.map((layout) => (
                         <TouchableOpacity
                           key={layout}
-                          style={[
-                            styles.mediaLayoutButton,
-                            formData.metadata?.mediaLayout === layout && styles.selectedMediaLayoutButton,
-                            { borderColor: colorScheme.colors.border }
-                          ]}
+                          className={`flex-1 p-3 border rounded-lg ${
+                            formData.metadata?.mediaLayout === layout 
+                              ? 'border-black bg-primary'
+                              : 'border-gray-200'
+                          }`}
                           onPress={() => handleMediaLayoutChange(layout)}
                         >
-                          <Text style={[
-                            styles.mediaLayoutButtonText,
-                            { color: formData.metadata?.mediaLayout === layout ? '#fff' : colorScheme.colors.text }
-                          ]}>
+                          <Text className={
+                            formData.metadata?.mediaLayout === layout 
+                              ? 'text-white'
+                              : 'text-gray-700'
+                          }>
                             {getMediaLayoutLabel(layout)}
                           </Text>
                         </TouchableOpacity>
@@ -328,36 +328,34 @@ export default function CreateMessageScreen() {
                   </View>
 
                   {/* Media Items List */}
-                  <View style={styles.mediaItemsContainer}>
+                  <View className="mb-4">
                     {formData.media?.map((item, index) => (
-                      <View key={index} style={styles.mediaItem}>
-                        <Text style={styles.mediaItemLabel}>
+                      <View key={index} className="p-3 border border-gray-200 rounded-lg mb-2">
+                        <Text className="text-sm font-medium mb-2">
                           {item.type === 'image' ? `Image ${index + 1}` : `Video ${index + 1}`}
                         </Text>
                         <TextInput
-                          style={[styles.input, { color: colorScheme.colors.text }]}
+                          className="p-3 border border-gray-200 rounded-lg mb-2"
                           value={item.url}
                           onChangeText={(text) => handleMediaUrlChange(index, text)}
                           placeholder={`https://placeholder.co/800x600?text=${item.type}+${index + 1}`}
-                          placeholderTextColor={colorScheme.colors.text + '80'}
                         />
                         <TextInput
-                          style={[styles.input, { color: colorScheme.colors.text }]}
+                          className="p-3 border border-gray-200 rounded-lg"
                           value={item.caption}
                           onChangeText={(text) => handleMediaCaptionChange(index, text)}
                           placeholder={`Enter caption for ${item.type} ${index + 1}`}
-                          placeholderTextColor={colorScheme.colors.text + '80'}
                         />
                       </View>
                     ))}
                   </View>
 
-                  <View style={styles.mediaButtons}>
+                  <View className="flex-row gap-2">
                     <Button
                       onPress={handleAddImage}
                       variant="default"
                       size="default"
-                      style={styles.mediaButton}
+                      style={{ flex: 1 }}
                     >
                       <Text>Add Image</Text>
                     </Button>
@@ -365,7 +363,7 @@ export default function CreateMessageScreen() {
                       onPress={handleAddVideo}
                       variant="default"
                       size="default"
-                      style={styles.mediaButton}
+                      style={{ flex: 1 }}
                     >
                       <Text>Add Video</Text>
                     </Button>
@@ -375,10 +373,10 @@ export default function CreateMessageScreen() {
             </View>
 
             {/* Interactive Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Interactive Content</Text>
-              <View style={styles.toggleRow}>
-                <Text style={{ color: colorScheme.colors.text, fontSize: 16 }}>Enable Interactive Content</Text>
+            <View className="p-4">
+              <Text className="text-lg font-semibold mb-4">Interactive Content</Text>
+              <View className="flex-row items-center mb-2">
+                <Text className="text-base">Enable Interactive Content</Text>
                 <Switch
                   value={isInteractive}
                   onValueChange={setIsInteractive}
@@ -402,31 +400,44 @@ export default function CreateMessageScreen() {
         </View>
 
         {/* Center Section - Preview (30%) */}
-        <View style={styles.centerSection}>
-          <ScrollView style={styles.centerScroll}>
-            <FeedItemPreview previewData={previewData} previewKey={previewKey} />
+        <View className="flex-[0.3] border-r border-gray-200 pr-4">
+          <ScrollView className="p-4">
+            <Card style={{ 
+              padding: 16, 
+              marginBottom: 16, 
+              backgroundColor: colorScheme.colors.card,
+              borderWidth: 1,
+              borderColor: colorScheme.colors.border 
+            }}>
+              <FeedItem
+                key={`preview-${previewKey}`}
+                data={previewData}
+                showHeader={previewData.metadata?.visibility?.header ?? true}
+                showFooter={previewData.metadata?.visibility?.footer ?? false}
+              />
+            </Card>
           </ScrollView>
         </View>
 
         {/* Right Section - Feed Items List (40%) */}
-        <View style={styles.rightSection}>
-          <Text style={[styles.messageCount, { color: colorScheme.colors.text }]}>
+        <View className="flex-[0.4]">
+          <Text className="text-sm font-medium mb-4">
             Total Messages: {messageCount}
           </Text>
           
-          <ScrollView style={styles.messageList}>
+          <ScrollView className="p-4">
             {messages.map((message) => (
-              <View key={message.id} style={[styles.messageItem, { borderColor: colorScheme.colors.border }]}>
+              <View key={message.id} className="mb-4 border border-gray-200 rounded-lg overflow-hidden">
                 <FeedItem
                   data={message}
                   showHeader={message.metadata?.visibility?.header ?? true}
                   showFooter={message.metadata?.visibility?.footer ?? false}
                 />
                 <TouchableOpacity
-                  style={[styles.editButton, { backgroundColor: colorScheme.colors.primary }]}
+                  className="p-3 rounded-lg bg-primary mt-2 items-center"
                   onPress={() => handleEditMessage(message)}
                 >
-                  <Text style={styles.editButtonText}>Edit</Text>
+                  <Text className="text-white text-sm font-medium">Edit</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -434,7 +445,7 @@ export default function CreateMessageScreen() {
         </View>
       </View>
 
-      <View style={styles.dialogFooter}>
+      <View className="p-4 border-t border-gray-200">
         <Button
           variant="default"
           onPress={() => handleCreateItem(formData)}
@@ -446,160 +457,3 @@ export default function CreateMessageScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  mainContent: {
-    flex: 1,
-    flexDirection: 'row',
-    padding: 16,
-    gap: 16,
-  },
-  leftSection: {
-    flex: 0.3,
-    borderRightWidth: 1,
-    borderRightColor: '#e5e7eb',
-    paddingRight: 16,
-  },
-  centerSection: {
-    flex: 0.3,
-    borderRightWidth: 1,
-    borderRightColor: '#e5e7eb',
-    paddingRight: 16,
-  },
-  rightSection: {
-    flex: 0.4,
-  },
-  errorContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-  },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  quickActions: {
-    flexDirection: 'row',
-    gap: 8,
-    padding: 16,
-  },
-  quickActionButton: {
-    flex: 1,
-  },
-  formScroll: {
-    padding: 16,
-  },
-  section: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  input: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-  },
-  mediaLayoutContainer: {
-    marginBottom: 16,
-  },
-  mediaLayoutTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  mediaLayoutButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  mediaLayoutButton: {
-    flex: 1,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-  },
-  selectedMediaLayoutButton: {
-    borderColor: '#000',
-  },
-  mediaLayoutButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  mediaItemsContainer: {
-    marginBottom: 16,
-  },
-  mediaItem: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-  },
-  mediaItemLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  mediaButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  mediaButton: {
-    flex: 1,
-  },
-  comingSoonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 16,
-  },
-  messageCount: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 16,
-  },
-  messageList: {
-    padding: 16,
-  },
-  messageItem: {
-    marginBottom: 16,
-    borderWidth: 1,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  feedItem: {
-    borderRadius: 8,
-  },
-  editButton: {
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  editButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  dialogFooter: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  centerScroll: {
-    padding: 16,
-  },
-});

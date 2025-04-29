@@ -41,6 +41,13 @@ export function DashboardHeader({ title, showBackButton, onBackPress }: Dashboar
           <View style={styles.centerSection}>
             <TouchableOpacity 
               style={styles.navLink}
+              onPress={() => router.push('/')}
+            >
+              <Text style={[styles.navText, { color: colorScheme.colors.text }]}>Home</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.navLink}
               onPress={() => router.push('/dashboard')}
             >
               <Text style={[styles.navText, { color: colorScheme.colors.text }]}>Dashboard</Text>

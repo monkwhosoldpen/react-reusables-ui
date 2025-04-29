@@ -2,7 +2,6 @@ import React from 'react';
 import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
-import { createMessageStyles } from '~/lib/utils/createMessageStyles';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { INTERACTIVE_TYPES } from '~/lib/utils/quickActionTemplates';
 
@@ -20,13 +19,12 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
   onFormDataChange
 }) => {
   const { colorScheme } = useColorScheme();
-  const styles = createMessageStyles(colorScheme);
 
   const renderPollContent = () => (
-    <View style={styles.interactiveSection}>
-      <Text style={styles.sectionTitle}>Poll Settings</Text>
+    <View className="mt-4 p-4 bg-card rounded-lg gap-3">
+      <Text className="text-lg font-semibold">Poll Settings</Text>
       <TextInput
-        style={styles.input}
+        className="p-3 border border-border rounded-lg bg-background text-base"
         value={formData.interactive_content?.poll?.question}
         onChangeText={(text) => onFormDataChange({
           interactive_content: {
@@ -37,9 +35,9 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
         placeholder="Enter poll question"
       />
       {formData.interactive_content?.poll?.options.map((option, index) => (
-        <View key={index} style={styles.optionRow}>
+        <View key={index} className="flex-row gap-2">
           <TextInput
-            style={[styles.input, { flex: 1 }]}
+            className="flex-1 p-3 border border-border rounded-lg bg-background text-base"
             value={option}
             onChangeText={(text) => {
               const newOptions = [...(formData.interactive_content?.poll?.options || [])];
@@ -54,7 +52,7 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
             placeholder={`Option ${index + 1}`}
           />
           <TouchableOpacity
-            style={[styles.removeButton, { backgroundColor: colorScheme.colors.destructive }]}
+            className="p-3 rounded-lg bg-destructive"
             onPress={() => {
               const newOptions = [...(formData.interactive_content?.poll?.options || [])];
               newOptions.splice(index, 1);
@@ -66,12 +64,12 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
               });
             }}
           >
-            <Text style={styles.removeButtonText}>Remove</Text>
+            <Text className="text-white font-medium">Remove</Text>
           </TouchableOpacity>
         </View>
       ))}
       <TouchableOpacity
-        style={[styles.addButton, { backgroundColor: colorScheme.colors.primary }]}
+        className="p-3 rounded-lg bg-primary"
         onPress={() => {
           const newOptions = [...(formData.interactive_content?.poll?.options || []), ''];
           onFormDataChange({
@@ -82,16 +80,16 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
           });
         }}
       >
-        <Text style={styles.addButtonText}>Add Option</Text>
+        <Text className="text-white font-medium text-center">Add Option</Text>
       </TouchableOpacity>
     </View>
   );
 
   const renderQuizContent = () => (
-    <View style={styles.interactiveSection}>
-      <Text style={styles.sectionTitle}>Quiz Settings</Text>
+    <View className="mt-4 p-4 bg-card rounded-lg gap-3">
+      <Text className="text-lg font-semibold">Quiz Settings</Text>
       <TextInput
-        style={styles.input}
+        className="p-3 border border-border rounded-lg bg-background text-base"
         value={formData.interactive_content?.quiz?.title}
         onChangeText={(text) => onFormDataChange({
           interactive_content: {
@@ -102,10 +100,10 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
         placeholder="Enter quiz title"
       />
       {(formData.interactive_content?.quiz?.questions || []).map((question, qIndex) => (
-        <View key={qIndex} style={styles.questionSection}>
-          <Text style={styles.questionTitle}>Question {qIndex + 1}</Text>
+        <View key={qIndex} className="p-3 bg-background rounded-lg border border-border">
+          <Text className="text-base font-medium mb-2">Question {qIndex + 1}</Text>
           <TextInput
-            style={styles.input}
+            className="p-3 border border-border rounded-lg bg-background text-base mb-2"
             value={question.text}
             onChangeText={(text) => {
               const newQuestions = [...(formData.interactive_content?.quiz?.questions || [])];
@@ -121,9 +119,9 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
             multiline
           />
           {(question.options || []).map((option, oIndex) => (
-            <View key={oIndex} style={styles.optionRow}>
+            <View key={oIndex} className="flex-row gap-2 mb-2">
               <TextInput
-                style={[styles.input, { flex: 1 }]}
+                className="flex-1 p-3 border border-border rounded-lg bg-background text-base"
                 value={option}
                 onChangeText={(text) => {
                   const newQuestions = [...(formData.interactive_content?.quiz?.questions || [])];
@@ -140,7 +138,7 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
                 placeholder={`Option ${oIndex + 1}`}
               />
               <TouchableOpacity
-                style={[styles.removeButton, { backgroundColor: colorScheme.colors.destructive }]}
+                className="p-3 rounded-lg bg-destructive"
                 onPress={() => {
                   const newQuestions = [...(formData.interactive_content?.quiz?.questions || [])];
                   const newOptions = [...(question.options || [])];
@@ -154,14 +152,14 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
                   });
                 }}
               >
-                <Text style={styles.removeButtonText}>Remove</Text>
+                <Text className="text-white font-medium">Remove</Text>
               </TouchableOpacity>
             </View>
           ))}
-          <View style={styles.correctOptionRow}>
-            <Text style={{ color: colorScheme.colors.text }}>Correct Option:</Text>
+          <View className="flex-row items-center gap-2 mb-2">
+            <Text>Correct Option:</Text>
             <TextInput
-              style={[styles.input, { width: 50 }]}
+              className="w-12 p-3 border border-border rounded-lg bg-background text-base"
               value={question.correct_option?.toString() || '0'}
               onChangeText={(text) => {
                 const newQuestions = [...(formData.interactive_content?.quiz?.questions || [])];
@@ -177,7 +175,7 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
             />
           </View>
           <TouchableOpacity
-            style={[styles.removeButton, { backgroundColor: colorScheme.colors.destructive }]}
+            className="p-3 rounded-lg bg-destructive"
             onPress={() => {
               const newQuestions = [...(formData.interactive_content?.quiz?.questions || [])];
               newQuestions.splice(qIndex, 1);
@@ -189,18 +187,18 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
               });
             }}
           >
-            <Text style={styles.removeButtonText}>Remove Question</Text>
+            <Text className="text-white font-medium text-center">Remove Question</Text>
           </TouchableOpacity>
         </View>
       ))}
       <TouchableOpacity
-        style={[styles.addButton, { backgroundColor: colorScheme.colors.primary }]}
+        className="p-3 rounded-lg bg-primary"
         onPress={() => {
           const newQuestions = [
             ...(formData.interactive_content?.quiz?.questions || []),
             {
-              text: 'New Question',
-              options: ['Option 1', 'Option 2'],
+              text: '',
+              options: [''],
               correct_option: 0
             }
           ];
@@ -212,164 +210,101 @@ export const InteractiveContentSection: React.FC<InteractiveContentSectionProps>
           });
         }}
       >
-        <Text style={styles.addButtonText}>Add Question</Text>
+        <Text className="text-white font-medium text-center">Add Question</Text>
       </TouchableOpacity>
     </View>
   );
 
-  const renderSurveyContent = () => {
-    const questions = formData.interactive_content?.survey?.questions || [];
-    
-    return (
-      <View style={styles.interactiveSection}>
-        <Text style={styles.sectionTitle}>Survey Settings</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.interactive_content?.survey?.title}
-          onChangeText={(text) => onFormDataChange({
+  const renderSurveyContent = () => (
+    <View className="mt-4 p-4 bg-card rounded-lg gap-3">
+      <Text className="text-lg font-semibold">Survey Settings</Text>
+      <TextInput
+        className="p-3 border border-border rounded-lg bg-background text-base"
+        value={formData.interactive_content?.survey?.title}
+        onChangeText={(text) => onFormDataChange({
+          interactive_content: {
+            ...formData.interactive_content,
+            survey: { ...formData.interactive_content?.survey, title: text }
+          }
+        })}
+        placeholder="Enter survey title"
+      />
+      {(formData.interactive_content?.survey?.questions || []).map((question, qIndex) => (
+        <View key={qIndex} className="p-3 bg-background rounded-lg border border-border">
+          <Text className="text-base font-medium mb-2">Question {qIndex + 1}</Text>
+          <TextInput
+            className="p-3 border border-border rounded-lg bg-background text-base mb-2"
+            value={question.text}
+            onChangeText={(text) => {
+              const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
+              newQuestions[qIndex] = { ...question, text };
+              onFormDataChange({
+                interactive_content: {
+                  ...formData.interactive_content,
+                  survey: { ...formData.interactive_content?.survey, questions: newQuestions }
+                }
+              });
+            }}
+            placeholder="Question Text"
+            multiline
+          />
+          <TouchableOpacity
+            className="p-3 rounded-lg bg-destructive"
+            onPress={() => {
+              const newQuestions = [...(formData.interactive_content?.survey?.questions || [])];
+              newQuestions.splice(qIndex, 1);
+              onFormDataChange({
+                interactive_content: {
+                  ...formData.interactive_content,
+                  survey: { ...formData.interactive_content?.survey, questions: newQuestions }
+                }
+              });
+            }}
+          >
+            <Text className="text-white font-medium text-center">Remove Question</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+      <TouchableOpacity
+        className="p-3 rounded-lg bg-primary"
+        onPress={() => {
+          const newQuestions = [
+            ...(formData.interactive_content?.survey?.questions || []),
+            { text: '', options: ['', ''] }
+          ];
+          onFormDataChange({
             interactive_content: {
               ...formData.interactive_content,
-              survey: { ...formData.interactive_content?.survey, title: text }
+              survey: { ...formData.interactive_content?.survey, questions: newQuestions }
             }
-          })}
-          placeholder="Enter survey title"
-        />
-        {questions.map((question, qIndex) => (
-          <View key={qIndex} style={styles.questionSection}>
-            <Text style={styles.questionTitle}>Question {qIndex + 1}</Text>
-            <TextInput
-              style={styles.input}
-              value={question.text}
-              onChangeText={(text) => {
-                const newQuestions = [...questions];
-                newQuestions[qIndex] = { ...question, text };
-                onFormDataChange({
-                  interactive_content: {
-                    ...formData.interactive_content,
-                    survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                  }
-                });
-              }}
-              placeholder="Question Text"
-              multiline
-            />
-            {(question.options || []).map((option, oIndex) => (
-              <View key={oIndex} style={styles.optionRow}>
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  value={option}
-                  onChangeText={(text) => {
-                    const newQuestions = [...questions];
-                    const newOptions = [...(question.options || [])];
-                    newOptions[oIndex] = text;
-                    newQuestions[qIndex] = { ...question, options: newOptions };
-                    onFormDataChange({
-                      interactive_content: {
-                        ...formData.interactive_content,
-                        survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                      }
-                    });
-                  }}
-                  placeholder={`Option ${oIndex + 1}`}
-                />
-                <TouchableOpacity
-                  style={[styles.removeButton, { backgroundColor: colorScheme.colors.destructive }]}
-                  onPress={() => {
-                    const newQuestions = [...questions];
-                    const newOptions = [...(question.options || [])];
-                    newOptions.splice(oIndex, 1);
-                    newQuestions[qIndex] = { ...question, options: newOptions };
-                    onFormDataChange({
-                      interactive_content: {
-                        ...formData.interactive_content,
-                        survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                      }
-                    });
-                  }}
-                >
-                  <Text style={styles.removeButtonText}>Remove</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-            <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: colorScheme.colors.primary }]}
-              onPress={() => {
-                const newQuestions = [...questions];
-                const newOptions = [...(question.options || []), ''];
-                newQuestions[qIndex] = { ...question, options: newOptions };
-                onFormDataChange({
-                  interactive_content: {
-                    ...formData.interactive_content,
-                    survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                  }
-                });
-              }}
-            >
-              <Text style={styles.addButtonText}>Add Option</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.removeButton, { backgroundColor: colorScheme.colors.destructive }]}
-              onPress={() => {
-                const newQuestions = [...questions];
-                newQuestions.splice(qIndex, 1);
-                onFormDataChange({
-                  interactive_content: {
-                    ...formData.interactive_content,
-                    survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-                  }
-                });
-              }}
-            >
-              <Text style={styles.removeButtonText}>Remove Question</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-        <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: colorScheme.colors.primary }]}
-          onPress={() => {
-            const newQuestions = [
-              ...questions,
-              {
-                text: 'New Question',
-                options: ['Option 1', 'Option 2']
-              }
-            ];
-            onFormDataChange({
-              interactive_content: {
-                ...formData.interactive_content,
-                survey: { ...formData.interactive_content?.survey, questions: newQuestions }
-              }
-            });
-          }}
-        >
-          <Text style={styles.addButtonText}>Add Question</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+          });
+        }}
+      >
+        <Text className="text-white font-medium text-center">Add Question</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Interactive Content</Text>
-      <View style={styles.radioGroup}>
+    <View>
+      <View className="flex-row flex-wrap gap-2">
         {INTERACTIVE_TYPES.map((type) => (
           <TouchableOpacity
             key={type}
-            style={[
-              styles.radioOption,
-              selectedInteractiveType === type && styles.radioOptionSelected
-            ]}
+            className={`flex-1 p-3 rounded-lg border ${
+              selectedInteractiveType === type ? 'bg-primary border-primary' : 'bg-background border-border'
+            }`}
             onPress={() => onTypeChange(type)}
           >
-            <Text style={[
-              styles.radioText,
-              { color: selectedInteractiveType === type ? '#fff' : colorScheme.colors.text }
-            ]}>
+            <Text className={`text-sm font-medium text-center ${
+              selectedInteractiveType === type ? 'text-white' : 'text-foreground'
+            }`}>
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
+
       {selectedInteractiveType === 'poll' && renderPollContent()}
       {selectedInteractiveType === 'quiz' && renderQuizContent()}
       {selectedInteractiveType === 'survey' && renderSurveyContent()}

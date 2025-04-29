@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, Pressable, Image, ViewStyle, TextStyle, TouchableOpacity } from 'react-native';
+import { View, Pressable, Image, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
 import { FormDataType, InteractiveContent, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
@@ -17,11 +17,13 @@ interface FeedItemProps {
 }
 
 export function FeedItem({ data, showHeader = true, showFooter = true }: FeedItemProps) {
-  const { colorScheme, themeName } = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const { design } = useDesign();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [isCollapsed, setIsCollapsed] = useState(data.metadata?.isCollapsible ?? true);
   const maxHeight = calculateMaxHeight(data);
-
+  
   const {
     isLoading: interactiveLoading,
     error,
@@ -29,7 +31,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     submitResponse,
     isAuthenticated,
   } = useInteractiveContent(data);
-
+  
   const [selectedPollOptions, setSelectedPollOptions] = React.useState<number[]>([]);
   const [quizAnswers, setQuizAnswers] = React.useState<Record<number, number>>({});
   const [surveyAnswers, setSurveyAnswers] = React.useState<Record<number, number>>({});
@@ -46,6 +48,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   }, []);
 
   const handleAuthRequired = React.useCallback(() => {
+    // Implementation would depend on authentication flow
   }, []);
 
   const handlePollSubmit = async () => {
@@ -53,7 +56,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       handleAuthRequired();
       return;
     }
-
+    
     try {
       setIsSubmitting(true);
       await submitResponse({ 
@@ -73,14 +76,16 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       handleAuthRequired();
       return;
     }
-
+    
     try {
       setIsSubmitting(true);
       const quiz = data.interactive_content?.quiz;
+      
       if (quiz) {
         const score = quiz.questions.reduce((acc, q, index) => {
           return acc + (quizAnswers[index] === q.correct_option ? 1 : 0);
         }, 0);
+        
         await submitResponse({ 
           type: 'quiz',
           answers: quizAnswers, 
@@ -100,7 +105,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       handleAuthRequired();
       return;
     }
-
+    
     try {
       setIsSubmitting(true);
       await submitResponse({ 
@@ -132,21 +137,25 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       if (diff < 60000) {
         return 'just now';
       }
+      
       // Less than an hour
       if (diff < 3600000) {
         const minutes = Math.floor(diff / 60000);
         return `${minutes}m`;
       }
+      
       // Less than a day
       if (diff < 86400000) {
         const hours = Math.floor(diff / 3600000);
         return `${hours}h`;
       }
+      
       // Less than a week
       if (diff < 604800000) {
         const days = Math.floor(diff / 86400000);
         return `${days}d`;
       }
+      
       // Format as date
       return date.toLocaleDateString('en-US', {
         month: 'short',
@@ -173,55 +182,55 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     if (!poll.question || !poll.options || poll.options.length === 0) {
       return null;
     }
-
+    
     return (
-      <View style={styles.interactiveContent}>
-        <Text style={styles.pollTitle}>{poll.question}</Text>
+      <View className="mt-4 w-full">
+        <Text className="text-base font-bold mb-4 text-foreground">{poll.question}</Text>
+        
         {poll.description && (
-          <Text style={styles.pollDescription}>{poll.description}</Text>
+          <Text className="text-base text-muted-foreground mb-4">{poll.description}</Text>
         )}
+        
         {error && (
-          <Text style={styles.errorText}>{error.message}</Text>
+          <Text className="text-destructive text-sm mt-4">{error.message}</Text>
         )}
-        <View style={styles.optionsContainer}>
+        
+        <View className="mt-2 space-y-2">
           {poll.options.map((option, index) => (
             <Button
               key={index}
               variant={selectedPollOptions.includes(index) ? 'default' : 'secondary'}
               onPress={() => !showResults && setSelectedPollOptions([index])}
-              style={styles.optionButton}
               disabled={isSubmitting || (showResults && !isAuthenticated)}
             >
-              <View style={styles.pollOptionContent}>
-                <Text style={styles.optionButtonText}>{option}</Text>
-                {showResults && (
-                  <View style={styles.pollResults}>
-                    <Text style={styles.pollPercentage}>
-                      {Math.floor(Math.random() * 100)}%
-                    </Text>
-                    <View style={[
-                      styles.pollOptionProgress,
-                      { width: `${Math.floor(Math.random() * 100)}%` }
-                    ]} />
-                  </View>
-                )}
-              </View>
+              <Text className="flex-1 text-base">{option}</Text>
+              
+              {showResults && (
+                <View className="flex-row items-center space-x-2">
+                  <Text className="text-muted-foreground">
+                    {Math.floor(Math.random() * 100)}%
+                  </Text>
+                  
+                  <View className="h-1 bg-primary rounded" style={{ width: `${Math.floor(Math.random() * 100)}%` }} />
+                </View>
+              )}
             </Button>
           ))}
         </View>
+        
         {!showResults && (
           <Button 
             variant="default" 
             onPress={handlePollSubmit} 
-            style={styles.submitButton}
             disabled={isSubmitting || selectedPollOptions.length === 0}
           >
             <Text>Vote</Text>
           </Button>
         )}
+        
         {showResults && (
-          <View style={styles.pollFooter}>
-            <Text style={styles.pollVoteCount}>
+          <View className="mt-4 items-center">
+            <Text className="text-sm text-muted-foreground">
               {data.stats?.responses || 0} votes
             </Text>
           </View>
@@ -234,25 +243,29 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     if (!quiz.title && (!quiz.questions || quiz.questions.length === 0)) {
       return null;
     }
-
+    
     return (
-      <View style={styles.interactiveContent}>
-        {quiz.title && <Text style={styles.quizTitle}>{quiz.title}</Text>}
+      <View className="mt-4 w-full">
+        {quiz.title && <Text className="text-base font-bold mb-4 text-foreground">{quiz.title}</Text>}
+        
         {quiz.description && (
-          <Text style={styles.quizDescription}>{quiz.description}</Text>
+          <Text className="text-base text-muted-foreground mb-4">{quiz.description}</Text>
         )}
+        
         {error && (
-          <Text style={styles.errorText}>{error.message}</Text>
+          <Text className="text-destructive text-sm mt-4">{error.message}</Text>
         )}
+        
         {quiz.questions?.map((question, qIndex) => {
           if (!question.text || !question.options || question.options.length === 0) {
             return null;
           }
-
+          
           return (
-            <View key={qIndex} style={styles.questionContainer}>
-              <Text style={styles.questionText}>{question.text}</Text>
-              <View style={styles.optionsContainer}>
+            <View key={qIndex} className="mb-6">
+              <Text className="text-base mb-4">{question.text}</Text>
+              
+              <View className="space-y-2">
                 {question.options.map((option, oIndex) => {
                   if (!option) return null;
                   
@@ -261,17 +274,15 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
                       key={oIndex}
                       variant={(quizAnswers[qIndex] ?? -1) === oIndex ? 'default' : 'secondary'}
                       onPress={() => setQuizAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
-                      style={styles.optionButton}
                       disabled={isSubmitting || (showResults && !isAuthenticated)}
                     >
-                      <View style={styles.pollOptionContent}>
-                        <Text style={styles.optionButtonText}>{option}</Text>
-                        {showResults && (
-                          <Text style={styles.resultText}>
-                            {oIndex === question.correct_option ? '✅' : '❌'}
-                          </Text>
-                        )}
-                      </View>
+                      <Text className="flex-1 text-base">{option}</Text>
+                      
+                      {showResults && (
+                        <Text className="text-muted-foreground">
+                          {oIndex === question.correct_option ? '✅' : '❌'}
+                        </Text>
+                      )}
                     </Button>
                   );
                 })}
@@ -279,11 +290,11 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             </View>
           );
         })}
+        
         {!showResults && (
           <Button 
             variant="default" 
             onPress={handleQuizSubmit} 
-            style={styles.submitButton}
             disabled={isSubmitting || Object.keys(quizAnswers).length !== quiz.questions?.length}
           >
             <Text>Submit Answers</Text>
@@ -297,47 +308,51 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     if (!survey.title || !survey.questions || survey.questions.length === 0) {
       return null;
     }
-
+    
     return (
-      <View style={styles.interactiveContent}>
-        <Text style={styles.surveyTitle}>{survey.title}</Text>
+      <View className="mt-4 w-full">
+        <Text className="text-xl font-semibold mb-4 w-full flex-wrap px-4">{survey.title}</Text>
+        
         {survey.description && (
-          <Text style={styles.surveyDescription}>{survey.description}</Text>
+          <Text className="text-base text-muted-foreground mb-4">{survey.description}</Text>
         )}
+        
         {error && (
-          <Text style={styles.errorText}>{error.message}</Text>
+          <Text className="text-destructive text-sm mt-4">{error.message}</Text>
         )}
+        
         {survey.questions.map((question, qIndex) => (
-          <View key={qIndex} style={styles.questionContainer}>
-            <Text style={styles.questionText}>{question.text}</Text>
-            <View style={styles.optionsContainer}>
+          <View key={qIndex} className="mb-4 p-6 bg-background rounded-sm">
+            <Text className="text-base mb-4">{question.text}</Text>
+            
+            <View className="space-y-2">
               {question.options.map((option, oIndex) => (
                 <Button
                   key={oIndex}
                   variant={surveyAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
                   onPress={() => handleSurveyResponse(qIndex, oIndex)}
-                  style={styles.optionButton}
                   disabled={isSubmitting || (showResults && !isAuthenticated)}
                 >
-                  <Text style={styles.optionButtonText}>{option}</Text>
+                  <Text className="text-base">{option}</Text>
                 </Button>
               ))}
             </View>
           </View>
         ))}
+        
         {!showResults && (
           <Button 
             variant="default" 
             onPress={handleSurveySubmit} 
-            style={styles.submitButton}
             disabled={isSubmitting || Object.keys(surveyAnswers).length !== survey.questions.length}
           >
             <Text>Submit Survey</Text>
           </Button>
         )}
+        
         {showResults && (
-          <View style={styles.surveyFooter}>
-            <Text style={styles.thankYouText}>Thank you for your feedback!</Text>
+          <View className="mt-4 items-center">
+            <Text className="text-base text-primary font-semibold">Thank you for your feedback!</Text>
           </View>
         )}
       </View>
@@ -345,670 +360,54 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   };
 
   const renderInteractiveContent = () => {
-    console.log('Rendering interactive content with data:', {
-      interactive_content: data.interactive_content,
-      survey: data.interactive_content?.survey,
-      hasSurvey: !!data.interactive_content?.survey
-    });
-
     if (!data.interactive_content) {
-      console.log('No interactive content found');
       return null;
     }
-
+    
     const { poll, quiz, survey } = data.interactive_content;
-    console.log('Destructured interactive content:', { poll, quiz, survey });
-
+    
     if (survey) {
-      console.log('Rendering survey with data:', {
-        title: survey.title,
-        description: survey.description,
-        questions: survey.questions
-      });
       return renderSurvey(survey);
     }
-
+    
     if (poll) {
       return renderPoll(poll);
     }
-
+    
     if (quiz) {
       return renderQuiz(quiz);
     }
-
+    
     return null;
   };
 
-  // Add this near the top of the component
-  React.useEffect(() => {
-    console.log('FeedItem Data:', data);
-    console.log('Interactive Content:', data.interactive_content);
-  }, [data]);
-
-  const styles = StyleSheet.create({
-    container: {
-      backgroundColor: colorScheme.colors.background,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: colorScheme.colors.border,
-      marginBottom: 8,
-      overflow: 'hidden',
-      width: '100%',
-      alignSelf: 'stretch',
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      paddingHorizontal: Number(design.spacing.padding.card),
-      paddingVertical: Number(design.spacing.padding.item),
-      flexWrap: 'wrap',
-    },
-    headerLeft: {
-      flex: 1,
-      flexDirection: 'row',
-      gap: Number(design.spacing.padding.item),
-      minWidth: 200,
-    },
-    avatar: {
-      width: Number(design.spacing.avatarSize),
-      height: Number(design.spacing.avatarSize),
-      borderRadius: Number(design.radius.full) / 2,
-      backgroundColor: colorScheme.colors.notification,
-      overflow: 'hidden',
-    },
-    avatarImage: {
-      width: '100%',
-      height: '100%',
-    },
-    headerText: {
-      flex: 1,
-      minWidth: 150,
-    },
-    nameContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: Number(design.spacing.padding.item),
-    },
-    username: {
-      fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '700',
-      color: colorScheme.colors.text,
-      flexShrink: 1,
-    },
-    verifiedBadge: {
-      fontSize: Number(design.spacing.fontSize.sm),
-      color: colorScheme.colors.primary,
-    },
-    timestamp: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      flexShrink: 1,
-    },
-    moreButton: {
-      padding: Number(design.spacing.padding.item),
-      marginTop: -Number(design.spacing.padding.item),
-      marginRight: -Number(design.spacing.padding.item),
-    },
-    moreButtonText: {
-      fontSize: Number(design.spacing.fontSize.xl),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      letterSpacing: -1,
-      marginTop: -Number(design.spacing.padding.item),
-    },
-    content: {
-      position: 'relative',
-      width: '100%',
-      paddingHorizontal: 16,
-      alignSelf: 'stretch',
-    },
-    contentWrapper: {
-      paddingVertical: 12,
-      position: 'relative',
-      overflow: 'hidden',
-      width: '100%',
-    },
-    interactiveFeaturesContainer: {
-      gap: Number(design.spacing.padding.card),
-      padding: Number(design.spacing.padding.card),
-      paddingTop: 0,
-      width: '100%',
-      alignSelf: 'stretch',
-      overflow: 'hidden'
-    },
-    interactiveContent: {
-      marginTop: Number(design.spacing.margin.item),
-      width: '100%',
-      alignSelf: 'stretch',
-      overflow: 'hidden'
-    },
-    collapsible: {
-      overflow: 'hidden'
-    },
-    contentText: {
-      fontSize: 15,
-      lineHeight: 20,
-      color: colorScheme.colors.text,
-      letterSpacing: 0.2,
-    },
-    interactiveDescriptionContainer: {
-      marginTop: Number(design.spacing.margin.item),
-      paddingHorizontal: Number(design.spacing.padding.card),
-    },
-    interactiveDescription: {
-      fontSize: 15,
-      lineHeight: 20,
-      color: colorScheme.colors.text,
-      letterSpacing: 0.2,
-    },
-    previewDescription: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      marginBottom: Number(design.spacing.margin.item),
-    },
-    mediaContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: Number(design.spacing.padding.item),
-      marginTop: Number(design.spacing.margin.item),
-      width: '100%',
-      overflow: 'hidden',
-      paddingHorizontal: Number(design.spacing.padding.card),
-    },
-    mediaItem: {
-      borderRadius: Number(design.radius.md),
-      overflow: 'hidden',
-      backgroundColor: colorScheme.colors.background,
-      position: 'relative',
-      width: '100%' as const,
-      aspectRatio: 1,
-    },
-    mediaImage: {
-      width: '100%',
-      height: '100%',
-      resizeMode: 'cover',
-    },
-    mediaCaption: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      color: colorScheme.colors.background,
-      padding: Number(design.spacing.padding.item),
-      fontSize: Number(design.spacing.fontSize.sm),
-    },
-    singleMediaItem: {
-      width: '100%' as const,
-      aspectRatio: 16/9,
-    },
-    doubleMediaItem: {
-      width: '48%' as const,
-      aspectRatio: 1,
-      minWidth: 150,
-    },
-    tripleMediaItem: {
-      width: '100%' as const,
-      aspectRatio: 16/9,
-    },
-    tripleMainItem: {
-      width: '100%' as const,
-      aspectRatio: 16/9,
-      marginBottom: Number(design.spacing.margin.item),
-    },
-    tripleSecondaryItem: {
-      width: '48%' as const,
-      aspectRatio: 1,
-      minWidth: 150,
-    },
-    quadMediaItem: {
-      width: '48%' as const,
-      aspectRatio: 1,
-      minWidth: 150,
-    },
-    lastQuadItem: {
-      width: '100%' as const,
-      aspectRatio: 2,
-    },
-    gridMediaItem: {
-      width: '48%' as const,
-      aspectRatio: 1,
-      minWidth: 150,
-    },
-    carouselContainer: {
-      flexDirection: 'row',
-      overflow: 'hidden',
-      marginTop: Number(design.spacing.margin.item),
-      position: 'relative',
-      width: '100%',
-    },
-    carouselItem: {
-      width: '100%' as const,
-      aspectRatio: 16/9,
-      marginRight: Number(design.spacing.padding.item),
-    },
-    carouselControls: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: Number(design.spacing.margin.item),
-      gap: Number(design.spacing.padding.item),
-      flexWrap: 'wrap',
-    },
-    carouselDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: '#ccc',
-    },
-    carouselDotActive: {
-      backgroundColor: '#007AFF',
-    },
-    listMediaItem: {
-      width: '100%' as const,
-      aspectRatio: 16/9,
-      marginBottom: Number(design.spacing.margin.item),
-    },
-    collageMediaItem: {
-      width: '48%' as const,
-      aspectRatio: 1,
-      minWidth: 150,
-    },
-    masonryMediaItem: {
-      width: '48%' as const,
-      aspectRatio: 1,
-      minWidth: 150,
-    },
-    fullwidthMediaItem: {
-      width: '100%' as const,
-      aspectRatio: 16/9,
-    },
-    footer: {
-      paddingHorizontal: Number(design.spacing.padding.card),
-      paddingVertical: Number(design.spacing.padding.item),
-      borderTopWidth: 1,
-      borderTopColor: colorScheme.colors.border,
-      width: '100%',
-    },
-    metrics: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      maxWidth: '100%',
-      flexWrap: 'wrap',
-      gap: Number(design.spacing.padding.item),
-    },
-    metricItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Number(design.spacing.padding.item),
-      paddingVertical: Number(design.spacing.padding.item),
-      paddingHorizontal: Number(design.spacing.padding.item),
-      borderRadius: Number(design.radius.full),
-      minWidth: 60,
-    },
-    metricIcon: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-    },
-    metricNumber: {
-      fontSize: Number(design.spacing.fontSize.sm),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      minWidth: 16,
-    },
-    shareButton: {
-      marginLeft: 'auto',
-    },
-    errorText: {
-      color: colorScheme.colors.primary,
-      fontSize: Number(design.spacing.fontSize.sm),
-      marginTop: Number(design.spacing.margin.item),
-    },
-    authRequiredText: {
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      fontSize: Number(design.spacing.fontSize.sm),
-      marginTop: Number(design.spacing.margin.item),
-      textAlign: 'center',
-    },
-    pollQuestion: {
-      fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: 'bold',
-      marginBottom: Number(design.spacing.margin.item),
-      color: colorScheme.colors.text,
-    },
-    optionsContainer: {
-      marginTop: 8,
-      gap: 8,
-    },
-    pollOptionContent: {
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    pollResults: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    pollPercentage: {
-      fontSize: 14,
-      color: '#666',
-    },
-    pollOptionProgress: {
-      height: 4,
-      backgroundColor: '#007AFF',
-      borderRadius: 2,
-    },
-    pollVoteCount: {
-      fontSize: Number(design.spacing.fontSize.sm),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-    },
-    quizTitle: {
-      fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: 'bold',
-      marginBottom: Number(design.spacing.margin.item),
-      color: colorScheme.colors.text,
-    },
-    surveyTitle: {
-      fontSize: Number(design.spacing.fontSize.xl),
-      fontWeight: '600',
-      marginBottom: Number(design.spacing.margin.item),
-      width: '100%',
-      flexWrap: 'wrap',
-      paddingHorizontal: Number(design.spacing.padding.item)
-    },
-    surveyDescription: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      marginBottom: Number(design.spacing.margin.item),
-    },
-    questionContainer: {
-      marginBottom: Number(design.spacing.margin.item),
-      padding: Number(design.spacing.padding.card),
-      backgroundColor: colorScheme.colors.background,
-      borderRadius: Number(design.radius.sm),
-    },
-    questionText: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      marginBottom: Number(design.spacing.margin.item),
-    },
-    optionButton: {
-      marginBottom: Number(design.spacing.margin.item),
-      width: '100%',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      backgroundColor: colorScheme.colors.background,
-      borderWidth: 1,
-      borderColor: colorScheme.colors.border,
-      borderRadius: Number(design.radius.sm),
-      paddingVertical: Number(design.spacing.padding.item),
-      paddingHorizontal: Number(design.spacing.padding.card),
-      minHeight: 44,
-    },
-    optionButtonText: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      flex: 1,
-    },
-    submitButton: {
-      backgroundColor: colorScheme.colors.primary,
-      borderRadius: Number(design.radius.full),
-      paddingVertical: Number(design.spacing.padding.item),
-      marginTop: Number(design.spacing.margin.item),
-      width: '100%',
-      maxWidth: '100%',
-      minHeight: 44
-    },
-    resultText: {
-      marginLeft: Number(design.spacing.margin.item),
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-    },
-    thankYouText: {
-      textAlign: 'center',
-      marginTop: Number(design.spacing.margin.item),
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.primary,
-      fontWeight: '600',
-    },
-    collapsed: {
-      overflow: 'hidden',
-      maxHeight: 300,
-    },
-    contentOverlay: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 120,
-      justifyContent: 'flex-end',
-      paddingBottom: Number(design.spacing.padding.item),
-      zIndex: 2,
-    },
-    collapseButtonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
-      paddingHorizontal: Number(design.spacing.padding.card),
-      width: '100%',
-    },
-    overlayCollapseButton: {
-      backgroundColor: colorScheme.colors.background,
-      paddingVertical: Number(design.spacing.padding.item),
-      paddingHorizontal: Number(design.spacing.padding.item),
-      borderRadius: Number(design.radius.full),
-      borderWidth: 1,
-      borderColor: colorScheme.colors.border,
-      zIndex: 2,
-      elevation: Number(design.elevation.sm),
-    },
-    overlayCollapseButtonText: {
-      fontSize: Number(design.spacing.fontSize.sm),
-      color: colorScheme.colors.text,
-      fontWeight: '700',
-    },
-    showLessContainer: {
-      paddingVertical: Number(design.spacing.padding.item),
-      borderTopWidth: 1,
-      borderTopColor: colorScheme.colors.border,
-    },
-    showLessButton: {
-      paddingVertical: Number(design.spacing.padding.item),
-      paddingHorizontal: Number(design.spacing.padding.item),
-      borderRadius: Number(design.radius.full),
-      backgroundColor: colorScheme.colors.background,
-      borderWidth: 1,
-      borderColor: colorScheme.colors.border,
-    },
-    showLessButtonText: {
-      fontSize: Number(design.spacing.fontSize.sm),
-      color: colorScheme.colors.text,
-      fontWeight: '500',
-    },
-    markdownContainer: {
-      overflow: 'hidden',
-      width: '100%',
-    },
-    pollFooter: {
-      marginTop: Number(design.spacing.margin.item),
-      alignItems: 'center',
-    },
-    surveyFooter: {
-      marginTop: Number(design.spacing.margin.item),
-      alignItems: 'center',
-    },
-    pollContainer: {
-      marginTop: Number(design.spacing.margin.item),
-      padding: Number(design.spacing.padding.item),
-      backgroundColor: colorScheme.colors.notification,
-      borderRadius: Number(design.radius.md),
-      width: '100%',
-    },
-    pollTitle: {
-      fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: 'bold',
-      marginBottom: Number(design.spacing.margin.item),
-      color: colorScheme.colors.text,
-    },
-    pollDescription: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      marginBottom: Number(design.spacing.margin.item),
-    },
-  
-    quizDescription: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: Number(design.opacity.medium),
-      marginBottom: Number(design.spacing.margin.item),
-    },
-    surveyQuestions: {
-      marginTop: 16,
-      gap: 16,
-    },
-    surveyQuestion: {
-      backgroundColor: '#f5f5f5',
-      padding: 16,
-      borderRadius: 8,
-      gap: 8,
-    },
-    surveyQuestionText: {
-      fontSize: 16,
-      fontWeight: '600',
-      marginBottom: 8,
-    },
-    surveyOptionButton: {
-      backgroundColor: '#fff',
-      padding: 12,
-      borderRadius: 6,
-      borderWidth: 1,
-      borderColor: '#e5e7eb',
-    },
-    optionText: {
-      fontSize: 14,
-      color: '#374151',
-    },
-  });
-
-  const markdownStyles = StyleSheet.create({
-    body: {
-      color: colorScheme.colors.text,
-      fontSize: Number(design.spacing.fontSize.base),
-      lineHeight: Number(design.spacing.lineHeight.normal),
-    },
-    heading1: {
-      fontSize: Number(design.spacing.fontSize['3xl']),
-      fontWeight: 'bold',
-      marginVertical: Number(design.spacing.margin.item),
-      color: colorScheme.colors.text,
-    },
-    heading2: {
-      fontSize: Number(design.spacing.fontSize.xl),
-      fontWeight: 'bold',
-      marginVertical: Number(design.spacing.margin.item),
-      color: colorScheme.colors.text,
-    },
-    heading3: {
-      fontSize: Number(design.spacing.fontSize.lg),
-      fontWeight: 'bold',
-      marginVertical: Number(design.spacing.margin.item),
-      color: colorScheme.colors.text,
-    },
-    link: {
-      color: colorScheme.colors.primary,
-      textDecorationLine: 'underline',
-    },
-    listItem: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-    },
-    listItemNumber: {
-      fontWeight: 'bold',
-      marginRight: Number(design.spacing.margin.item),
-    },
-    listItemBullet: {
-      fontWeight: 'bold',
-      marginRight: Number(design.spacing.margin.item),
-    },
-    strong: {
-      fontWeight: 'bold',
-    },
-    em: {
-      fontStyle: 'italic',
-    },
-    blockquote: {
-      borderLeftWidth: 4,
-      borderLeftColor: colorScheme.colors.border,
-      paddingLeft: Number(design.spacing.padding.item),
-      marginVertical: Number(design.spacing.margin.item),
-    },
-    code_inline: {
-      backgroundColor: colorScheme.colors.notification,
-      paddingHorizontal: Number(design.spacing.padding.item),
-      paddingVertical: Number(design.spacing.padding.item),
-      borderRadius: Number(design.radius.sm),
-      fontFamily: 'monospace',
-    },
-    code_block: {
-      backgroundColor: colorScheme.colors.notification,
-      padding: Number(design.spacing.padding.item),
-      borderRadius: Number(design.radius.md),
-      marginVertical: Number(design.spacing.margin.item),
-      fontFamily: 'monospace',
-    },
-    hr: {
-      backgroundColor: colorScheme.colors.border,
-      height: 1,
-      marginVertical: Number(design.spacing.margin.item),
-    },
-  });
-
   const renderMediaItems = () => {
     if (!data.media || data.media.length === 0) return null;
-
-    const mediaContainerStyle = [
-      styles.mediaContainer,
-      isCollapsed && { maxHeight }
-    ];
-
+    
     if (data.metadata?.mediaLayout === 'carousel') {
       return (
-        <View style={mediaContainerStyle}>
-          <View style={styles.carouselContainer}>
-            <View style={styles.carouselItem}>
+        <View className="flex-row gap-4 mt-4 px-6">
+          <View className="relative w-full">
+            <View className="w-full aspect-video">
               <Image
                 source={{ uri: data.media[currentSlide].type === 'video' ? data.media[currentSlide].thumbnail : data.media[currentSlide].url }}
-                style={styles.mediaImage}
+                className="w-full h-full rounded-md"
                 resizeMode="cover"
               />
+              
               {data.media[currentSlide].caption && (
-                <Text style={styles.mediaCaption}>
+                <Text className="absolute bottom-0 left-0 right-0 bg-black/70 text-background p-4 text-sm">
                   {data.media[currentSlide].type === 'video' ? '🎥 ' : ''}{data.media[currentSlide].caption}
                 </Text>
               )}
             </View>
+            
             {data.media.length > 1 && (
-              <View style={styles.carouselControls}>
+              <View className="flex-row justify-center items-center space-x-2 mt-4">
                 {data.media.map((_, index) => (
                   <View
                     key={index}
-                    style={[
-                      styles.carouselDot,
-                      currentSlide === index && styles.carouselDotActive
-                    ]}
+                    className={`w-2 h-2 rounded-full ${currentSlide === index ? 'bg-primary' : 'bg-muted'}`}
                   />
                 ))}
               </View>
@@ -1017,51 +416,48 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         </View>
       );
     }
-
-    const getMediaItemStyle = (index: number) => {
+    
+    const getMediaItemClass = (index: number) => {
+      const baseClass = isDesktop ? 'min-w-[250px]' : 'min-w-[150px]';
+      
       if (data.metadata?.mediaLayout === 'fullwidth') {
-        return styles.fullwidthMediaItem;
+        return `w-full aspect-video ${baseClass}`;
       } else if (data.metadata?.mediaLayout === 'grid') {
-        return styles.gridMediaItem;
+        return `w-[48%] aspect-square ${baseClass}`;
       } else if (data.metadata?.mediaLayout === 'list') {
-        return styles.listMediaItem;
-      } else if (data.metadata?.mediaLayout === 'collage') {
-        return styles.collageMediaItem;
-      } else if (data.metadata?.mediaLayout === 'masonry') {
-        return styles.masonryMediaItem;
+        return `w-full aspect-video mb-4 ${baseClass}`;
+      } else if (data.metadata?.mediaLayout === 'collage' || data.metadata?.mediaLayout === 'masonry') {
+        return `w-[48%] aspect-square ${baseClass}`;
       } else {
         // Default layout based on media count
         if (data.media.length === 1) {
-          return styles.singleMediaItem;
+          return `w-full aspect-video ${baseClass}`;
         } else if (data.media.length === 2) {
-          return styles.doubleMediaItem;
+          return `w-[48%] aspect-square ${baseClass}`;
         } else if (data.media.length === 3) {
-          return index === 0 ? styles.tripleMainItem : styles.tripleSecondaryItem;
+          return index === 0 ? `w-full aspect-video mb-4 ${baseClass}` : `w-[48%] aspect-square ${baseClass}`;
         } else if (data.media.length === 4) {
-          return index < 3 ? styles.quadMediaItem : styles.lastQuadItem;
+          return index < 3 ? `w-[48%] aspect-square ${baseClass}` : `w-full aspect-[2/1] ${baseClass}`;
         }
       }
-      return styles.mediaItem;
+      return `w-full aspect-square ${baseClass}`;
     };
-
+    
     return (
-      <View style={mediaContainerStyle}>
+      <View className="flex-row flex-wrap gap-4 mt-4 px-6">
         {data.media.map((item, index) => (
           <View 
             key={index} 
-            style={[
-              styles.mediaItem,
-              getMediaItemStyle(index),
-              isCollapsed && { maxHeight }
-            ]}
+            className={`relative overflow-hidden rounded-md bg-background ${getMediaItemClass(index)} ${isCollapsed ? `max-h-[${maxHeight}px]` : ''}`}
           >
             <Image
               source={{ uri: item.type === 'video' ? item.thumbnail : item.url }}
-              style={styles.mediaImage}
+              className="w-full h-full"
               resizeMode="cover"
             />
+            
             {item.caption && (
-              <Text style={styles.mediaCaption}>
+              <Text className="absolute bottom-0 left-0 right-0 bg-black/70 text-background p-4 text-sm">
                 {item.type === 'video' ? '🎥 ' : ''}{item.caption}
               </Text>
             )}
@@ -1073,120 +469,128 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
 
   const renderContent = () => {
     return (
-      <View style={[
-        styles.contentWrapper,
-        isCollapsed && { maxHeight }
-      ]}>
-        {/* Content Text */}
+      <View className={`relative w-full ${isCollapsed ? 'overflow-hidden' : ''}`}>
         {data.content && (
-          <View style={styles.interactiveDescriptionContainer}>
-            <Text style={styles.interactiveDescription}>{data.content}</Text>
+          <View className="px-6">
+            <Text className="text-base text-foreground">{data.content}</Text>
           </View>
         )}
-
-        {/* Media Items */}
+        
         {data.media && data.media.length > 0 && renderMediaItems()}
-
-        {/* Interactive Content */}
         {renderInteractiveContent()}
       </View>
     );
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colorScheme.colors.card }]}>
+    <View className={`bg-card rounded-2xl border border-border overflow-hidden w-full self-stretch shadow-sm mb-2 ${isDesktop ? 'max-w-[800px] mx-auto' : ''}`}>
       {showHeader && (
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.avatar}>
-              <Image 
-                source={{ 
-                  uri: data.channel_username === 'elonmusk' 
-                    ? 'https://placehold.co/400x400/FF6B6B/ffffff/png?text=X'
-                    : 'https://placehold.co/400x400/4ECDC4/ffffff/png?text=U'
-                }} 
-                style={styles.avatarImage}
-              />
-            </View>
-            <View style={styles.headerText}>
-              <View style={styles.nameContainer}>
-                <Text style={styles.username}>{data.channel_username}</Text>
-                <Text style={styles.verifiedBadge}>✓</Text>
-                <Text style={styles.timestamp}>· {formatTimestamp(data.metadata?.timestamp || '')}</Text>
-              </View>
-            </View>
+        <View className={`flex-row justify-between items-start ${isDesktop ? 'px-6 py-4' : 'px-3 py-1'} flex-wrap`}>
+          <View className="flex-1 flex-row items-center justify-between min-w-[200px]">
+            <Text 
+              className={`${isDesktop ? 'text-base' : 'text-sm'} font-semibold text-foreground`}
+              numberOfLines={1}
+            >
+              {data.channel_username}
+            </Text>
+            
+            <Text className={`${isDesktop ? 'text-sm' : 'text-[11px]'} text-muted-foreground`}>
+              {formatTimestamp(data.metadata?.timestamp || '')}
+            </Text>
           </View>
-          <Button
-            variant="ghost"
-            onPress={() => {}}
-            style={styles.moreButton}
-          >
-            <Text style={styles.moreButtonText}>•••</Text>
-          </Button>
         </View>
       )}
-
-      <View style={[
-        styles.content,
-        isCollapsed && { maxHeight }
-      ]}>
-        {renderContent()}
-
+      
+      <View 
+        className={`relative w-full ${isCollapsed ? 'h-[60px] overflow-hidden' : ''}`}
+      >
+        <View className="w-full">
+          {data.content && (
+            <View className={`${isDesktop ? 'px-6 py-2' : 'px-3 py-1'}`}>
+              <Text 
+                className={`${isDesktop ? 'text-base' : 'text-sm'} text-foreground`}
+                numberOfLines={isCollapsed ? 2 : undefined}
+              >
+                {data.content}
+              </Text>
+              <View className="flex-row justify-end mt-1">
+                <Text className="text-[10px] text-primary">✓</Text>
+              </View>
+            </View>
+          )}
+          
+          {data.media && data.media.length > 0 && !isCollapsed && (
+            <View className={`${isDesktop ? 'px-6' : 'px-3'}`}>
+              {renderMediaItems()}
+            </View>
+          )}
+          
+          {data.interactive_content && !isCollapsed && (
+            <View className={`${isDesktop ? 'px-6' : 'px-3'}`}>
+              {renderInteractiveContent()}
+            </View>
+          )}
+        </View>
+        
         {isCollapsed && data.metadata?.isCollapsible && (
           <LinearGradient
             colors={[
               'rgba(255, 255, 255, 0)',
-              `rgba(${colorScheme.colors.background}, 0.95)`,
+              `${colorScheme.colors.background}99`,
               colorScheme.colors.background
             ]}
-            style={styles.contentOverlay}
+            className="absolute bottom-0 left-0 right-0 h-[30px] justify-end pb-2 z-10"
             pointerEvents="box-none"
           >
-            <View style={styles.collapseButtonContainer}>
+            <View className="flex-row justify-end px-3 w-full">
               <Button
                 variant="ghost"
                 onPress={toggleCollapse}
-                style={styles.overlayCollapseButton}
               >
-                <Text style={styles.overlayCollapseButtonText}>Show more</Text>
+                <Text className="text-sm text-foreground font-bold">Show more</Text>
               </Button>
             </View>
           </LinearGradient>
         )}
 
         {!isCollapsed && data.metadata?.isCollapsible && (
-          <View style={styles.showLessContainer}>
-            <View style={styles.collapseButtonContainer}>
-              <Button
-                variant="ghost"
-                onPress={toggleCollapse}
-                style={styles.showLessButton}
-              >
-                <Text style={styles.showLessButtonText}>Show less</Text>
-              </Button>
-            </View>
+          <View className="flex-row justify-end px-3 py-2">
+            <Button
+              variant="ghost"
+              onPress={toggleCollapse}
+            >
+              <Text className="text-sm text-foreground font-medium">Show less</Text>
+            </Button>
           </View>
         )}
       </View>
-
+      
       {showFooter && (
-        <View style={styles.footer}>
-          <View style={styles.metrics}>
-            <Pressable style={styles.metricItem}>
-              <Text style={styles.metricIcon}>💬</Text>
-              <Text style={styles.metricNumber}>{data.stats?.responses || 0}</Text>
+        <View className={`w-full ${isDesktop ? 'px-6 py-4' : 'px-2 py-1'}`}>
+          <View className="flex-row items-center justify-end max-w-full flex-wrap gap-2">
+            <Pressable className={`flex-row items-center gap-1 py-1 px-2 rounded-full ${isDesktop ? 'min-w-[60px]' : 'min-w-[40px]'}`}>
+              <Text className={`${isDesktop ? 'text-base' : 'text-sm'} text-foreground opacity-80`}>💬</Text>
+              <Text className={`${isDesktop ? 'text-sm' : 'text-xs'} text-foreground opacity-80`}>{data.stats?.responses || 0}</Text>
             </Pressable>
-            <Pressable style={styles.metricItem}>
-              <Text style={styles.metricIcon}>🔁</Text>
-              <Text style={styles.metricNumber}>{data.stats?.shares || 0}</Text>
+            
+            <Pressable className={`flex-row items-center gap-1 py-1 px-2 rounded-full ${isDesktop ? 'min-w-[60px]' : 'min-w-[40px]'}`}>
+              <Text className={`${isDesktop ? 'text-base' : 'text-sm'} text-foreground opacity-80`}>🔁</Text>
+              <Text className={`${isDesktop ? 'text-sm' : 'text-xs'} text-foreground opacity-80`}>{data.stats?.shares || 0}</Text>
             </Pressable>
-            <Pressable style={styles.metricItem}>
-              <Text style={styles.metricIcon}>♡</Text>
-              <Text style={styles.metricNumber}>{data.stats?.likes || 0}</Text>
+            
+            <Pressable className={`flex-row items-center gap-1 py-1 px-2 rounded-full ${isDesktop ? 'min-w-[60px]' : 'min-w-[40px]'}`}>
+              <Text className={`${isDesktop ? 'text-base' : 'text-sm'} text-foreground opacity-80`}>♡</Text>
+              <Text className={`${isDesktop ? 'text-sm' : 'text-xs'} text-foreground opacity-80`}>{data.stats?.likes || 0}</Text>
             </Pressable>
           </View>
         </View>
       )}
     </View>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

@@ -31,124 +31,101 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
-  const [followedChannels, setFollowedChannels] = useState<any[]>(initialData?.follows || []);
-  const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>(initialData?.requests || []);
+  // Use a single data state to prevent multiple re-renders
+  const [channelData, setChannelData] = useState<{
+    follows: any[];
+    requests: TenantRequest[];
+  }>({
+    follows: initialData?.follows || [],
+    requests: initialData?.requests || []
+  });
+  
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [dbInitialized, setDbInitialized] = useState(false);
-  const initializationStarted = useRef(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [loadingState, setLoadingState] = useState({
+    dbInit: !initialData, // If we have initial data, DB is already initialized
+    dataLoading: false
+  });
   const [error, setError] = useState<string | null>(null);
+  const dataLoadedRef = useRef(false);
 
-  // Initialize IndexedDB
+  // Initialize IndexedDB and load data in one effect
   useEffect(() => {
-    if (!initializationStarted.current) {
-      initializationStarted.current = true;
+    let mounted = true;
 
-      indexedDB.initialize()
-        .then(() => {
-          setDbInitialized(true);
-        })
-        .catch(err => {
-          setError('Failed to initialize database');
+    const initializeAndLoadData = async () => {
+      // Skip if we've already loaded data or if there's no user
+      if (dataLoadedRef.current || !user?.id) return;
+
+      setLoadingState(prev => ({ ...prev, dataLoading: true }));
+
+      try {
+        // Initialize DB if needed
+        if (loadingState.dbInit) {
+          await indexedDB.initialize();
+          if (!mounted) return;
+          setLoadingState(prev => ({ ...prev, dbInit: false }));
+        }
+
+        // Load all data in parallel
+        const [follows, requests, allChannelActivity] = await Promise.all([
+          indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id),
+          indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id),
+          indexedDB.getAll('channels_activity')
+        ]);
+
+        if (!mounted) return;
+
+        // Process follows and requests with activity data
+        const followsWithActivity = (follows || []).map(follow => ({
+          ...follow,
+          channelActivity: allChannelActivity.filter(activity => activity.username === follow.username),
+          isPrivate: false,
+          id: follow.id || follow.username
+        }));
+
+        const requestsWithActivity = (requests || []).map(request => ({
+          ...request,
+          channelActivity: allChannelActivity.filter(activity => activity.username === request.username),
+          isPrivate: true,
+          id: request.id || request.username,
+          username: request.username || request.tenant_name
+        }));
+
+        setChannelData({
+          follows: followsWithActivity,
+          requests: requestsWithActivity
         });
-    }
-  }, []);
-
-  // Fetch followed channels
-  const fetchUserFollows = async () => {
-    if (!user?.id || !dbInitialized) {
-      return [];
-    }
-
-    try {
-      const follows = await indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id);
-      return follows || [];
-    } catch (err) {
-      return [];
-    }
-  };
-
-  // Fetch tenant requests
-  const fetchTenantRequests = async () => {
-    if (!user?.id || !dbInitialized) {
-      return [];
-    }
-
-    try {
-      const requests = await indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id);
-      return requests || [];
-    } catch (err) {
-      return [];
-    }
-  };
-
-  // Load data when DB is initialized and user is available
-  useEffect(() => {
-    const loadData = async () => {
-      if (dbInitialized && user?.id && !isDataLoaded) {
-        setIsLoading(true);
-        try {
-          const [follows, requests] = await Promise.all([
-            fetchUserFollows(),
-            fetchTenantRequests()
-          ]);
-
-          // Get all channel activity records
-          const allChannelActivity = await indexedDB.getAll('channels_activity');
-
-          // Merge channel activity into follows
-          const followsWithActivity = follows.map(follow => {
-            const channelActivity = allChannelActivity.find(
-              activity => activity.username === follow.username
-            );
-            return {
-              ...follow,
-              channelActivity: channelActivity ? [channelActivity] : [],
-              isPrivate: false,
-              id: follow.id || follow.username
-            };
-          });
-
-          // Merge channel activity into tenant requests
-          const requestsWithActivity = requests.map(request => {
-            const channelActivity = allChannelActivity.find(
-              activity => activity.username === request.username
-            );
-            return {
-              ...request,
-              channelActivity: channelActivity ? [channelActivity] : [],
-              isPrivate: true,
-              id: request.id || request.username,
-              username: request.username || request.tenant_name
-            };
-          });
-
-          setFollowedChannels(followsWithActivity);
-          setTenantRequests(requestsWithActivity);
-          setIsDataLoaded(true);
-        } catch (error) {
+        
+        dataLoadedRef.current = true;
+      } catch (err) {
+        if (mounted) {
           setError('Failed to load data');
-        } finally {
-          setIsLoading(false);
+        }
+      } finally {
+        if (mounted) {
+          setLoadingState(prev => ({ ...prev, dataLoading: false }));
         }
       }
     };
 
-    loadData();
-  }, [dbInitialized, user?.id, isDataLoaded]);
+    initializeAndLoadData();
 
-  // Reset data loaded state when user or userInfo changes
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id]);
+
+  // Reset data loaded ref when user changes
   useEffect(() => {
-    if (user?.id || userInfo) {
-      setIsDataLoaded(false);
+    if (!user?.id) {
+      dataLoadedRef.current = false;
     }
-  }, [user?.id, userInfo]);
+  }, [user?.id]);
 
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
     const isPrivateChannel = item.isPrivate;
     const isFirstPrivateChannel = isPrivateChannel && index === 0;
-    const isFirstPublicChannel = !isPrivateChannel && index === tenantRequests.length;
+    const isFirstPublicChannel = !isPrivateChannel && index === channelData.requests.length;
 
     const channelActivity = item.channelActivity?.[0];
     const lastMessage = channelActivity?.last_message;
@@ -213,7 +190,9 @@ export function MainScreen({ initialData }: MainScreenProps) {
         </TouchableOpacity>
       </>
     );
-  }, [selectedItem, router, tenantRequests]);
+  }, [selectedItem, router, channelData]);
+
+  const data = useMemo(() => [...channelData.requests, ...channelData.follows], [channelData]);
 
   if (authLoading) {
     return (
@@ -253,7 +232,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
     );
   }
 
-  if (isLoading) {
+  if (loadingState.dataLoading || loadingState.dbInit) {
     return (
       <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
         <View className="flex-1 justify-center px-6">
@@ -268,8 +247,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
       </SafeAreaView>
     );
   }
-
-  const data = [...tenantRequests, ...followedChannels];
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">

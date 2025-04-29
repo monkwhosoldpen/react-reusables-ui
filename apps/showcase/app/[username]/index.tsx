@@ -6,7 +6,6 @@ import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import { ChannelSidebar } from '@/components/channel-profile/ChannelSidebar';
-import { ChannelSuperfeed } from '@/components/channel-profile/ChannelSuperfeed';
 import { ChannelDebugInfo } from '@/components/channel-profile/ChannelDebugInfo';
 import { Channel, ChannelResponse } from '@/lib/types/channel.types';
 import { config } from '~/lib/config';
@@ -20,6 +19,7 @@ import { useRealtime } from '~/lib/providers/RealtimeProvider';
 import ChannelInfoSection from '~/components/channel-profile/ChannelInfoSection';
 import { fetchFeedItems } from '~/lib/utils/feedData';
 import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
+import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 
 export default function ChannelPage() {
   const router = useRouter();
@@ -58,7 +58,7 @@ export default function ChannelPage() {
   }, [channelActivities]);
 
   // Calculate widths
-  const sidebarWidth = Math.floor(screenWidth * 0.3);
+  const sidebarWidth = Math.floor(screenWidth * 0.25);
   const contentWidth = screenWidth - sidebarWidth;
 
   // State management
@@ -117,7 +117,7 @@ export default function ChannelPage() {
 
     const loadFeedItems = async () => {
       if (!channel) return;
-      
+
       try {
         setLoadingMessages(true);
         const items = await fetchFeedItems(usernameStr);
@@ -201,9 +201,10 @@ export default function ChannelPage() {
           />
         </View>
 
-        {/* Content Area */}
-        <View style={{ width: contentWidth }} className="bg-background relative">
-          
+        {/* Main Content */}
+        <View style={{ width: contentWidth }} className="bg-background">
+
+
           <ChannelInfoSection
             username={usernameStr}
             channelDetails={channel}
@@ -215,16 +216,49 @@ export default function ChannelPage() {
             />
           </ChannelInfoSection>
 
-          <ScrollView className="p-4">
-            <ChannelSuperfeed
-              messages={messages}
-              messagesLoading={loadingMessages}
-              messagesError={messageError}
-              messagesEndRef={messagesEndRef}
-            />
+
+          <ScrollView className="flex-1 p-2">
+            {loadingMessages ? (
+              <View className="flex-1 justify-center items-center p-6">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Text className="mt-2 text-base text-muted-foreground">
+                  Loading messages...
+                </Text>
+              </View>
+            ) : messageError ? (
+              <View className="flex-1 justify-center items-center p-6">
+                <Text className="text-lg text-foreground mb-2">
+                  {messageError}
+                </Text>
+                <Text className="text-base text-muted-foreground">
+                  There was a problem loading messages.
+                </Text>
+              </View>
+            ) : messages.length === 0 ? (
+              <View className="flex-1 justify-center items-center p-6">
+                <Text className="text-lg text-foreground mb-2">
+                  No messages yet
+                </Text>
+                <Text className="text-base text-muted-foreground">
+                  This channel hasn't posted any messages.
+                </Text>
+              </View>
+            ) : (
+              <View>
+                {messages.map((message, index) => (
+                  <FeedItem
+                    key={`${message.id || index}`}
+                    data={message}
+                    showHeader={message.metadata?.visibility?.header ?? true}
+                    showFooter={message.metadata?.visibility?.footer ?? false}
+                  />
+                ))}
+              </View>
+            )}
           </ScrollView>
+          <View ref={messagesEndRef} />
         </View>
       </View>
-    </View >
+    </View>
   );
 }

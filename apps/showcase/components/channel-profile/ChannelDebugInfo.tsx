@@ -26,7 +26,6 @@ export function ChannelDebugInfo({ username, channelDetails }: ChannelDebugInfoP
 
   return (
     <>
-      {/* Toggle Button */}
       <TouchableOpacity 
         onPress={() => setIsOpen(true)}
         className="absolute right-4 top-4 z-10"
@@ -36,7 +35,6 @@ export function ChannelDebugInfo({ username, channelDetails }: ChannelDebugInfoP
         </View>
       </TouchableOpacity>
 
-      {/* Debug Info Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
