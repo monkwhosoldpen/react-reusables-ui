@@ -175,7 +175,6 @@ export interface FeedItemResponse {
 export const DEFAULT_METADATA: Metadata = {
   isCollapsible: true,
   displayMode: 'default',
-  maxHeight: 300,
   visibility: {
     stats: true,
     shareButtons: true,

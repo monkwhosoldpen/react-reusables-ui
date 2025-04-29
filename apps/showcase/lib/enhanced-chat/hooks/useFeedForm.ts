@@ -11,10 +11,8 @@ const DEFAULT_VISIBILITY: Visibility = {
 const DEFAULT_METADATA: Metadata = {
   timestamp: new Date().toISOString(),
   requireAuth: false,
-  allowResubmit: false,
   isCollapsible: false,
   displayMode: 'expanded',
-  maxHeight: 0,
   visibility: DEFAULT_VISIBILITY,
   mediaLayout: 'grid',
 };

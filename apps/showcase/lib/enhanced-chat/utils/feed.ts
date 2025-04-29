@@ -27,7 +27,6 @@ export const DEFAULT_SURVEY: SurveyData = {
 };
 
 export const DEFAULT_METADATA = {
-  maxHeight: FEED_CONSTANTS.DEFAULT_MAX_HEIGHT,
   timestamp: new Date().toISOString(),
   isCollapsible: true,
   displayMode: 'compact' as const,

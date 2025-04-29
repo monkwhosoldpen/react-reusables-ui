@@ -39,7 +39,16 @@ export function ChannelSuperfeed({
   return (
     <ScrollView style={styles.container}>
       {(messages || []).map((message, index) => (
-        <View key={message.id || index} style={[styles.messageItem, { borderColor: colorScheme.colors.border }]}>
+        <View 
+          key={message.id || index} 
+          style={[
+            styles.messageItem, 
+            { 
+              borderColor: colorScheme.colors.border,
+              backgroundColor: colorScheme.colors.background,
+            }
+          ]}
+        >
           <FeedItem
             data={message}
             showHeader={message.metadata?.visibility?.header ?? true}
@@ -80,5 +89,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     overflow: 'hidden',
-  },
+  }
 }); 

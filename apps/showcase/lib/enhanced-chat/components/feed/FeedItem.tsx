@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, Pressable, Image, ViewStyle, TextStyle, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Markdown from 'react-native-markdown-display';
 import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { calculateMaxHeight } from '~/lib/utils/heightCalculations';
 
 interface FeedItemProps {
   data: FormDataType;
@@ -18,6 +19,8 @@ interface FeedItemProps {
 export function FeedItem({ data, showHeader = true, showFooter = true }: FeedItemProps) {
   const { colorScheme, themeName } = useColorScheme();
   const { design } = useDesign();
+  const [isCollapsed, setIsCollapsed] = useState(data.metadata?.isCollapsible ?? true);
+  const maxHeight = calculateMaxHeight(data);
 
   const {
     isLoading: interactiveLoading,
@@ -31,16 +34,14 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   const [quizAnswers, setQuizAnswers] = React.useState<Record<number, number>>({});
   const [surveyAnswers, setSurveyAnswers] = React.useState<Record<number, number>>({});
   const [showResults, setShowResults] = React.useState(false);
-  const [isCollapsed, setIsCollapsed] = React.useState(data.metadata?.isCollapsible ?? true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentSlide, setCurrentSlide] = React.useState(0);
 
-  // Update collapsed state when metadata changes
-  React.useEffect(() => {
+  useEffect(() => {
     setIsCollapsed(data.metadata?.isCollapsible ?? true);
   }, [data.metadata?.isCollapsible]);
 
-  const toggleCollapse = React.useCallback(() => {
+  const toggleCollapse = useCallback(() => {
     setIsCollapsed(prev => !prev);
   }, []);
 
@@ -469,7 +470,6 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
       position: 'relative',
       overflow: 'hidden',
       width: '100%',
-      maxHeight: isCollapsed ? 300 : undefined,
     },
     interactiveFeaturesContainer: {
       gap: Number(design.spacing.padding.card),
@@ -981,7 +981,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
 
     const mediaContainerStyle = [
       styles.mediaContainer,
-      isCollapsed && { maxHeight: 300 }
+      isCollapsed && { maxHeight }
     ];
 
     if (data.metadata?.mediaLayout === 'carousel') {
@@ -1052,7 +1052,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             style={[
               styles.mediaItem,
               getMediaItemStyle(index),
-              isCollapsed && { maxHeight: 300 }
+              isCollapsed && { maxHeight }
             ]}
           >
             <Image
@@ -1075,7 +1075,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     return (
       <View style={[
         styles.contentWrapper,
-        isCollapsed && { maxHeight: 300 }
+        isCollapsed && { maxHeight }
       ]}>
         {/* Content Text */}
         {data.content && (
@@ -1128,7 +1128,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
 
       <View style={[
         styles.content,
-        isCollapsed && styles.collapsed
+        isCollapsed && { maxHeight }
       ]}>
         {renderContent()}
 

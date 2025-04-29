@@ -31,7 +31,7 @@ export const FEED_CONSTANTS = {
   FEED_PAGE_SIZE: 20,
   
   // Default values
-  DEFAULT_MAX_HEIGHT: 300,
+  DEFAULT_MAX_HEIGHT: 300, // Fixed height for collapsible content
   DEFAULT_QUIZ_TIME_LIMIT: 30,
   DEFAULT_QUIZ_POINTS: 10,
   DEFAULT_POLL_DURATION: 24,
