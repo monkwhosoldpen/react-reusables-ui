@@ -32,7 +32,7 @@ export default function DashboardScreen() {
   };
 
   const handleInfoPress = (channel: Channel) => {
-    router.push(`/dashboard/${channel.username}/channel-info`);
+    router.push(`/dashboard/${channel.username}/create-message`);
   };
 
   const handleRelatedChannelsPress = (channel: Channel) => {
@@ -97,26 +97,14 @@ export default function DashboardScreen() {
                     <View style={[styles.channelAvatar, { backgroundColor: `${colorScheme.colors.primary}1A` }]}>
                       <MaterialIcons name="person" size={24} color={colorScheme.colors.primary} />
                     </View>
-                    <View style={styles.channelInfo}>
-                      <Text style={[styles.channelTitle, { color: colorScheme.colors.text }]}>{transformedChannel.username}</Text>
-                      <Text style={[styles.channelDescription, { color: subtitleColor }]}>
-                        {transformedChannel.custom_properties.description || 'No description'}
-                      </Text>
-                    </View>
                   </View>
 
                   <View style={styles.channelActions}>
                     <TouchableOpacity 
                       style={[styles.actionButton, { backgroundColor: `${colorScheme.colors.primary}1A` }]}
-                      onPress={() => handleChannelPress(transformedChannel)}
-                    >
-                      <Text style={{ color: colorScheme.colors.primary }}>Chat</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={[styles.actionButton, { backgroundColor: `${colorScheme.colors.primary}1A` }]}
                       onPress={() => handleInfoPress(transformedChannel)}
                     >
-                      <Text style={{ color: colorScheme.colors.primary }}>Info</Text>
+                      <Text style={{ color: colorScheme.colors.primary }}>Message</Text>
                     </TouchableOpacity>
                   </View>
                 </Card>

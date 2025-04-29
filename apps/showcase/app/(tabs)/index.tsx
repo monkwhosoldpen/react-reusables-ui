@@ -1,11 +1,11 @@
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { MainScreen } from "~/components/main";
+import { MainScreen } from "~/components/home/main";
 import { View, StyleSheet, ViewStyle, ActivityIndicator, Animated, Text, useWindowDimensions } from 'react-native';
 import { useTheme } from '~/lib/providers/theme/ThemeProvider';
 import { useState, useEffect } from 'react';
 import { indexedDB } from '@/lib/services/indexedDB';
 import React from 'react';
-import { Landing } from '~/components/landing';
+import { Landing } from '~/components/home/landing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Index() {

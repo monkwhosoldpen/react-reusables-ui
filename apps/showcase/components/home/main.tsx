@@ -35,12 +35,9 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
-  const isDesktop = width >= 768;
-
   const [followedChannels, setFollowedChannels] = useState<any[]>(initialData?.follows || []);
   const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>(initialData?.requests || []);
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [isMediumOrAbove, setIsMediumOrAbove] = useState(Platform.OS === 'web' && window.innerWidth >= 768);
   const [dbInitialized, setDbInitialized] = useState(false);
   const initializationStarted = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,26 +61,16 @@ export function MainScreen({ initialData }: MainScreenProps) {
       paddingTop: 20,
       paddingBottom: insets.bottom + 20,
     },
-    desktopContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      maxWidth: 1200,
-      alignSelf: 'center',
-      width: '100%',
-      paddingTop: insets.top + 20,
-      paddingBottom: insets.bottom + 20,
-      paddingHorizontal: 20,
-    },
     sectionContainer: {
       marginBottom: 32,
       paddingHorizontal: 4,
-      width: isDesktop ? '50%' : '100%',
+      width: '100%',
     },
     sectionContainerLeft: {
-      paddingRight: isDesktop ? 16 : 0,
+      paddingRight: 16,
     },
     sectionContainerRight: {
-      paddingLeft: isDesktop ? 16 : 0,
+      paddingLeft: 16,
     },
     header: {
       paddingHorizontal: 16,
@@ -419,20 +406,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
     }
   }, [user?.id, userInfo]);
 
-  // Handle window resize on web
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      const handleResize = () => {
-        const newIsMediumOrAbove = window.innerWidth >= 768;
-        setIsMediumOrAbove(newIsMediumOrAbove);
-      };
-      window.addEventListener('resize', handleResize);
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
-    }
-  }, []);
-
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
     const isPrivateChannel = item.isPrivate;
     const isFirstPrivateChannel = isPrivateChannel && index === 0;
@@ -557,71 +530,15 @@ export function MainScreen({ initialData }: MainScreenProps) {
     );
   }
 
-  const bannersData = [
-    {
-      icon: "forum",
-      title: "Community",
-      subtitle: "Join discussions with citizens",
-      color: colorScheme.colors.primary
-    },
-    {
-      icon: "event",
-      title: "Events Hub",
-      subtitle: "Discover local events and meetups",
-      color: colorScheme.colors.primary
-    },
-    {
-      icon: "groups",
-      title: "Interest Groups",
-      subtitle: "Connect with like-minded people",
-      color: colorScheme.colors.primary
-    },
-    {
-      icon: "campaign",
-      title: "Announcements",
-      subtitle: "Stay updated with important news",
-      color: colorScheme.colors.primary
-    },
-  ];
-
   const data = [...tenantRequests, ...followedChannels];
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={isDesktop ? styles.desktopContainer : styles.contentContainer}
+        contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Left Column */}
-        <View style={[styles.sectionContainer, styles.sectionContainerLeft]}>
-          {/* Banners Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>FEATURES</Text>
-          </View>
-          <View style={styles.cardContainer}>
-            {bannersData.map((banner, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[styles.item, { backgroundColor: banner.color }]}
-                onPress={() => router.push('/explore')}
-              >
-                <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.background}1A` }]}>
-                  <MaterialIcons name={banner.icon as any} size={24} color={colorScheme.colors.background} />
-                </View>
-                <View style={styles.itemContent}>
-                  <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
-                    {banner.title}
-                  </Text>
-                  <Text style={[styles.itemSubtitle, { color: colorScheme.colors.background, opacity: 0.8 }]}>
-                    {banner.subtitle}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
         {/* Right Column */}
         <View style={[styles.sectionContainer, styles.sectionContainerRight]}>
           {/* Channels Section */}
