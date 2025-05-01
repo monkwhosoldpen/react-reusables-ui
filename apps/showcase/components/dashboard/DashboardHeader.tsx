@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 

@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { Card } from '~/components/ui/card';
 
 export default function AIDashboardScreen() {

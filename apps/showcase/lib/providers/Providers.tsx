@@ -1,12 +1,12 @@
 import React from 'react';
-import { AuthProvider } from '../contexts/AuthContext';
-import { NotificationProvider } from '../contexts/NotificationContext';
-import { FeedInteractionProvider } from './feed/FeedInteractionProvider';
-import { APIProvider } from './api/APIProvider';
-import { RealtimeProvider } from './RealtimeProvider';
-import { ColorSchemeProvider } from './theme/ColorSchemeProvider';
-import { DesignProvider } from './theme/DesignSystemProvider';
-import { ThemeProvider } from './theme/ThemeProvider';
+import { AuthProvider } from '../core/contexts/AuthContext';
+import { NotificationProvider } from '../core/contexts/NotificationContext';
+import { FeedInteractionProvider } from '../enhanced-chat/providers/feed/FeedInteractionProvider';
+import { APIProvider } from '../core/providers/api/APIProvider';
+import { RealtimeProvider } from '../core/providers/RealtimeProvider';
+import { ColorSchemeProvider } from '../core/providers/theme/ColorSchemeProvider';
+import { DesignProvider } from '../core/providers/theme/DesignSystemProvider';
+import { ThemeProvider } from '../core/providers/theme/ThemeProvider';
 import { Toaster } from 'sonner';
 
 interface ProvidersProps {

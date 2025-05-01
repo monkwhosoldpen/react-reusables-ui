@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useAuth } from "~/lib/core/contexts/AuthContext";
 import { View } from "react-native";
 import { Text } from "~/components/ui/text";
 import { Button } from "~/components/ui/button";

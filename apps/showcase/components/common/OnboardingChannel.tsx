@@ -3,8 +3,8 @@
 import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Channel } from '@/lib/types/channel.types';
-import { useAuth } from '@/lib/contexts/AuthContext'
+import { Channel } from '~/lib/core/types/channel.types';
+import { useAuth } from '~/lib/core/contexts/AuthContext'
 import LoginCommon from '@/components/common/LoginCommon'
 import { View, Text } from 'react-native'
 

@@ -1,8 +1,8 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Link } from 'expo-router';
-import { useColorScheme } from '@/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '@/lib/providers/theme/DesignSystemProvider';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { ChevronLeft } from 'lucide-react-native';
 
 interface CommonHeaderProps {

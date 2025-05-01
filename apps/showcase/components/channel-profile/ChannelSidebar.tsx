@@ -2,9 +2,9 @@
 
 import React from 'react'
 import { View, ScrollView, useWindowDimensions, Pressable } from 'react-native'
-import { Channel } from "@/lib/types/channel.types"
+import { Channel } from "~/lib/core/types/channel.types"
 import { Text } from '~/components/ui/text'
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
 import { Users, Settings } from 'lucide-react'
 import { useRouter } from 'expo-router'
 

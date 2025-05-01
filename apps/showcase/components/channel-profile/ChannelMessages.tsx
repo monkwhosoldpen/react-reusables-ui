@@ -2,12 +2,12 @@
 
 import React from 'react'
 import { View, Text, ScrollView } from 'react-native'
-import { ChannelMessage, Channel } from '@/lib/types/channel.types'
+import { ChannelMessage, Channel } from '~/lib/core/types/channel.types'
 import { MessageCircle, AlertCircle } from 'lucide-react'
-import { groupMessagesByDate } from '~/lib/dateUtils'
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
+import { groupMessagesByDate } from '~/lib/core/utils/dateUtils'
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem'
-import { DEFAULT_METADATA } from '~/lib/utils/feedData'
+import { DEFAULT_METADATA } from '~/lib/enhanced-chat/utils/feedData'
 import { FeedItemType, MediaItem, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed'
 
 interface ChannelMessagesProps {

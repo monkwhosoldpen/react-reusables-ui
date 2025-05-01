@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Channel } from '@/lib/types/channel.types';
+import { Channel } from '~/lib/core/types/channel.types';
 import { MessageCircle } from 'lucide-react';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { JoinButton } from '@/components/common/JoinButton';
 import { FollowButton } from '@/components/common/FollowButton';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useAuth } from '~/lib/core/contexts/AuthContext';
 
 interface ChannelInfoSectionProps {
   username: string;

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useNotification } from '@/lib/contexts/NotificationContext';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useNotification } from '~/lib/core/contexts/NotificationContext';
+import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { Globe, TabletSmartphone, Bell, BellOff, AlertTriangle, Database, Check, X, Smartphone, Code } from 'lucide-react-native';

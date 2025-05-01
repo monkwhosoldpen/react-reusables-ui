@@ -3,7 +3,7 @@ import { Link } from 'expo-router';
 import { Button } from '~/components/ui/button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronRight } from '~/lib/icons/ChevronRight';
-import { LANDING_CONTENT } from '~/lib/constants/landing';
+import { LANDING_CONTENT } from '~/lib/core/constants/landing';
 
 export function Landing() {
   const { width } = useWindowDimensions();

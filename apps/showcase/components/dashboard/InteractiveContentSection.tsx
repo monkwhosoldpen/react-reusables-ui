@@ -2,8 +2,8 @@ import React from 'react';
 import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
-import { INTERACTIVE_TYPES } from '~/lib/utils/quickActionTemplates';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
+import { INTERACTIVE_TYPES } from '~/lib/enhanced-chat/utils/quickActionTemplates';
 
 interface InteractiveContentSectionProps {
   formData: FormDataType;

@@ -14,8 +14,8 @@ import {
   ChevronDown,
   Search
 } from 'lucide-react-native';
-import { useTheme } from '~/lib/providers/theme/ThemeProvider';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useTheme } from '~/lib/core/providers/theme/ThemeProvider';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://risbemjewosmlvzntjkd.supabase.co';

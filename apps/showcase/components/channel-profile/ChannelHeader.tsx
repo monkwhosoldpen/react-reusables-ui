@@ -6,9 +6,9 @@ import { ChevronLeft, Settings } from 'lucide-react'
 import { useRouter } from 'expo-router'
 import { Text } from '@/components/ui/text'
 import { Button } from '@/components/ui/button'
-import { Channel } from '@/lib/types/channel.types'
-import { useColorScheme } from '@/lib/providers/theme/ColorSchemeProvider'
-import { useDesign } from '@/lib/providers/theme/DesignSystemProvider'
+import { Channel } from '~/lib/core/types/channel.types'
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider'
 import { MaterialIcons } from "@expo/vector-icons"
 
 interface ChannelHeaderProps {

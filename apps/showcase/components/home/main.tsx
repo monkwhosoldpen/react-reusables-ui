@@ -10,10 +10,10 @@ import {
   SafeAreaView,
   ActivityIndicator,
 } from "react-native";
-import { TenantRequest, useAuth } from '~/lib/contexts/AuthContext';
+import { TenantRequest, useAuth } from '~/lib/core/contexts/AuthContext';
 import { LogIn, LogOut, Plus } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { indexedDB } from '@/lib/services/indexedDB';
+import { indexedDB } from '~/lib/core/services/indexedDB';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { MaterialIcons } from "@expo/vector-icons";

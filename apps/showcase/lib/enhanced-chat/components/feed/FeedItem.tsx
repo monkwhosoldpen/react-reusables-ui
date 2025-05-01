@@ -3,12 +3,12 @@ import { View, Pressable, Image, TouchableOpacity, StyleSheet, useWindowDimensio
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
 import { FormDataType, InteractiveContent, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
-import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
+import { useInteractiveContent } from '~/lib/enhanced-chat/hooks/useInteractiveContent';
 import { LinearGradient } from 'expo-linear-gradient';
 import Markdown from 'react-native-markdown-display';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
-import { calculateMaxHeight } from '~/lib/utils/heightCalculations';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
+import { calculateMaxHeight } from '~/lib/enhanced-chat/utils/heightCalculations';
 
 interface FeedItemProps {
   data: FormDataType;

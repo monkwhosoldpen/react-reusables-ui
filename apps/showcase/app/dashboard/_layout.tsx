@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { DashboardHeader } from '~/components/dashboard/DashboardHeader';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { StyleSheet, View } from 'react-native';
 
 export default function DashboardLayout() {

@@ -1,8 +1,8 @@
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { MainScreen } from "~/components/home/main";
 import { View, ActivityIndicator, Text } from 'react-native';
 import { useState, useEffect } from 'react';
-import { indexedDB } from '@/lib/services/indexedDB';
+import { indexedDB } from '~/lib/core/services/indexedDB';
 import React from 'react';
 import { Landing } from '~/components/home/landing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

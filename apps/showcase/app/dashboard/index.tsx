@@ -2,13 +2,13 @@ import { useScrollToTop } from '@react-navigation/native';
 import * as React from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions, SafeAreaView } from 'react-native';
 import { Input } from '~/components/ui/input';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { Text } from '~/components/ui/text';
 import { Card } from '~/components/ui/card';
 import { useRouter } from 'expo-router';
-import { useChannels } from '~/lib/hooks/useChannels';
-import { Channel } from '~/lib/types/channel.types';
+import { useChannels } from '~/lib/enhanced-chat/hooks/useChannels';
+import { Channel } from '~/lib/core/types/channel.types';
 import OverviewScreen from '~/components/dashboard/overview';
 import { MaterialIcons } from '@expo/vector-icons';
 

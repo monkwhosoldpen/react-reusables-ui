@@ -3,19 +3,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { useColorScheme, type ThemeName } from '~/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { useColorScheme, type ThemeName } from '~/lib/core/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '@/lib/contexts/AuthContext';
-import { indexedDB } from '@/lib/services/indexedDB';
+import { useAuth } from '~/lib/core/contexts/AuthContext';
+import { indexedDB } from '~/lib/core/services/indexedDB';
 import { StoreNames } from 'idb';
-import { NchatDB } from '@/lib/services/indexedDBSchema';
+import { NchatDB } from '~/lib/core/services/indexedDBSchema';
 import LanguageChanger from '@/components/common/LanguageChanger';
 import { UserLocation } from '@/components/common/UserLocation';
 import { FollowButton } from '@/components/common/FollowButton';
 import { LogIn, LogOut, ChevronRight, Bell, RefreshCw, Save, Database, CheckCircle, XCircle, DownloadCloud, AlertTriangle, Smartphone, Home, Users, Settings, Activity, PanelLeft, Menu, X } from 'lucide-react-native';
 import { Button } from '~/components/ui/button';
-import { config } from '@/lib/config';
+import { config } from '~/lib/core/config';
 import { useRouter } from 'expo-router';
 
 // Type alias for store names to match the one in the indexedDB service

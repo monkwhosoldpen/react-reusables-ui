@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ScrollView, TextInput, Switch, Pressable, RefreshControl, StyleSheet } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
-import { useFeedForm } from '~/lib/hooks/useFeedForm';
+import { useFeedForm } from '~/lib/enhanced-chat/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import {
   FormDataType,
@@ -11,10 +11,10 @@ import {
   MediaItem,
   MediaType,
   SurveyData} from '~/lib/enhanced-chat/types/superfeed';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useChannels } from '~/lib/hooks/useChannels';
+import { useChannels } from '~/lib/enhanced-chat/hooks/useChannels';
 import {
   setupRealtimeSubscription,
   DEFAULT_METADATA,
@@ -30,9 +30,9 @@ import {
   refreshFeed,
   handleSubmit,
   determineInteractiveType
-} from '~/lib/utils/feedData';
+} from '~/lib/enhanced-chat/utils/feedData';
 import { PreviewDialog } from '~/lib/enhanced-chat/components/feed/PreviewDialog';
-import { ChannelMessage } from '~/lib/types/channel.types';
+import { ChannelMessage } from '~/lib/core/types/channel.types';
 
 interface FeedScreenProps {
   username: string;

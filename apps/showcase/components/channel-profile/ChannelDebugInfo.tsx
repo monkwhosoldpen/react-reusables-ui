@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
-import { Channel } from '@/lib/types/channel.types'
+import { Channel } from '~/lib/core/types/channel.types'
 import { Users, Info } from 'lucide-react'
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 interface ChannelDebugInfoProps {

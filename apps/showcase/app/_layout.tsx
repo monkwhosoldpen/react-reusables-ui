@@ -10,7 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeToggle } from '~/components/settings/ThemeToggle';
 import { Text } from '~/components/ui/text';
 import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
-import { NAV_THEME } from '~/lib/constants';
+import { NAV_THEME } from '~/lib/core/constants/constants';
 import { Providers } from '~/lib/providers/Providers';
 import { useColorScheme } from '~/lib/useColorScheme';
 

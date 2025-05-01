@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, ScrollView, TextInput, Switch, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { Card } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { 
@@ -15,21 +15,21 @@ import {
   SurveyData,
   DEFAULT_INTERACTIVE_CONTENT
 } from '~/lib/enhanced-chat/types/superfeed';
-import { useFeedForm } from '~/lib/hooks/useFeedForm';
+import { useFeedForm } from '~/lib/enhanced-chat/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
-import { useInteractiveContent } from '~/lib/hooks/useInteractiveContent';
+import { useInteractiveContent } from '~/lib/enhanced-chat/hooks/useInteractiveContent';
 import { useLocalSearchParams } from 'expo-router';
 import { debounce } from 'lodash';
-import { createMessageStyles } from '~/lib/utils/createMessageStyles';
+import { createMessageStyles } from '~/lib/enhanced-chat/utils/createMessageStyles';
 import { InteractiveContentSection } from '~/components/dashboard/InteractiveContentSection';
-import { QUICK_ACTION_TEMPLATES, INTERACTIVE_TYPES } from '~/lib/utils/quickActionTemplates';
-import { MEDIA_LAYOUTS, getMediaLayoutLabel, getMediaLayoutIcon } from '~/lib/utils/mediaLayouts';
-import { calculateMaxHeight, logHeightCalculation } from '~/lib/utils/heightCalculations';
-import { usePreviewData } from '~/lib/hooks/usePreviewData';
-import { useMessageHandling } from '~/lib/hooks/useMessageHandling';
-import { useMediaHandling } from '~/lib/hooks/useMediaHandling';
-import { handleQuickAction } from '~/lib/utils/quickActionHandlers';
-import { generateBulkShortMessages, generateBulkLongMessages } from '~/lib/utils/bulkCreateTemplates';
+import { QUICK_ACTION_TEMPLATES, INTERACTIVE_TYPES } from '~/lib/enhanced-chat/utils/quickActionTemplates';
+import { MEDIA_LAYOUTS, getMediaLayoutLabel, getMediaLayoutIcon } from '~/lib/enhanced-chat/utils/mediaLayouts';
+import { calculateMaxHeight, logHeightCalculation } from '~/lib/enhanced-chat/utils/heightCalculations';
+import { usePreviewData } from '~/lib/enhanced-chat/hooks/usePreviewData';
+import { useMessageHandling } from '~/lib/enhanced-chat/hooks/useMessageHandling';
+import { useMediaHandling } from '~/lib/enhanced-chat/hooks/useMediaHandling';
+import { handleQuickAction } from '~/lib/enhanced-chat/utils/quickActionHandlers';
+import { generateBulkShortMessages, generateBulkLongMessages } from '~/lib/enhanced-chat/utils/bulkCreateTemplates';
 
 type InteractiveType = 'poll' | 'quiz' | 'survey';
 

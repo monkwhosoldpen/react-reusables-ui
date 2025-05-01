@@ -4,18 +4,18 @@ import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { ButtonProps } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useAuth } from "@/lib/contexts/AuthContext"
+import { useAuth } from "~/lib/core/contexts/AuthContext"
 import { toast } from "sonner"
 import { UserPlus, ArrowRight, Check, Loader2 } from 'lucide-react-native'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import LoginCommon from '@/components/common/LoginCommon'
 import { View, Text, StyleSheet } from 'react-native'
-import { useColorScheme } from '~/lib/providers/theme/ColorSchemeProvider'
-import { useDesign } from '~/lib/providers/theme/DesignSystemProvider'
-import { Channel } from '@/lib/types/channel.types'
-import { config } from '@/lib/config'
-import { TenantRequest } from '@/lib/services/indexedDBSchema'
-import { indexedDB } from '@/lib/services/indexedDB'
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider'
+import { Channel } from '~/lib/core/types/channel.types'
+import { config } from '~/lib/core/config'
+import { TenantRequest } from '~/lib/core/services/indexedDBSchema'
+import { indexedDB } from '~/lib/core/services/indexedDB'
 
 interface JoinButtonProps {
   username: string;

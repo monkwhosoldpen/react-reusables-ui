@@ -1,5 +1,5 @@
 import { MediaItem, PollData, QuizData, SurveyData } from './superfeed';
-import type { Channel } from '../../types/database.types';
+import type { Channel } from '../../core/types/database.types';
 
 export interface MediaInputProps {
   mediaUrls: string[];

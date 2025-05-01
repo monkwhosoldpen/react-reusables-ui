@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
-import { useColorScheme, type ThemeName } from '@/lib/providers/theme/ColorSchemeProvider';
-import { useDesign } from '@/lib/providers/theme/DesignSystemProvider';
+import { useColorScheme, type ThemeName } from '~/lib/core/providers/theme/ColorSchemeProvider';
+import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from 'expo-router';
-import { useAuth } from '~/lib/contexts/AuthContext';
+import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Switch } from '~/components/ui/switch';
 import LanguageChanger from '@/components/common/LanguageChanger';
 import { cn } from '~/lib/utils';
@@ -21,7 +21,7 @@ import {
 import { Button } from '~/components/ui/button';
 import { ChevronDown } from '~/lib/icons/ChevronDown';
 import { Muted } from '~/components/ui/typography';
-import { type DesignType } from '@/lib/providers/theme/types';
+import { type DesignType } from '~/lib/core/providers/theme/types';
 
 const contentInsets = {
   left: 12,
