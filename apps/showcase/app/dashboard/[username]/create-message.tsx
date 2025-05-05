@@ -29,7 +29,13 @@ import { usePreviewData } from '~/lib/enhanced-chat/hooks/usePreviewData';
 import { useMessageHandling } from '~/lib/enhanced-chat/hooks/useMessageHandling';
 import { useMediaHandling } from '~/lib/enhanced-chat/hooks/useMediaHandling';
 import { handleQuickAction } from '~/lib/enhanced-chat/utils/quickActionHandlers';
-import { generateBulkShortMessages, generateBulkLongMessages } from '~/lib/enhanced-chat/utils/bulkCreateTemplates';
+import { 
+  generateBulkShortMessages, 
+  generateBulkLongMessages,
+  generateBulkPollMessages,
+  generateBulkQuizMessages,
+  generateBulkSurveyMessages
+} from '~/lib/enhanced-chat/utils/bulkCreateTemplates';
 
 type InteractiveType = 'poll' | 'quiz' | 'survey';
 
@@ -186,6 +192,54 @@ export default function CreateMessageScreen() {
     }
   }, [handleCreateItem]);
 
+  const handleBulkCreatePolls = useCallback(async () => {
+    try {
+      const messages = generateBulkPollMessages(10);
+      const batchSize = 5;
+      
+      for (let i = 0; i < messages.length; i += batchSize) {
+        const batch = messages.slice(i, i + batchSize);
+        await Promise.all(batch.map(message => handleCreateItem(message)));
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to bulk create poll messages');
+      setError(error);
+      console.error('Error in handleBulkCreatePolls:', error);
+    }
+  }, [handleCreateItem]);
+
+  const handleBulkCreateQuizzes = useCallback(async () => {
+    try {
+      const messages = generateBulkQuizMessages(10);
+      const batchSize = 5;
+      
+      for (let i = 0; i < messages.length; i += batchSize) {
+        const batch = messages.slice(i, i + batchSize);
+        await Promise.all(batch.map(message => handleCreateItem(message)));
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to bulk create quiz messages');
+      setError(error);
+      console.error('Error in handleBulkCreateQuizzes:', error);
+    }
+  }, [handleCreateItem]);
+
+  const handleBulkCreateSurveys = useCallback(async () => {
+    try {
+      const messages = generateBulkSurveyMessages(10);
+      const batchSize = 5;
+      
+      for (let i = 0; i < messages.length; i += batchSize) {
+        const batch = messages.slice(i, i + batchSize);
+        await Promise.all(batch.map(message => handleCreateItem(message)));
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to bulk create survey messages');
+      setError(error);
+      console.error('Error in handleBulkCreateSurveys:', error);
+    }
+  }, [handleCreateItem]);
+
   // Combine all errors
   const combinedError = error || messageError || mediaError;
 
@@ -233,6 +287,31 @@ export default function CreateMessageScreen() {
           style={{ flex: 1 }}
         >
           <Text>Bulk Create Long</Text>
+        </Button>
+      </View>
+
+      {/* Interactive Bulk Create Buttons */}
+      <View className="flex-row gap-2 p-4">
+        <Button
+          variant="outline"
+          onPress={handleBulkCreatePolls}
+          style={{ flex: 1 }}
+        >
+          <Text>Bulk Create Polls</Text>
+        </Button>
+        <Button
+          variant="outline"
+          onPress={handleBulkCreateQuizzes}
+          style={{ flex: 1 }}
+        >
+          <Text>Bulk Create Quizzes</Text>
+        </Button>
+        <Button
+          variant="outline"
+          onPress={handleBulkCreateSurveys}
+          style={{ flex: 1 }}
+        >
+          <Text>Bulk Create Surveys</Text>
         </Button>
       </View>
 
