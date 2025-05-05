@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, SafeAreaView, ScrollView } from 'react-native';
-import { Loader2 } from 'lucide-react';
-import { Button } from '~/components/ui/button';
-import { Link, useRouter } from 'expo-router';
+import { View, Text, TouchableOpacity, ActivityIndicator, Animated, SafeAreaView, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
 import { toast } from 'sonner';
 import { FollowButton } from '~/components/common/FollowButton';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
@@ -15,7 +13,6 @@ import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MaterialIcons } from "@expo/vector-icons";
 import { CommonHeader } from '~/components/common/CommonHeader';
 
 export default function ExplorePage() {
@@ -35,141 +32,6 @@ export default function ExplorePage() {
   const avatarBgColor = isDarkMode ? 'rgba(255,255,255,0.1)' : '#E8EEF2';
   const subtitleColor = isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748B';
   const timestampColor = isDarkMode ? 'rgba(255,255,255,0.5)' : '#64748B';
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colorScheme.colors.background,
-    },
-    header: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colorScheme.colors.border,
-      backgroundColor: colorScheme.colors.primary,
-    },
-    headerContent: {
-      width: '100%',
-      maxWidth: 1200,
-      alignSelf: 'center',
-    },
-    item: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 16,
-      backgroundColor: 'transparent',
-      borderRadius: 12,
-      marginVertical: 4,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    itemSelected: {
-      backgroundColor: 'rgba(128,128,128,0.05)',
-    },
-    avatar: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 12,
-      backgroundColor: '#E8EEF2',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
-      elevation: 2,
-    },
-    itemContent: {
-      flex: 1,
-      marginRight: 12,
-    },
-    itemTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      marginBottom: 4,
-      color: '#1E293B',
-    },
-    itemSubtitle: {
-      fontSize: 14,
-      color: '#64748B',
-      lineHeight: 20,
-    },
-    timeStamp: {
-      fontSize: 12,
-      color: '#94A3B8',
-      marginBottom: 4,
-    },
-    messageCount: {
-      minWidth: 24,
-      height: 24,
-      borderRadius: 12,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 8,
-      backgroundColor: colorScheme.colors.primary,
-    },
-    messageCountText: {
-      color: '#FFFFFF',
-      fontSize: 12,
-      fontWeight: '600',
-    },
-    sectionHeader: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      marginTop: 8,
-      backgroundColor: 'transparent',
-    },
-    sectionHeaderText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: '#94A3B8',
-      textTransform: 'uppercase',
-      letterSpacing: 1,
-    },
-    card: {
-      padding: 20,
-      borderRadius: 16,
-      marginTop: 24,
-      backgroundColor: colorScheme.colors.card,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    sectionTitle: {
-      fontSize: 24,
-      fontWeight: '700',
-      marginBottom: 8,
-      color: '#1E293B',
-    },
-    settingDescription: {
-      fontSize: 16,
-      color: '#64748B',
-      marginBottom: 16,
-      lineHeight: 24,
-    },
-    button: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 14,
-      paddingHorizontal: 20,
-      borderRadius: 12,
-      marginTop: 12,
-      backgroundColor: colorScheme.colors.primary,
-    },
-    buttonText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: '#FFFFFF',
-      marginLeft: 8,
-    },
-  });
 
   React.useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -214,39 +76,63 @@ export default function ExplorePage() {
   const renderItem = useCallback(({ item, index }: { item: Channel; index: number }) => {
     return (
       <Animated.View
-        style={[
-          styles.item,
-          {
-            backgroundColor: colorScheme.colors.card,
-            borderColor: colorScheme.colors.border,
-            opacity: fadeAnim,
-            transform: [
-              {
-                translateY: fadeAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [50, 0],
-                }),
-              },
-            ],
-          },
-        ]}
+        className="flex-row items-center p-4 bg-transparent rounded-xl my-1 shadow-sm"
+        style={{
+          backgroundColor: colorScheme.colors.card,
+          borderColor: colorScheme.colors.border,
+          opacity: fadeAnim,
+          transform: [
+            {
+              translateY: fadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [50, 0],
+              }),
+            },
+          ],
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 3,
+        }}
       >
         <TouchableOpacity
-          style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+          className="flex-1 flex-row items-center"
           onPress={() => {
             router.push(`/${item.username}`);
           }}
         >
-          <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
-            <Text style={[styles.itemTitle, { color: colorScheme.colors.primary }]}>
+          <View 
+            className="w-12 h-12 rounded-full justify-center items-center mr-3 shadow-sm"
+            style={{ 
+              backgroundColor: avatarBgColor,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+            }}
+          >
+            <Text 
+              className="text-base font-semibold"
+              style={{ color: colorScheme.colors.primary }}
+            >
               {item.username?.[0]?.toUpperCase() || '#'}
             </Text>
           </View>
-          <View style={styles.itemContent}>
-            <Text style={[styles.itemTitle, { color: colorScheme.colors.text }]} numberOfLines={1}>
+          <View className="flex-1 mr-3">
+            <Text 
+              className="text-base font-semibold mb-1"
+              style={{ color: colorScheme.colors.text }}
+              numberOfLines={1}
+            >
               {item.username}
             </Text>
-            <Text style={[styles.itemSubtitle, { color: subtitleColor }]} numberOfLines={1}>
+            <Text 
+              className="text-sm leading-5" 
+              style={{ color: subtitleColor }}
+              numberOfLines={1}
+            >
               {item.stateName || 'No description available'}
             </Text>
           </View>
@@ -261,16 +147,20 @@ export default function ExplorePage() {
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
-        <View style={[styles.card, { margin: 16 }]}>
-          <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: colorScheme.colors.background }}>
+        <View className="p-5 rounded-2xl mt-6 mx-4 shadow-sm" style={{ backgroundColor: colorScheme.colors.card }}>
+          <Text className="text-2xl font-bold mb-2" style={{ color: colorScheme.colors.text }}>
             {error}
           </Text>
-          <Text style={[styles.settingDescription, { color: subtitleColor }]}>
+          <Text className="text-base mb-4 leading-6" style={{ color: subtitleColor }}>
             There was a problem loading the channels. This could be due to a network issue or the server might be unavailable.
           </Text>
-          <TouchableOpacity style={styles.button} onPress={() => window.location.reload()}>
-            <Text style={styles.buttonText}>Try Again</Text>
+          <TouchableOpacity 
+            className="flex-row items-center justify-center py-3.5 px-5 rounded-xl mt-3"
+            style={{ backgroundColor: colorScheme.colors.primary }}
+            onPress={() => window.location.reload()}
+          >
+            <Text className="text-base font-semibold text-white">Try Again</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -278,23 +168,26 @@ export default function ExplorePage() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colorScheme.colors.background }]}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: colorScheme.colors.background }}>
       <CommonHeader title="Explore" showBackButton={true} />
       <ScrollView 
-        style={{ flex: 1, backgroundColor: colorScheme.colors.background }}
+        className="flex-1"
+        style={{ backgroundColor: colorScheme.colors.background }}
         contentContainerStyle={{ paddingBottom: 20 }}
       >
         {isLoading ? (
-          <View style={[styles.card, { margin: 16 }]}>
+          <View className="p-5 rounded-2xl mt-6 mx-4 shadow-sm" style={{ backgroundColor: colorScheme.colors.card }}>
             <ActivityIndicator size="large" color={colorScheme.colors.primary} />
-            <Text style={[styles.settingDescription, { color: subtitleColor, textAlign: 'center', marginTop: 16 }]}>
+            <Text className="text-base text-center mt-4" style={{ color: subtitleColor }}>
               Loading channels...
             </Text>
           </View>
         ) : channels.length > 0 ? (
-          <View style={{ paddingHorizontal: 16 }}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionHeaderText, { color: subtitleColor }]}>AVAILABLE CHANNELS</Text>
+          <View className="px-4">
+            <View className="py-3 px-4 mt-2 bg-transparent">
+              <Text className="text-xs font-semibold uppercase tracking-wider" style={{ color: subtitleColor }}>
+                AVAILABLE CHANNELS
+              </Text>
             </View>
             <FlashList
               data={channels}
@@ -308,11 +201,11 @@ export default function ExplorePage() {
             />
           </View>
         ) : (
-          <View style={[styles.card, { margin: 16 }]}>
-            <Text style={[styles.sectionTitle, { color: colorScheme.colors.text }]}>
+          <View className="p-5 rounded-2xl mt-6 mx-4 shadow-sm" style={{ backgroundColor: colorScheme.colors.card }}>
+            <Text className="text-2xl font-bold mb-2" style={{ color: colorScheme.colors.text }}>
               No channels found
             </Text>
-            <Text style={[styles.settingDescription, { color: subtitleColor }]}>
+            <Text className="text-base mb-4 leading-6" style={{ color: subtitleColor }}>
               There are currently no channels available. Please check back later.
             </Text>
           </View>
