@@ -7,7 +7,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { router } from 'expo-router';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Switch } from '~/components/ui/switch';
-import LanguageChanger from '@/components/common/LanguageChanger';
 import { cn } from '~/lib/utils';
 import {
   DropdownMenu,
@@ -254,7 +253,6 @@ export default function SettingsScreen() {
               <View style={styles.itemContent}>
                 <Text style={styles.itemTitle}>App Language</Text>
               </View>
-              <LanguageChanger variant="settings" />
             </View>
           </View>
 

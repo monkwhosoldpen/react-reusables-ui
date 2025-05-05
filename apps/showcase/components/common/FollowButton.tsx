@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import { Button } from '~/components/ui/button';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import { Heart } from 'lucide-react-native';
 import { 
   Dialog, 
@@ -14,8 +13,8 @@ import {
   DialogDescription,
   DialogPortal,
   DialogOverlay
-} from '@/components/ui/dialog';
-import LoginCommon from '@/components/common/LoginCommon';
+} from '~/components/ui/dialog';
+import LoginCommon from '~/components/common/LoginCommon';
 import { View, Text, StyleSheet } from 'react-native';
 import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';

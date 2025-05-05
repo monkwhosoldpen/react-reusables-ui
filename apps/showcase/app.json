@@ -31,8 +31,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#18181B"
-      },
-      "package": "com.reactnativereusables.showcase"
+      }
     },
     "web": {
       "bundler": "metro",

@@ -7,10 +7,7 @@ const projectRoot = __dirname;
 // This can be replaced with `find-yarn-workspace-root`
 const monorepoRoot = path.resolve(projectRoot, '../..');
 
-const config = getDefaultConfig(projectRoot, {
-  // Enable CSS support in Metro
-  isCSSEnabled: true,
-});
+const config = getDefaultConfig(projectRoot);
 
 // 1. Watch all files within the monorepo
 config.watchFolders = [monorepoRoot];
@@ -26,15 +23,4 @@ config.resolver = {
   sourceExts: [...resolver.sourceExts, 'mjs', 'cjs'],
 };
 
-// Add transformer options
-config.transformer.getTransformOptions = async () => ({
-  transform: {
-    experimentalImportSupport: false,
-    inlineRequires: true,
-  },
-});
-
-module.exports = withNativeWind(config, { 
-  input: './global.css',
-  inlineRem: 16,
-});
+module.exports = withNativeWind(config, { input: './global.css' });

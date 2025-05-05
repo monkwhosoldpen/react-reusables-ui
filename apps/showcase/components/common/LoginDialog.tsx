@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useAuth } from "~/lib/core/contexts/AuthContext"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import LoginCommon from "@/components/common/LoginCommon"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog"
+import LoginCommon from "~/components/common/LoginCommon"
 import { useColorScheme } from "~/lib/core/providers/theme/ColorSchemeProvider"
 import { useDesign } from "~/lib/core/providers/theme/DesignSystemProvider"
 import { StyleSheet, View, Text } from "react-native"

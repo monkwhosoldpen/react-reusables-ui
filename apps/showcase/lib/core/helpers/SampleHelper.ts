@@ -3,7 +3,7 @@
 import { indexedDB } from '~/lib/core/services/indexedDB';
 import { supabase } from '~/lib/core/supabase';
 import { ChannelActivity, Channel, ChannelMessage, TenantRequest } from '~/lib/core/types/channel.types';
-import { config } from '@/lib/core/config';
+import { config } from '~/lib/core/config';
 import { User } from '@supabase/supabase-js';
 
 interface PushSubscriptionData {

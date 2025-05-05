@@ -6,7 +6,7 @@ import { supabase } from '~/lib/core/supabase';
 import { indexedDB } from '~/lib/core/services/indexedDB';
 import { UserInfo } from '../types/channel.types';
 import { router } from 'expo-router';
-import { config } from '@/lib/core/config';
+import { config } from '~/lib/core/config';
 
 // Singleton for auth initialization
 export class AuthInitializer {

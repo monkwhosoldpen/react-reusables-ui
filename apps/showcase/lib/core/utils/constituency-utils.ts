@@ -1,7 +1,7 @@
 // Import premium data
 
-import { indiaData } from "../../in-app-db/states";
-import { PREMIUM_CONFIGS } from "../../in-app-db/states/telangana/premium-data";
+import { indiaData } from "~/lib/in-app-db/states";
+import { PREMIUM_CONFIGS } from "~/lib/in-app-db/states/telangana/premium-data";
 
 // Define types for related channels and premium configs
 type RelatedChannel = {

@@ -3,10 +3,10 @@
 import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, SafeAreaView, ScrollView } from 'react-native';
 import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '~/components/ui/button';
 import { Link, useRouter } from 'expo-router';
 import { toast } from 'sonner';
-import { FollowButton } from '@/components/common/FollowButton';
+import { FollowButton } from '~/components/common/FollowButton';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Channel } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';

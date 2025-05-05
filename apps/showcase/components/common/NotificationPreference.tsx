@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { useNotification } from '~/lib/core/contexts/NotificationContext';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
-import { Switch } from '@/components/ui/switch';
-import { cn } from '@/lib/utils';
+import { Switch } from '~/components/ui/switch';
 import { Globe, TabletSmartphone, Bell, BellOff, AlertTriangle, Database, Check, X, Smartphone, Code } from 'lucide-react-native';
+import { cn } from '~/lib/utils';
 
 interface NotificationPreferenceProps {
   showDescription?: boolean;
@@ -178,8 +178,8 @@ export function NotificationPreference({
           </div>
         ) : (
           <Switch
-            value={accountPreference !== null ? accountPreference : notificationsEnabled}
-            onValueChange={handleToggle}
+            checked={accountPreference !== null ? accountPreference : notificationsEnabled}
+            onCheckedChange={handleToggle}
             disabled={isLoading || contextLoading || isPermissionDenied}
           />
         )}

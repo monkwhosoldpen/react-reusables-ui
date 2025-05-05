@@ -657,7 +657,7 @@ export default function FeedScreen({ username, messages }: FeedScreenProps) {
                     backgroundColor: colorScheme.colors.background,
                   }}
                   value={media.duration?.toString()}
-                  onChangeText={(text) => handleMediaChange(index, { duration: parseInt(text) || 0 })}
+                  onChangeText={(text) => handleMediaChange(index, {  })}
                   placeholder="Duration (seconds)"
                   keyboardType="numeric"
                 />
@@ -721,7 +721,7 @@ export default function FeedScreen({ username, messages }: FeedScreenProps) {
         metadata: {
           ...DEFAULT_METADATA,
           requireAuth: true,
-          allowResubmit: false,
+          // allowResubmit: false,
           timestamp: new Date().toISOString()
         },
         channel_username: username
@@ -911,7 +911,7 @@ export default function FeedScreen({ username, messages }: FeedScreenProps) {
         const surveyData: FormDataType = {
           type: 'survey',
           content: survey.title,
-          username: username,
+          channel_username: username,
           interactive_content: {
             survey: {
               title: survey.title,
@@ -922,7 +922,7 @@ export default function FeedScreen({ username, messages }: FeedScreenProps) {
             ...DEFAULT_METADATA,
             timestamp: new Date().toISOString(),
             requireAuth: false,
-            allowResubmit: true
+            // allowResubmit: true
           },
           media: [],
           stats: {

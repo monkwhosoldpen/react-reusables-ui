@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
 import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
-import { MaterialIcons } from "@expo/vector-icons";
-import LoginCommon from '@/components/common/LoginCommon';
+import LoginCommon from '~/components/common/LoginCommon';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';

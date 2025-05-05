@@ -2,15 +2,15 @@
 
 import React, { useEffect, useState } from "react"
 import { useAuth } from "~/lib/core/contexts/AuthContext"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "~/components/ui/card"
+import { Button } from "~/components/ui/button"
+import { Input } from "~/components/ui/input"
 import { toast } from "sonner"
 import { indexedDB } from "~/lib/core/services/indexedDB"
 import { Edit2, MapPin, Save, Trash2, Wand2, X } from "lucide-react-native"
 import { Text, TextInput, NativeSyntheticEvent, TextInputChangeEventData } from "react-native"
 import { LoginDialog } from "./LoginDialog"
-import { config } from '../../lib/core/config'
+import { config } from "~/lib/core/config"
 
 // Define interface for user location data
 interface UserLocationData {
