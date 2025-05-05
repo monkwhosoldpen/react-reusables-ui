@@ -64,7 +64,7 @@ export default function TabsLayout() {
 
   const navigationItems: NavigationItem[] = [
     {
-      name: 'nchat',
+      name: 'Chats',
       icon: LayoutPanelLeft,
       route: 'index',
     },
