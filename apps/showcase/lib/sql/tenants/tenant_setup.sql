@@ -1,20 +1,17 @@
 -- Create extension for UUID generation if not exists
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Drop existing tables if they exist
-DROP TABLE IF EXISTS channels_message_responses CASCADE;
-DROP TABLE IF EXISTS channels_messages CASCADE;
+-- ======= SUPER FEED TABLES =======
+DROP TABLE IF EXISTS superfeed_responses;
+DROP TABLE IF EXISTS superfeed;
 
--- Create sequence for auto-incrementing message count
-CREATE SEQUENCE IF NOT EXISTS channels_messages_count_seq;
-
--- Create channels_messages table with enhanced features
-CREATE TABLE IF NOT EXISTS channels_messages (
+-- Create superfeed table
+CREATE TABLE superfeed (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    username TEXT NOT NULL,
-    type TEXT NOT NULL DEFAULT 'message' CHECK (type IN ('message', 'announcement', 'poll', 'survey', 'quiz')),
-    message_text TEXT NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('tweet', 'instagram', 'linkedin', 'whatsapp', 'poll', 'survey', 'quiz', 'all')),
+    content TEXT NOT NULL,
     caption TEXT,
+    message TEXT,
     media JSONB DEFAULT '[]'::jsonb,
     metadata JSONB DEFAULT '{
         "isCollapsible": true, 
@@ -36,36 +33,33 @@ CREATE TABLE IF NOT EXISTS channels_messages (
     }'::jsonb,
     interactive_content JSONB DEFAULT '{}'::jsonb,
     fill_requirement TEXT DEFAULT 'partial' CHECK (fill_requirement IN ('partial', 'strict')),
-    translations JSONB,
-    is_translated BOOLEAN DEFAULT FALSE,
-    message_count INTEGER DEFAULT nextval('channels_messages_count_seq'),
     expires_at TIMESTAMPTZ,
+    channel_username TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Create channels_message_responses table
-CREATE TABLE IF NOT EXISTS channels_message_responses (
+-- Create superfeed_responses table
+CREATE TABLE superfeed_responses (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    message_id UUID NOT NULL REFERENCES channels_messages(id) ON DELETE CASCADE,
+    feed_item_id UUID NOT NULL REFERENCES superfeed(id) ON DELETE CASCADE,
     user_id TEXT NOT NULL,
     response_type TEXT NOT NULL CHECK (response_type IN ('poll', 'quiz', 'survey')),
     response_data JSONB NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE(message_id, user_id)
+    UNIQUE(feed_item_id, user_id)
 );
 
--- Create indexes
-CREATE INDEX IF NOT EXISTS idx_channels_messages_username ON channels_messages(username);
-CREATE INDEX IF NOT EXISTS idx_channels_messages_type ON channels_messages(type);
-CREATE INDEX IF NOT EXISTS idx_channels_messages_created_at ON channels_messages(created_at);
-CREATE INDEX IF NOT EXISTS idx_channels_messages_updated_at ON channels_messages(updated_at);
-CREATE INDEX IF NOT EXISTS idx_channels_messages_expires_at ON channels_messages(expires_at);
-CREATE INDEX IF NOT EXISTS idx_channels_message_responses_message_id ON channels_message_responses(message_id);
-CREATE INDEX IF NOT EXISTS idx_channels_message_responses_user_id ON channels_message_responses(user_id);
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_superfeed_channel_username ON superfeed(channel_username);
+CREATE INDEX IF NOT EXISTS idx_superfeed_type ON superfeed(type);
+CREATE INDEX IF NOT EXISTS idx_superfeed_created_at ON superfeed(created_at);
+CREATE INDEX IF NOT EXISTS idx_superfeed_updated_at ON superfeed(updated_at);
+CREATE INDEX IF NOT EXISTS idx_superfeed_responses_feed_item_id ON superfeed_responses(feed_item_id);
+CREATE INDEX IF NOT EXISTS idx_superfeed_responses_user_id ON superfeed_responses(user_id);
 
--- Create timestamp update trigger function
+-- Timestamp trigger
 CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -74,20 +68,62 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create triggers
-CREATE TRIGGER trigger_update_channels_messages_timestamp
-BEFORE UPDATE ON channels_messages
+CREATE TRIGGER trigger_update_superfeed_timestamp
+BEFORE UPDATE ON superfeed
 FOR EACH ROW
 EXECUTE FUNCTION update_timestamp();
 
-CREATE TRIGGER trigger_update_channels_message_responses_timestamp
-BEFORE UPDATE ON channels_message_responses
+CREATE TRIGGER trigger_update_superfeed_responses_timestamp
+BEFORE UPDATE ON superfeed_responses
 FOR EACH ROW
 EXECUTE FUNCTION update_timestamp();
 
--- Create function to handle message responses
-CREATE OR REPLACE FUNCTION create_message_response(
-    p_message_id UUID,
+-- Function: Get super feed items
+CREATE OR REPLACE FUNCTION get_super_feed_items(
+  p_limit INTEGER DEFAULT 20,
+  p_offset INTEGER DEFAULT 0,
+  p_channel_username TEXT DEFAULT NULL,
+  p_type TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+  id UUID,
+  type TEXT,
+  content TEXT,
+  caption TEXT,
+  message TEXT,
+  media JSONB,
+  metadata JSONB,
+  stats JSONB,
+  interactive_content JSONB,
+  fill_requirement TEXT,
+  expires_at TIMESTAMPTZ,
+  channel_username TEXT,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ,
+  channel_name TEXT,
+  channel_avatar_url TEXT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    s.id, s.type, s.content, s.caption, s.message, s.media, s.metadata,
+    s.stats, s.interactive_content, s.fill_requirement, s.expires_at,
+    s.channel_username, s.created_at, s.updated_at,
+    c.name AS channel_name, c.avatar_url AS channel_avatar_url
+  FROM superfeed s
+  LEFT JOIN channels c ON s.channel_username = c.username
+  WHERE 
+    (p_channel_username IS NULL OR s.channel_username = p_channel_username)
+    AND (p_type IS NULL OR s.type = p_type)
+    AND (s.expires_at IS NULL OR s.expires_at > NOW())
+  ORDER BY s.updated_at DESC
+  LIMIT p_limit OFFSET p_offset;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function: create superfeed response
+CREATE OR REPLACE FUNCTION create_superfeed_response(
+    p_feed_item_id UUID,
     p_user_id TEXT,
     p_response_data JSONB
 )
@@ -95,77 +131,70 @@ RETURNS UUID AS $$
 DECLARE
     v_response_id UUID;
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM channels_messages WHERE id = p_message_id) THEN
-        RAISE EXCEPTION 'Message not found: %', p_message_id;
+    IF NOT EXISTS (SELECT 1 FROM superfeed WHERE id = p_feed_item_id) THEN
+        RAISE EXCEPTION 'Feed item not found: %', p_feed_item_id;
     END IF;
 
-    INSERT INTO channels_message_responses (message_id, user_id, response_data)
-    VALUES (p_message_id, p_user_id, p_response_data)
-    ON CONFLICT (message_id, user_id) 
+    INSERT INTO superfeed_responses (feed_item_id, user_id, response_data)
+    VALUES (p_feed_item_id, p_user_id, p_response_data)
+    ON CONFLICT (feed_item_id, user_id) 
     DO UPDATE SET 
         response_data = p_response_data,
         updated_at = NOW()
     RETURNING id INTO v_response_id;
     
-    UPDATE channels_messages
+    UPDATE superfeed
     SET stats = jsonb_set(
         stats,
         '{responses}',
-        to_jsonb((SELECT COUNT(*) FROM channels_message_responses WHERE message_id = p_message_id))
+        to_jsonb((SELECT COUNT(*) FROM superfeed_responses WHERE feed_item_id = p_feed_item_id))
     )
-    WHERE id = p_message_id;
-    
+    WHERE id = p_feed_item_id;
+
     RETURN v_response_id;
 END;
 $$ LANGUAGE plpgsql;
 
--- Drop existing function before creating new one
-DROP FUNCTION IF EXISTS get_channel_messages(text);
-
--- Create or replace the Supabase function that retrieves all messages
-CREATE OR REPLACE FUNCTION get_channel_messages(channel_username TEXT)
-RETURNS TABLE (
-    id UUID,
-    username TEXT,
-    type TEXT,
-    message_text TEXT,
-    caption TEXT,
-    media JSONB,
-    metadata JSONB,
-    stats JSONB,
-    interactive_content JSONB,
-    fill_requirement TEXT,
-    translations JSONB,
-    is_translated BOOLEAN,
+-- ======= CHANNELS ACTIVITY =======
+CREATE TABLE IF NOT EXISTS channels_activity (
+    username TEXT PRIMARY KEY,
+    last_updated_at TIMESTAMPTZ DEFAULT NOW(),
     message_count INTEGER,
-    expires_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ
-) AS $$
+    last_message JSONB
+);
+
+-- Function: update channel activity
+CREATE OR REPLACE FUNCTION update_channel_activity_from_superfeed()
+RETURNS TRIGGER AS $$
 BEGIN
-    RETURN QUERY
-    SELECT
-        cm.id,
-        cm.username,
-        cm.type,
-        cm.message_text,
-        cm.caption,
-        cm.media,
-        cm.metadata,
-        cm.stats,
-        cm.interactive_content,
-        cm.fill_requirement,
-        cm.translations,
-        cm.is_translated,
-        cm.message_count,
-        cm.expires_at,
-        cm.created_at,
-        cm.updated_at
-    FROM
-        channels_messages cm
-    WHERE
-        cm.username = channel_username
-    ORDER BY
-        cm.created_at DESC;
+    INSERT INTO channels_activity (
+        username, 
+        last_updated_at,
+        message_count,
+        last_message
+    )
+    VALUES (
+        NEW.channel_username,
+        NOW(),
+        COALESCE((SELECT COUNT(*) FROM superfeed WHERE channel_username = NEW.channel_username), 1),
+        jsonb_build_object(
+            'id', NEW.id,
+            'type', NEW.type,
+            'content', NEW.content,
+            'created_at', NEW.created_at
+        )
+    )
+    ON CONFLICT (username) DO UPDATE SET
+        last_updated_at = NOW(),
+        message_count = EXCLUDED.message_count,
+        last_message = EXCLUDED.last_message;
+
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_superfeed_channel_activity
+AFTER INSERT OR UPDATE ON superfeed
+FOR EACH ROW
+WHEN (NEW.channel_username IS NOT NULL)
+EXECUTE FUNCTION update_channel_activity_from_superfeed();
