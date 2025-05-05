@@ -81,6 +81,82 @@ BEFORE UPDATE ON superfeed_responses
 FOR EACH ROW
 EXECUTE FUNCTION update_timestamp();
 
+-- Create trigger function to update channels_activity table when superfeed changes
+CREATE OR REPLACE FUNCTION superfeed_to_channels_activity_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+    current_count INTEGER;
+    last_message JSONB;
+BEGIN
+    -- Skip if no channel_username is provided
+    IF NEW.channel_username IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    -- Create a last_message object from the superfeed item
+    last_message := jsonb_build_object(
+        'id', NEW.id,
+        'message_text', NEW.content,
+        'created_at', COALESCE(NEW.created_at, NOW()),
+        'type', NEW.type,
+        'caption', NEW.caption,
+        'media', NEW.media,
+        'source', 'superfeed'
+    );
+
+    -- Get current message count or use 1 as default
+    SELECT message_count INTO current_count
+    FROM channels_activity
+    WHERE username = NEW.channel_username;
+
+    IF NOT FOUND THEN
+        current_count := 0;
+    END IF;
+
+    -- Increment message count for INSERT events or use existing count for UPDATEs
+    IF TG_OP = 'INSERT' THEN
+        current_count := current_count + 1;
+    END IF;
+
+    -- Update channels_activity using the update_channel_activity function if it exists
+    -- First try to use the function
+    BEGIN
+        PERFORM update_channel_activity(
+            NEW.channel_username,
+            current_count,
+            last_message
+        );
+    EXCEPTION WHEN undefined_function THEN
+        -- If function doesn't exist, do direct upsert
+        INSERT INTO channels_activity (
+            username,
+            last_updated_at,
+            last_message,
+            message_count
+        )
+        VALUES (
+            NEW.channel_username,
+            NOW(),
+            last_message,
+            current_count
+        )
+        ON CONFLICT (username) DO UPDATE SET
+            last_updated_at = NOW(),
+            message_count = current_count,
+            last_message = last_message;
+    END;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to update channels_activity when superfeed is modified
+CREATE TRIGGER trigger_superfeed_to_channels_activity
+AFTER INSERT OR UPDATE ON superfeed
+FOR EACH ROW
+WHEN (NEW.channel_username IS NOT NULL)
+EXECUTE FUNCTION superfeed_to_channels_activity_trigger();
+
 -- Create essential functions
 CREATE OR REPLACE FUNCTION get_super_feed_items(
   p_limit INTEGER DEFAULT 20,
