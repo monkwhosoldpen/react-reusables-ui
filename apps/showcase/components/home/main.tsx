@@ -203,7 +203,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   const renderTabButton = (tab: TabType, label: string) => (
     <TouchableOpacity
-      className={`py-2 px-4 rounded-full ${
+      className={`py-2 px-4 mx-1 rounded-full ${
         activeTab === tab 
           ? 'bg-blue-500' 
           : 'bg-gray-100 dark:bg-gray-700'

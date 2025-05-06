@@ -1,5 +1,7 @@
+'use client';
+
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Animated } from 'react-native';
 import { useColorScheme, type ThemeName } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,119 +34,15 @@ export default function SettingsScreen() {
   const { colorScheme, themeName, updateTheme, isDarkMode, toggleDarkMode } = useColorScheme();
   const { design, updateDesign } = useDesign();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
-  const isDesktop = width >= 768;
-
-  // Helper function to determine if dark mode
-  const avatarBgColor = isDarkMode ? 'rgba(255,255,255,0.1)' : '#E8EEF2';
-  const subtitleColor = isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748B';
-  const timestampColor = isDarkMode ? 'rgba(255,255,255,0.5)' : '#64748B';
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colorScheme.colors.background,
-    },
-    contentContainer: {
-      flex: 1,
-      paddingHorizontal: 20,
-      paddingTop: 20,
-      paddingBottom: insets.bottom + 20,
-    },
-    desktopContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      maxWidth: 1200,
-      alignSelf: 'center',
-      width: '100%',
-      paddingTop: insets.top + 20,
-      paddingBottom: insets.bottom + 20,
-      paddingHorizontal: 20,
-    },
-    sectionContainer: {
-      marginBottom: 32,
-      paddingHorizontal: 4,
-      width: isDesktop ? '50%' : '100%',
-    },
-    sectionContainerLeft: {
-      paddingRight: isDesktop ? 16 : 0,
-    },
-    sectionContainerRight: {
-      paddingLeft: isDesktop ? 16 : 0,
-    },
-    item: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 16,
-      backgroundColor: colorScheme.colors.card,
-      borderRadius: 12,
-      marginVertical: 4,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    avatar: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 16,
-      backgroundColor: `${colorScheme.colors.primary}1A`,
-    },
-    itemContent: {
-      flex: 1,
-      marginRight: 16,
-    },
-    itemTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      marginBottom: 4,
-      color: colorScheme.colors.text,
-    },
-    itemSubtitle: {
-      fontSize: 14,
-      color: subtitleColor,
-      lineHeight: 20,
-    },
-    sectionHeader: {
-      paddingVertical: 16,
-      paddingHorizontal: 4,
-      marginTop: 8,
-      backgroundColor: 'transparent',
-    },
-    sectionHeaderText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: subtitleColor,
-      textTransform: 'uppercase',
-      letterSpacing: 1,
-    },
-    cardContainer: {
-      backgroundColor: colorScheme.colors.card,
-      borderRadius: 12,
-      padding: 16,
-      marginHorizontal: 4,
-    },
-    signOutButton: {
-      backgroundColor: colorScheme.colors.notification,
-      padding: 12,
-      borderRadius: Number(design.radius.md),
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: Number(design.spacing.padding.item),
-    },
-    signOutButtonText: {
-      color: colorScheme.colors.background,
-      fontSize: Number(design.spacing.fontSize.base),
-      fontWeight: '600',
-      marginLeft: Number(design.spacing.padding.item),
-    },
-  });
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -162,118 +60,155 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
       <ScrollView 
-        style={{ flex: 1 }}
-        contentContainerStyle={isDesktop ? styles.desktopContainer : styles.contentContainer}
+        className="flex-1"
+        contentContainerStyle={{
+          maxWidth: 1200,
+          alignSelf: 'center',
+          width: '100%',
+          paddingTop: 20,
+          paddingBottom: insets.bottom + 20,
+          paddingHorizontal: 20,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Left Column */}
-        <View style={[styles.sectionContainer, styles.sectionContainerLeft]}>
-          {/* Account Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>ACCOUNT</Text>
-          </View>
-          <View style={styles.cardContainer}>
-            {user ? (
-              <>
-                <View style={[styles.item, { borderBottomWidth: 1, borderBottomColor: `${colorScheme.colors.text}1A` }]}>
-                  <View style={styles.avatar}>
-                    <MaterialIcons name="person" size={24} color={colorScheme.colors.primary} />
+        <View className="flex-row flex-wrap">
+          {/* Left Column */}
+          <View className="w-full md:w-1/2 md:pr-4 mb-8">
+            {/* Account Section */}
+            <View className="py-3 px-1">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                ACCOUNT
+              </Text>
+            </View>
+            <View className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+              {user ? (
+                <>
+                  <View className="flex-row items-center p-4 border-b border-gray-100 dark:border-gray-700">
+                    <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-blue-50 dark:bg-blue-900/30">
+                      <MaterialIcons name="person" size={24} color={colorScheme.colors.primary} />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base font-semibold text-gray-900 dark:text-white">
+                        Signed in as
+                      </Text>
+                      <Text className="text-sm text-gray-600 dark:text-gray-300">
+                        {user.email || 'Guest'}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.itemContent}>
-                    <Text style={styles.itemTitle}>Signed in as</Text>
-                    <Text style={styles.itemSubtitle}>{user.email || 'Guest'}</Text>
-                  </View>
-                </View>
+                  <TouchableOpacity
+                    className="m-4 py-3.5 px-6 rounded-xl bg-red-500 flex-row items-center justify-center shadow-sm"
+                    onPress={handleSignOut}
+                  >
+                    <MaterialIcons name="logout" size={20} color="#FFFFFF" />
+                    <Text className="ml-2 text-base font-semibold text-white">Sign Out</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
                 <TouchableOpacity
-                  style={styles.signOutButton}
-                  onPress={handleSignOut}
+                  className="flex-row items-center p-4 bg-blue-500"
+                  onPress={handleSignIn}
                 >
-                  <MaterialIcons name="logout" size={20} color={colorScheme.colors.background} />
-                  <Text style={styles.signOutButtonText}>Sign Out</Text>
+                  <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-white/20">
+                    <MaterialIcons name="login" size={24} color="#FFFFFF" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold text-white">
+                      Sign In
+                    </Text>
+                    <Text className="text-sm text-white/80">
+                      Sign in to sync your preferences
+                    </Text>
+                  </View>
                 </TouchableOpacity>
-              </>
-            ) : (
-              <TouchableOpacity
-                style={[styles.item, { backgroundColor: colorScheme.colors.primary }]}
-                onPress={handleSignIn}
-              >
-                <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.background}1A` }]}>
-                  <MaterialIcons name="login" size={24} color={colorScheme.colors.background} />
+              )}
+            </View>
+
+            {/* Appearance Section */}
+            <View className="py-3 px-1 mt-6">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                APPEARANCE
+              </Text>
+            </View>
+            <View className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+              <View className="flex-row items-center p-4 border-b border-gray-100 dark:border-gray-700">
+                <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-blue-50 dark:bg-blue-900/30">
+                  <MaterialIcons name="dark-mode" size={24} color={colorScheme.colors.primary} />
                 </View>
-                <View style={styles.itemContent}>
-                  <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>Sign In</Text>
-                  <Text style={[styles.itemSubtitle, { color: colorScheme.colors.background, opacity: 0.8 }]}>
-                    Sign in to sync your preferences
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-gray-900 dark:text-white">
+                    Dark Mode
+                  </Text>
+                  <Text className="text-sm text-gray-600 dark:text-gray-300">
+                    Use dark theme
+                  </Text>
+                </View>
+                <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+              </View>
+              <View className="flex-row items-center p-4">
+                <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-blue-50 dark:bg-blue-900/30">
+                  <MaterialIcons name="palette" size={24} color={colorScheme.colors.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-gray-900 dark:text-white">
+                    Theme
+                  </Text>
+                </View>
+                <ThemeDropdownSelect defaultValue={themeName} onValueChange={handleThemeChange} />
+              </View>
+            </View>
+          </View>
+
+          {/* Right Column */}
+          <View className="w-full md:w-1/2 md:pl-4 mb-8">
+            {/* Language Section */}
+            <View className="py-3 px-1">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                LANGUAGE
+              </Text>
+            </View>
+            <View className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+              <View className="flex-row items-center p-4">
+                <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-blue-50 dark:bg-blue-900/30">
+                  <MaterialIcons name="language" size={24} color={colorScheme.colors.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-gray-900 dark:text-white">
+                    App Language
+                  </Text>
+                  <Text className="text-sm text-gray-600 dark:text-gray-300">
+                    English (US)
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Dashboard Section */}
+            <View className="py-3 px-1 mt-6">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                DASHBOARD
+              </Text>
+            </View>
+            <View className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+              <TouchableOpacity
+                className="flex-row items-center p-4 bg-blue-500"
+                onPress={() => router.push('/dashboard')}
+              >
+                <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-white/20">
+                  <MaterialIcons name="dashboard" size={24} color="#FFFFFF" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-white">
+                    Open Dashboard
+                  </Text>
+                  <Text className="text-sm text-white/80">
+                    View your dashboard
                   </Text>
                 </View>
               </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Appearance Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>APPEARANCE</Text>
-          </View>
-          <View style={styles.cardContainer}>
-            <View style={[styles.item, { borderBottomWidth: 1, borderBottomColor: `${colorScheme.colors.text}1A` }]}>
-              <View style={styles.avatar}>
-                <MaterialIcons name="dark-mode" size={24} color={colorScheme.colors.primary} />
-              </View>
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Dark Mode</Text>
-                <Text style={styles.itemSubtitle}>Use dark theme</Text>
-              </View>
-              <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
             </View>
-            <View style={styles.item}>
-              <View style={styles.avatar}>
-                <MaterialIcons name="palette" size={24} color={colorScheme.colors.primary} />
-              </View>
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Theme</Text>
-              </View>
-              <ThemeDropdownSelect defaultValue={themeName} onValueChange={handleThemeChange} />
-            </View>
-          </View>
-        </View>
-
-        {/* Right Column */}
-        <View style={[styles.sectionContainer, styles.sectionContainerRight]}>
-          {/* Language Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>LANGUAGE</Text>
-          </View>
-          <View style={styles.cardContainer}>
-            <View style={styles.item}>
-              <View style={styles.avatar}>
-                <MaterialIcons name="language" size={24} color={colorScheme.colors.primary} />
-              </View>
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>App Language</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Dashboard Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>DASHBOARD</Text>
-          </View>
-          <View style={styles.cardContainer}>
-            <TouchableOpacity
-              style={[styles.item, { backgroundColor: colorScheme.colors.primary }]}
-              onPress={() => router.push('/dashboard')}
-            >
-              <View style={[styles.avatar, { backgroundColor: `${colorScheme.colors.background}1A` }]}>
-                <MaterialIcons name="dashboard" size={24} color={colorScheme.colors.background} />
-              </View>
-              <View style={styles.itemContent}>
-                <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
-                  Open Dashboard
-                </Text>
-              </View>
-            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -296,13 +231,9 @@ function ThemeDropdownSelect({
         <Button
           variant="outline"
           size="sm"
-          style={{
-            flexDirection: 'row',
-            gap: 8,
-            paddingRight: 12,
-          }}
+          className="flex-row items-center gap-2 pr-3"
         >
-          <Text>{value}</Text>
+          <Text className="text-foreground">{value}</Text>
           <ChevronDown size={18} className="text-foreground" />
         </Button>
       </DropdownMenuTrigger>

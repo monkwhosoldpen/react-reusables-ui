@@ -7,9 +7,7 @@ import { toast } from "sonner"
 import { UserPlus, ArrowRight, Check, Loader2 } from 'lucide-react-native'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "~/components/ui/dialog"
 import LoginCommon from '~/components/common/LoginCommon'
-import { View, Text, StyleSheet } from 'react-native'
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
-import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider'
+import { View, Text } from 'react-native'
 import { Channel } from '~/lib/core/types/channel.types'
 import { TenantRequest } from '~/lib/core/services/indexedDBSchema'
 import { indexedDB } from '~/lib/core/services/indexedDB'
@@ -19,6 +17,7 @@ interface JoinButtonProps {
   buttonText?: string;
   size?: 'sm' | 'md' | 'lg' | 'default';
   channelDetails?: Channel;
+  accessStatus?: string;
   className?: string;
   showIcon?: boolean;
   onJoin?: () => void;
@@ -29,6 +28,7 @@ interface JoinButtonProps {
 export function JoinButton({
   username,
   channelDetails,
+  accessStatus,
   buttonText = 'Join',
   className,
   size = 'default',
@@ -39,8 +39,6 @@ export function JoinButton({
   ...props
 }: JoinButtonProps) {
   const { user, signIn, signInAnonymously, signInAsGuest, refreshUserInfo, completeChannelOnboarding, isFollowingChannel } = useAuth()
-  const { colorScheme, isDarkMode } = useColorScheme()
-  const { design } = useDesign()
   const [dbInitialized, setDbInitialized] = useState(false);
   
   const [showDialog, setShowDialog] = useState(false)
@@ -52,10 +50,6 @@ export function JoinButton({
   const [isLoginLoading, setIsLoginLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [showLogin, setShowLogin] = useState(true)
-  const [requestState, setRequestState] = useState<{ isRequested: boolean; status: string | null }>({
-    isRequested: false,
-    status: null
-  })
 
   const onboardingSteps = [
     {
@@ -89,53 +83,9 @@ export function JoinButton({
     initDB();
   }, []);
 
-  // Check tenant request status when component mounts or username changes
-  useEffect(() => {
-    const checkRequestStatus = async () => {
-      if (!user?.id || !dbInitialized) {
-        return;
-      }
-      
-      try {
-        // First check if user is following the channel
-        const isFollowing = await isFollowingChannel(username);
-        if (isFollowing) {
-          setHasJoined(true);
-          return;
-        }
-
-        // Get tenant requests from IndexedDB
-        const requests = await indexedDB.getAllFromIndex('tenant_requests', 'by-username', username);
-        const request = requests.find((req: TenantRequest) => req.uid === user.id);
-        
-        if (request) {
-          setRequestState({
-            isRequested: true,
-            status: request.status
-          });
-        } else {
-          setRequestState({
-            isRequested: false,
-            status: null
-          });
-        }
-      } catch (error) {
-        // Set default state on error
-        setRequestState({
-          isRequested: false,
-          status: null
-        });
-      }
-    };
-
-    checkRequestStatus();
-  }, [username, user?.id, isFollowingChannel, dbInitialized]);
 
   // Function to handle button click
   const handleClick = () => {
-    if (requestState.isRequested) {
-      return;
-    }
 
     setShowDialog(true);
     setShowLogin(!user);
@@ -229,73 +179,12 @@ export function JoinButton({
     }
   };
 
-  const dialogStyles = StyleSheet.create({
-    dialogView: {
-      backgroundColor: colorScheme.colors.background,
-      borderColor: colorScheme.colors.border,
-      borderRadius: Number(design.radius.lg),
-      padding: Number(design.spacing.padding.card),
-      width: '100%',
-      maxWidth: 400,
-    },
-    dialogHeader: {
-      marginBottom: Number(design.spacing.padding.card),
-    },
-    dialogTitle: {
-      fontSize: Number(design.spacing.fontSize.xl),
-      fontWeight: '600',
-      color: colorScheme.colors.text,
-      marginBottom: Number(design.spacing.padding.item),
-    },
-    dialogDescription: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: 0.7,
-    },
-    onboardingContent: {
-      alignItems: 'center',
-      gap: Number(design.spacing.gap) * 2,
-      padding: Number(design.spacing.padding.card),
-    },
-    onboardingTitle: {
-      fontSize: Number(design.spacing.fontSize.lg),
-      fontWeight: '600',
-      color: colorScheme.colors.text,
-      textAlign: 'center',
-    },
-    onboardingDescription: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      textAlign: 'center',
-      opacity: Number(design.opacity.medium),
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      gap: Number(design.spacing.gap),
-    },
-    button: {
-      backgroundColor: colorScheme.colors.primary,
-      borderRadius: Number(design.radius.md),
-      paddingHorizontal: Number(design.spacing.padding.item),
-      paddingVertical: Number(design.spacing.padding.item) / 2,
-    },
-    buttonText: {
-      color: colorScheme.colors.background,
-      fontSize: Number(design.spacing.fontSize.sm),
-      fontWeight: '500',
-    },
-    buttonIcon: {
-      color: colorScheme.colors.background,
-    },
-  });
-
   const renderDialogContent = () => {
     if (showLogin) {
       return (
         <>
-          <DialogHeader style={dialogStyles.dialogHeader}>
-            <DialogTitle style={dialogStyles.dialogTitle}>Sign in to join channels</DialogTitle>
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sign in to join channels</DialogTitle>
           </DialogHeader>
           <LoginCommon
             email={email}
@@ -317,11 +206,11 @@ export function JoinButton({
     if (user && currentStep === 0) {
       return (
         <>
-          <DialogHeader style={dialogStyles.dialogHeader}>
-            <DialogTitle style={dialogStyles.dialogTitle}>
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               Welcome back, {user.email}
             </DialogTitle>
-            <DialogDescription style={dialogStyles.dialogDescription}>
+            <DialogDescription className="text-base text-gray-600 dark:text-gray-300 opacity-70">
               You're already signed in. Ready to join @{username}?
             </DialogDescription>
           </DialogHeader>
@@ -332,11 +221,11 @@ export function JoinButton({
     // Show regular onboarding steps
     return (
       <>
-        <DialogHeader style={dialogStyles.dialogHeader}>
-          <DialogTitle style={dialogStyles.dialogTitle}>
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             {onboardingSteps[currentStep].title}
           </DialogTitle>
-          <DialogDescription style={dialogStyles.dialogDescription}>
+          <DialogDescription className="text-base text-gray-600 dark:text-gray-300 opacity-70">
             {onboardingSteps[currentStep].description}
           </DialogDescription>
         </DialogHeader>
@@ -345,46 +234,35 @@ export function JoinButton({
   }
 
   return (
-    <View style={{ position: 'relative' }}>
+    <View className="relative">
       <Button 
         onPress={handleClick}
         variant={hasJoined ? "default" : "outline"}
-        style={{
-          borderRadius: Number(design.radius.md),
-          paddingHorizontal: Number(design.spacing.padding.item),
-          paddingVertical: Number(design.spacing.padding.item) / 2,
-          backgroundColor: hasJoined ? colorScheme.colors.primary : 'transparent',
-          borderColor: hasJoined ? 'transparent' : colorScheme.colors.primary,
-        }}
-        disabled={isButtonLoading || requestState.isRequested}
+        className={`rounded-md px-3 py-1.5 ${hasJoined ? 'bg-primary border-transparent' : 'bg-transparent border-primary'}`}
+        disabled={isButtonLoading }
         {...props}
       >
         {isButtonLoading ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Number(design.spacing.gap) }}>
+          <View className="flex-row items-center gap-2">
             <Loader2 
-              size={Number(design.spacing.iconSize)}
-              color={hasJoined ? colorScheme.colors.background : colorScheme.colors.primary}
-              style={{ transform: [{ rotate: '45deg' }] }}
+              size={16}
+              color={hasJoined ? 'white' : '#3B82F6'}
+              className="rotate-45"
             />
-            <Text style={{ 
-              color: hasJoined ? colorScheme.colors.background : colorScheme.colors.primary,
-              fontSize: Number(design.spacing.fontSize.sm)
-            }}>Loading...</Text>
+            <Text className={`text-sm ${hasJoined ? 'text-white' : 'text-primary'}`}>Loading...</Text>
           </View>
         ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Number(design.spacing.gap) }}>
+          <View className="flex-row items-center gap-2">
             {showIcon && (
               <UserPlus 
-                size={Number(design.spacing.iconSize)}
-                color={hasJoined ? colorScheme.colors.background : colorScheme.colors.primary}
+                size={16}
+                color={hasJoined ? 'white' : '#3B82F6'}
               />
             )}
-            <Text style={{ 
-              color: hasJoined ? colorScheme.colors.background : colorScheme.colors.primary,
-              fontSize: Number(design.spacing.fontSize.sm),
-              fontWeight: '500'
-            }}>
-              {requestState.isRequested ? `Request ${requestState.status || 'Pending'}` : (hasJoined ? 'Joined' : buttonText)}
+            <Text className={`text-sm font-medium ${hasJoined ? 'text-white' : 'text-primary'}`}>
+              {
+                `Request ${accessStatus || 'NA'}`
+              }
             </Text>
           </View>
         )}
@@ -395,21 +273,21 @@ export function JoinButton({
           {renderDialogContent()}
 
           <DialogFooter>
-            <View style={dialogStyles.buttonContainer}>
+            <View className="flex-row justify-center gap-2">
               {showLogin ? (
                 <Button onPress={() => setShowDialog(false)} variant="outline">
                   <Text>Cancel</Text>
                 </Button>
               ) : (
                 <Button onPress={handleNextStep} variant="default">
-                  <View style={dialogStyles.buttonContainer}>
-                    <Text style={dialogStyles.buttonText}>
+                  <View className="flex-row justify-center items-center gap-2">
+                    <Text className="text-sm font-medium text-white">
                       {currentStep === onboardingSteps.length - 1 ? 'Finish' : 'Next'}
                     </Text>
                     {currentStep === onboardingSteps.length - 1 ? (
-                      <Check size={Number(design.spacing.iconSize)} color={colorScheme.colors.background} />
+                      <Check size={16} color="white" />
                     ) : (
-                      <ArrowRight size={Number(design.spacing.iconSize)} color={colorScheme.colors.background} />
+                      <ArrowRight size={16} color="white" />
                     )}
                   </View>
                 </Button>

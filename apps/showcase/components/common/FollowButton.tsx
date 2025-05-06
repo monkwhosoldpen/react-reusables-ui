@@ -15,9 +15,7 @@ import {
   DialogOverlay
 } from '~/components/ui/dialog';
 import LoginCommon from '~/components/common/LoginCommon';
-import { View, Text, StyleSheet } from 'react-native';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
+import { View, Text } from 'react-native';
 import { indexedDB } from '~/lib/core/services/indexedDB';
 
 interface FollowButtonProps {
@@ -36,8 +34,6 @@ export function FollowButton({
   initialFollowing
 }: FollowButtonProps) {
   const { user, refreshUserInfo, isFollowingChannel, followChannel, unfollowChannel, signInAnonymously, signInAsGuest, signIn } = useAuth();
-  const { colorScheme, isDarkMode } = useColorScheme();
-  const { design } = useDesign();
   
   // Use local state to track following status and loading state
   const [following, setFollowing] = useState(initialFollowing ?? false);
@@ -247,59 +243,27 @@ export function FollowButton({
     }
   };
   
-  const dialogStyles = StyleSheet.create({
-    dialogContent: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000
-    },
-    dialogView: {
-      width: '90%',
-      maxWidth: 400,
-      maxHeight: '90%',
-      overflow: 'scroll' as const
-    }
-  });
-  
   return (
-    <View style={{ position: 'relative' }}>
+    <View className="relative">
       <Button
         variant={following ? "default" : "outline"}
         size={size}
-        style={{
-          borderRadius: Number(design.radius.md),
-          paddingHorizontal: Number(design.spacing.padding.item),
-          paddingVertical: Number(design.spacing.padding.item) / 2,
-          backgroundColor: following ? colorScheme.colors.primary : 'transparent',
-          borderColor: following ? 'transparent' : colorScheme.colors.primary,
-        }}
+        className={`rounded-md px-3 py-1.5 ${following ? 'bg-primary border-transparent' : 'bg-transparent border-primary'}`}
         onPress={handleToggleFollow}
         disabled={loading}
       >
         {loading ? (
-          <Text style={{ 
-            color: following ? colorScheme.colors.background : colorScheme.colors.primary,
-            fontSize: Number(design.spacing.fontSize.sm)
-          }}>Loading...</Text>
+          <Text className={`text-sm ${following ? 'text-white' : 'text-primary'}`}>Loading...</Text>
         ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Number(design.spacing.gap) }}>
+          <View className="flex-row items-center gap-2">
             {showIcon && (
               <Heart 
-                size={Number(design.spacing.iconSize)}
-                color={following ? colorScheme.colors.background : colorScheme.colors.primary}
-                fill={following ? colorScheme.colors.background : 'none'}
+                size={16}
+                color={following ? 'white' : '#3B82F6'}
+                fill={following ? 'white' : 'none'}
               />
             )}
-            <Text style={{ 
-              color: following ? colorScheme.colors.background : colorScheme.colors.primary,
-              fontSize: Number(design.spacing.fontSize.sm),
-              fontWeight: '500'
-            }}>
+            <Text className={`text-sm font-medium ${following ? 'text-white' : 'text-primary'}`}>
               {following ? 'Following' : 'Follow'}
             </Text>
           </View>
@@ -307,17 +271,8 @@ export function FollowButton({
       </Button>
       
       <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
-        <DialogContent style={[dialogStyles.dialogContent, {
-          backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)',
-        }]}>
-          <View style={[dialogStyles.dialogView, {
-            backgroundColor: colorScheme.colors.card,
-            padding: Number(design.spacing.padding.card),
-            borderRadius: Number(design.radius.lg),
-            gap: Number(design.spacing.gap),
-            borderColor: colorScheme.colors.border,
-            borderWidth: StyleSheet.hairlineWidth,
-          }]}>
+        <DialogContent className="w-[90%] sm:max-w-[425px] mx-auto bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <View className="w-full p-4 gap-4">
             <LoginCommon
               email={email}
               setEmail={setEmail}

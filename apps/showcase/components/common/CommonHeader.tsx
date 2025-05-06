@@ -1,8 +1,6 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Link } from 'expo-router';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { ChevronLeft } from 'lucide-react-native';
 
 interface CommonHeaderProps {
@@ -24,13 +22,6 @@ export function CommonHeader({
   user,
 }: CommonHeaderProps) {
   const router = useRouter();
-  const { colorScheme } = useColorScheme();
-  const { design } = useDesign();
-
-  // Helper function to determine if dark mode
-  const isDarkMode = colorScheme.colors.text === '#ffffff' || colorScheme.colors.background === '#000000';
-  const avatarBgColor = isDarkMode ? 'rgba(255,255,255,0.1)' : '#E8EEF2';
-  const subtitleColor = isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748B';
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -40,94 +31,47 @@ export function CommonHeader({
     }
   };
 
-  const styles = StyleSheet.create({
-    header: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colorScheme.colors.border,
-      backgroundColor: colorScheme.colors.primary,
-    },
-    headerContent: {
-      width: '100%',
-      maxWidth: 1200,
-      alignSelf: 'center',
-    },
-    logoContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-    },
-    logo: {
-      width: 32,
-      height: 32,
-      marginRight: 8,
-      borderRadius: 16,
-      overflow: 'hidden',
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: avatarBgColor,
-    },
-    itemTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-    },
-    itemSubtitle: {
-      fontSize: 14,
-      opacity: 0.8,
-    },
-    backButton: {
-      marginRight: 8,
-      padding: 8,
-    },
-  });
-
   return (
-    <View style={styles.header}>
-      <View style={styles.headerContent}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-primary">
+      <View className="w-full max-w-[1200px] self-center">
+        <View className="flex-row items-center">
           {showBackButton && (
-            <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-              <ChevronLeft size={24} color={colorScheme.colors.background} />
+            <TouchableOpacity onPress={handleBackPress} className="mr-2 p-2">
+              <ChevronLeft size={24} color="white" />
             </TouchableOpacity>
           )}
           {!showBackButton ? (
             <Link href="/" asChild>
-              <TouchableOpacity style={styles.logoContainer}>
+              <TouchableOpacity className="flex-row items-center flex-1">
                 <Image
                   source={{ uri: logoUrl }}
-                  style={styles.logo}
+                  className="w-8 h-8 mr-2 rounded-full overflow-hidden"
                   resizeMode="contain"
                 />
-                <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
+                <Text className="text-lg font-semibold text-white">
                   {title}
                 </Text>
               </TouchableOpacity>
             </Link>
           ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-              <View style={[styles.avatar, { backgroundColor: avatarBgColor }]}>
+            <View className="flex-row items-center flex-1">
+              <View className="w-10 h-10 rounded-full items-center justify-center bg-white/10 dark:bg-gray-100">
                 {user?.avatar ? (
                   <Image
                     source={{ uri: user.avatar }}
-                    style={{ width: 40, height: 40, borderRadius: 20 }}
+                    className="w-10 h-10 rounded-full"
                   />
                 ) : (
-                  <Text style={[styles.itemTitle, { color: colorScheme.colors.primary }]}>
+                  <Text className="text-lg font-semibold text-primary dark:text-gray-800">
                     {user?.username?.[0]?.toUpperCase() || 'U'}
                   </Text>
                 )}
               </View>
-              <View style={{ marginLeft: 12 }}>
-                <Text style={[styles.itemTitle, { color: colorScheme.colors.background }]}>
+              <View className="ml-3">
+                <Text className="text-lg font-semibold text-white">
                   {user?.username || title}
                 </Text>
-                <Text style={[styles.itemSubtitle, { color: colorScheme.colors.background, opacity: 0.8 }]}>
+                <Text className="text-sm text-white opacity-80">
                   {user?.username ? 'Welcome back' : ''}
                 </Text>
               </View>

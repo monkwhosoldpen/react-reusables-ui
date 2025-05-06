@@ -24,13 +24,6 @@ export function OnboardingChannel({
   const [currentScreenIndex, setCurrentScreenIndex] = useState<number>(-1)
   // Track overall step (welcome, screens, finish)
   const [step, setStep] = useState<'welcome' | 'screens' | 'finish'>('welcome')
-  // For the dummy login form
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  // Track location validity
-  const [isLocationValid, setIsLocationValid] = useState(false)
-  // Add loading state for login actions
-  const [isLoginLoading, setIsLoginLoading] = useState(false)
 
   // Get auth context for user info and completeChannelOnboarding function
   const { completeChannelOnboarding } = useAuth()
@@ -85,11 +78,26 @@ export function OnboardingChannel({
   const handleFinishClick = async () => {
     try {
       if (channelDetails) {
-        await completeChannelOnboarding(username, channelDetails)
-        onComplete?.()
+        console.log('[OnboardingChannel] Finish button clicked - Request data:', {
+          username,
+          channelDetails
+        });
+        
+        setStep('finish');
+        console.log('[OnboardingChannel] UI state updated to "finish"');
+        
+        // Make the API call and log response
+        const response = await completeChannelOnboarding(username, channelDetails);
+        console.log('[OnboardingChannel] Onboarding completion response:', response);
+        
+        // Log before completing
+        console.log('[OnboardingChannel] Calling onComplete callback');
+        onComplete?.();
+        console.log('[OnboardingChannel] Onboarding flow completed');
       }
     } catch (error) {
-      // Handle error silently
+      // Log the error
+      console.error('[OnboardingChannel] Error completing onboarding:', error);
     }
   }
 
@@ -102,7 +110,7 @@ export function OnboardingChannel({
 
   return (
     <Dialog open onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent className="w-[60%] h-[60%] max-w-none max-h-none sm:w-[60%] sm:h-[60%] md:w-[60%] md:h-[60%] lg:w-[60%] lg:h-[60%]">
         <DialogHeader>
           <DialogTitle>
             {step === 'welcome' && config.welcomescreen.title}
@@ -111,36 +119,38 @@ export function OnboardingChannel({
           </DialogTitle>
         </DialogHeader>
 
-        {step === 'welcome' && (
-          <View className="flex-1 items-center justify-center p-4">
-            <Text className="text-lg font-medium mb-2">{config.welcomescreen.subtitle}</Text>
-            <Text className="text-sm text-muted-foreground mb-4">{config.welcomescreen.description}</Text>
-            <Button onPress={handleStartClick}>{config.welcomescreen.buttontext}</Button>
-          </View>
-        )}
+        <View className="flex-1 items-center justify-center p-4 overflow-auto">
+          {step === 'welcome' && (
+            <>
+              <Text className="text-lg font-medium mb-2">{config.welcomescreen.subtitle}</Text>
+              <Text className="text-sm text-muted-foreground mb-4">{config.welcomescreen.description}</Text>
+              <Button onPress={handleStartClick}>{config.welcomescreen.buttontext}</Button>
+            </>
+          )}
 
-        {step === 'screens' && currentScreen && (
-          <View className="flex-1 items-center justify-center p-4">
-            <Text className="text-lg font-medium mb-2">{currentScreen.title}</Text>
-            <Text className="text-sm text-muted-foreground mb-4">{currentScreen.description}</Text>
-            <View className="flex-row gap-2">
-              {currentScreenIndex > 0 && (
-                <Button variant="outline" onPress={() => setCurrentScreenIndex(currentScreenIndex - 1)}>Back</Button>
-              )}
-              <Button onPress={handleNextClick} disabled={!canProceed()}>
-                {currentScreen.buttontext}
-              </Button>
-            </View>
-          </View>
-        )}
+          {step === 'screens' && currentScreen && (
+            <>
+              <Text className="text-lg font-medium mb-2">{currentScreen.title}</Text>
+              <Text className="text-sm text-muted-foreground mb-4">{currentScreen.description}</Text>
+              <View className="flex-row gap-2">
+                {currentScreenIndex > 0 && (
+                  <Button variant="outline" onPress={() => setCurrentScreenIndex(currentScreenIndex - 1)}>Back</Button>
+                )}
+                <Button onPress={handleNextClick} disabled={!canProceed()}>
+                  {currentScreen.buttontext}
+                </Button>
+              </View>
+            </>
+          )}
 
-        {step === 'finish' && (
-          <View className="flex-1 items-center justify-center p-4">
-            <Text className="text-lg font-medium mb-2">{config.finishscreen.subtitle}</Text>
-            <Text className="text-sm text-muted-foreground mb-4">{config.finishscreen.description}</Text>
-            <Button onPress={handleFinishClick}>{config.finishscreen.buttontext}</Button>
-          </View>
-        )}
+          {step === 'finish' && (
+            <>
+              <Text className="text-lg font-medium mb-2">{config.finishscreen.subtitle}</Text>
+              <Text className="text-sm text-muted-foreground mb-4">{config.finishscreen.description}</Text>
+              <Button onPress={handleFinishClick}>{config.finishscreen.buttontext}</Button>
+            </>
+          )}
+        </View>
 
         <DialogFooter>
           <Button variant="outline" onPress={() => onComplete?.()}>Cancel</Button>

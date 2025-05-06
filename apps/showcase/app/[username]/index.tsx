@@ -1,14 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '~/components/ui/button';
 import { ChannelSidebar } from '~/components/channel-profile/ChannelSidebar';
 import { ChannelDebugInfo } from '~/components/channel-profile/ChannelDebugInfo';
-import { Channel, ChannelResponse } from '~/lib/core/types/channel.types';
-import { config } from '~/lib/core/config';
 import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { Loader2 } from 'lucide-react';
@@ -17,9 +15,10 @@ import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 import { useWindowDimensions } from 'react-native';
 import { useRealtime } from '~/lib/core/providers/RealtimeProvider';
 import ChannelInfoSection from '~/components/channel-profile/ChannelInfoSection';
-import { fetchFeedItems } from '~/lib/enhanced-chat/utils/feedData';
-import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
+import useChannelData from '~/lib/channel/channel-profile-util';
+import { FollowButton } from '~/components/common/FollowButton';
+import { JoinButton } from '~/components/common/JoinButton';
 
 export default function ChannelPage() {
   const router = useRouter();
@@ -31,8 +30,19 @@ export default function ChannelPage() {
   const processedMessagesRef = useRef<Set<string>>(new Set());
   const isInitialLoadRef = useRef(true);
 
+  // Use the custom hook to fetch channel data
+  const {
+    channel,
+    loading,
+    error,
+    messages,
+    loadingMessages,
+    messageError,
+    accessStatus
+  } = useChannelData(usernameStr);
+
   // Add logging for channel activities
-  useEffect(() => {
+  React.useEffect(() => {
     if (isInitialLoadRef.current) {
       // Skip logging on initial load
       isInitialLoadRef.current = false;
@@ -61,88 +71,7 @@ export default function ChannelPage() {
   const sidebarWidth = Math.floor(screenWidth * 0.25);
   const contentWidth = screenWidth - sidebarWidth;
 
-  // State management
-  const [channel, setChannel] = useState<Channel | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [messages, setMessages] = useState<FormDataType[]>([]);
-  const [loadingMessages, setLoadingMessages] = useState(true);
-  const [messageError, setMessageError] = useState<string | null>(null);
-
-  // Theme and design
-  const { colorScheme } = useColorScheme();
-  const { design } = useDesign();
-
   const messagesEndRef = useRef<View>(null);
-
-  // Fetch channel data
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchChannel = async () => {
-      try {
-        const res = await fetch(`${config.api.endpoints.channels.base}/${usernameStr}`);
-
-        if (!res.ok) {
-          throw new Error(res.status === 404 ?
-            `Channel @${usernameStr} not found` :
-            'Failed to fetch channel details');
-        }
-
-        const data: ChannelResponse = await res.json();
-        if (isMounted) {
-          setChannel(data.mainChannel);
-          setError(null);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Failed to load channel');
-          setChannel(null);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    fetchChannel();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [usernameStr]);
-
-  // Fetch feed items
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadFeedItems = async () => {
-      if (!channel) return;
-
-      try {
-        setLoadingMessages(true);
-        const items = await fetchFeedItems(usernameStr);
-        if (isMounted) {
-          setMessages(items);
-          setMessageError(null);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setMessageError(err instanceof Error ? err.message : 'Failed to load feed items');
-          setMessages([]);
-        }
-      } finally {
-        if (isMounted) {
-          setLoadingMessages(false);
-        }
-      }
-    };
-
-    loadFeedItems();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [channel, usernameStr]);
 
   if (loading) {
     return (
@@ -198,24 +127,30 @@ export default function ChannelPage() {
             username={usernameStr}
             channelDetails={channel}
             selectedChannel={usernameStr}
+            sidebarWidth={sidebarWidth}
           />
         </View>
 
         {/* Main Content */}
         <View style={{ width: contentWidth }} className="bg-background">
 
+          {/* Access Status Indicator */}
+          <View className="p-2 border-b border-border">
+            <Text className={`font-medium ${accessStatus === 'public' 
+              ? 'text-green-600 dark:text-green-400'
+              : 'text-orange-600 dark:text-orange-400'}`}>
+              {`Access Status: ${accessStatus}`}
+            </Text>
+          </View>
 
-          <ChannelInfoSection
-            username={usernameStr}
-            channelDetails={channel}
-            messageCount={messages?.length || 0}
-          >
-            <ChannelDebugInfo
-              username={usernameStr}
-              channelDetails={channel}
-            />
-          </ChannelInfoSection>
-
+          {/* Follow/Join Button */}
+          <View className="p-2 border-b border-border">
+            {accessStatus === 'public' ? (
+              <FollowButton username={usernameStr} />
+            ) : (
+              <JoinButton username={usernameStr} accessStatus={accessStatus} channelDetails={channel} />
+            )}
+          </View>
 
           <ScrollView className="flex-1 p-2">
             {loadingMessages ? (

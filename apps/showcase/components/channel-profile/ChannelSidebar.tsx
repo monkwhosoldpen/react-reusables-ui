@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { View, ScrollView, useWindowDimensions, Pressable } from 'react-native'
+import { View, ScrollView, Pressable } from 'react-native'
 import { Channel } from "~/lib/core/types/channel.types"
 import { Text } from '~/components/ui/text'
 import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
@@ -12,17 +12,16 @@ interface ChannelSidebarProps {
   username: string
   channelDetails: Channel
   selectedChannel: string
+  sidebarWidth: number
 }
 
 export function ChannelSidebar({
   username,
   channelDetails,
   selectedChannel,
+  sidebarWidth,
 }: ChannelSidebarProps) {
   const { colorScheme } = useColorScheme()
-  const { width: screenWidth } = useWindowDimensions()
-  const sidebarWidth = Math.floor(screenWidth * 0.25)
-  const isMobile = screenWidth < 768
   const router = useRouter()
 
   const handleChannelPress = (channelUsername: string) => {

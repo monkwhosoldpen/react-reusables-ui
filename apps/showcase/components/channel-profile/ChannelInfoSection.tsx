@@ -8,18 +8,29 @@ import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { JoinButton } from '~/components/common/JoinButton';
 import { FollowButton } from '~/components/common/FollowButton';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
+import { AccessStatus } from '~/lib/channel/channel-profile-util';
 
 interface ChannelInfoSectionProps {
   username: string;
   channelDetails: Channel;
   messageCount: number;
+  accessStatus?: AccessStatus;
   children: React.ReactNode;
 }
 
-const ChannelInfoSection = ({ username, channelDetails, messageCount, children }: ChannelInfoSectionProps) => {
+const ChannelInfoSection = ({ 
+  username, 
+  channelDetails, 
+  messageCount, 
+  accessStatus = 'NONE',
+  children 
+}: ChannelInfoSectionProps) => {
   const { colorScheme } = useColorScheme();
   const { user } = useAuth();
-  const hasAccess = channelDetails.is_public || user?.id;
+  
+  // Determine access based on both the channel properties and API accessStatus
+  const hasAccess = accessStatus === 'FULL' || 
+                    (channelDetails.is_public && accessStatus !== 'NONE');
 
   return (
     <View>
