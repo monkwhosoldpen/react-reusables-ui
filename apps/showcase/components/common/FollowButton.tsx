@@ -18,6 +18,7 @@ import LoginCommon from '~/components/common/LoginCommon';
 import { View, Text, StyleSheet } from 'react-native';
 import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
+import { indexedDB } from '~/lib/core/services/indexedDB';
 
 interface FollowButtonProps {
   username: string;
@@ -106,6 +107,9 @@ export function FollowButton({
       await refreshUserInfo();
       // Now attempt to follow
       await followChannel(username);
+      
+      // No need to directly update IndexedDB here as followChannel already handles it
+      
       toast.success(`Following @${username}`);
     } catch (error) {
       toast.error(`Failed to follow channel`);
@@ -125,6 +129,9 @@ export function FollowButton({
     
     try {
       await followChannel(username);
+      
+      // No need to directly update IndexedDB here as followChannel already handles it
+      
       toast.success(`Following @${username}`);
     } catch (error) {
       toast.error(`Failed to follow channel`);
@@ -144,6 +151,9 @@ export function FollowButton({
     
     try {
       await unfollowChannel(username);
+      
+      // No need to directly update IndexedDB here as unfollowChannel already handles it
+      
       toast.success(`Unfollowed @${username}`);
     } catch (error) {
       toast.error(`Failed to unfollow channel`);

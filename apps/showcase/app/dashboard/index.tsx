@@ -85,11 +85,7 @@ export default function DashboardScreen() {
           {/* Channels List */}
           <View className={`flex-1 ${isDesktop ? 'flex-row flex-wrap gap-4' : ''}`}>
             {channels?.map((channel) => {
-              debugger
               const transformedChannel = transformChannel(channel);
-              debugger
-              const relatedChannels = transformedChannel.related_channels || [];
-              
               return (
                 <Card 
                   key={transformedChannel.username} 
