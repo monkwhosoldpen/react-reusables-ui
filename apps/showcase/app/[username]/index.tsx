@@ -183,7 +183,12 @@ export default function ChannelPage() {
                 {messages.map((message, index) => (
                   <FeedItem
                     key={`${message.id || index}`}
-                    data={message}
+                    data={{
+                      ...message,
+                      // Ensure required fields are present
+                      content: message.content,
+                      channel_username: message.channel_username || usernameStr
+                    }}
                     showHeader={message.metadata?.visibility?.header ?? true}
                     showFooter={message.metadata?.visibility?.footer ?? false}
                   />
