@@ -195,7 +195,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 
--- Function to retrieve paginated messages and access status
 CREATE OR REPLACE FUNCTION get_channel_superfeed_with_access_status(
     p_channel_username TEXT,
     p_user_id TEXT,
@@ -207,19 +206,7 @@ DECLARE
     messages_result JSONB;
     access_status TEXT;
 BEGIN
-    SELECT jsonb_agg(
-        jsonb_build_object(
-            'id', sf.id,
-            'username', sf.channel_username,
-            'type', sf.type,
-            'media', sf.media,
-            'metadata', sf.metadata,
-            'stats', sf.stats,
-            'interactive_content', sf.interactive_content,
-            'created_at', sf.created_at,
-            'updated_at', sf.updated_at
-        )
-    )
+    SELECT jsonb_agg(to_jsonb(sf.*))
     INTO messages_result
     FROM (
         SELECT *
@@ -238,8 +225,7 @@ BEGIN
         ELSE 'REJECTED'
     END INTO access_status
     FROM tenant_requests
-    WHERE username = p_channel_username AND uid = p_user_id
-    AND p_user_id IS NOT NULL AND p_user_id != '';
+    WHERE username = p_channel_username AND uid = p_user_id;
 
     IF access_status IS NULL THEN
         access_status := 'NONE';
