@@ -81,7 +81,7 @@ export default function ChannelPage() {
   }, [channelActivities]);
 
   // Calculate widths
-  const sidebarWidth = Math.floor(screenWidth * 0.25);
+  const sidebarWidth = Math.floor(screenWidth * 0.20);
   const contentWidth = screenWidth - sidebarWidth;
 
   const messagesEndRef = useRef<View>(null);
@@ -176,18 +176,9 @@ export default function ChannelPage() {
         {/* Main Content */}
         <View style={{ width: contentWidth }} className="bg-background">
 
-          {/* Access Status Indicator */}
-          <View className="p-2 border-b border-border">
-            <Text className={`font-medium ${accessStatus === 'public' 
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-orange-600 dark:text-orange-400'}`}>
-              {`Access Status: ${accessStatus}`}
-            </Text>
-          </View>
-
           {/* Follow/Join Button */}
           <View className="p-2 border-b border-border">
-            {accessStatus === 'public' ? (
+            {!channel?.is_owner_db ? (
               <FollowButton username={usernameStr} />
             ) : (
               <JoinButton 

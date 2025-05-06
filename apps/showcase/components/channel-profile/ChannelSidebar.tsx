@@ -40,7 +40,11 @@ export function ChannelSidebar({
               <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
                 <Users size={16} color={colorScheme.colors.primary} />
               </View>
-              <Text className="text-[9px] text-center mt-0.5 font-medium">
+              <Text 
+                className="text-[9px] text-center mt-0.5 font-medium px-1 w-full"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {channelDetails.parent_channel.username}
               </Text>
             </View>
@@ -58,7 +62,11 @@ export function ChannelSidebar({
               <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
                 <Users size={16} color={colorScheme.colors.primary} />
               </View>
-              <Text className="text-[9px] text-center mt-0.5">
+              <Text 
+                className="text-[9px] text-center mt-0.5 px-1 w-full"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {related.username}
               </Text>
             </View>
