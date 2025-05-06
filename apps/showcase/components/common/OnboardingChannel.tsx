@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "~/components/ui/dialog"
 import { Button } from "~/components/ui/button"
 import { Channel } from '~/lib/core/types/channel.types';
@@ -27,6 +27,17 @@ export function OnboardingChannel({
 
   // Get auth context for user info and completeChannelOnboarding function
   const { completeChannelOnboarding } = useAuth()
+
+  // Log component initialization
+  useEffect(() => {
+    console.log('[OnboardingChannel] Component initialized for channel:', username);
+    console.log('[OnboardingChannel] Channel details:', channelDetails);
+    console.log('[OnboardingChannel] Starting in step:', step);
+    
+    return () => {
+      console.log('[OnboardingChannel] Component unmounting for channel:', username);
+    };
+  }, [username, channelDetails, step]);
 
   // Create default onboarding config if none is provided
   const config = onboardingConfig || {
@@ -61,18 +72,28 @@ export function OnboardingChannel({
 
   // Log when dialog opens/closes
   const handleOpenChange = (open: boolean) => {
+    console.log('[OnboardingChannel] Dialog open state changed to:', open);
+    
     if (!open && currentScreenIndex === -1) {
-      onComplete?.()
+      console.log('[OnboardingChannel] Dialog closed at welcome screen, calling onComplete');
+      onComplete?.();
     }
   }
 
   // Log screen transitions
   const handleStartClick = () => {
-    setCurrentScreenIndex(0)
+    console.log('[OnboardingChannel] Start button clicked, transitioning from welcome to screens');
+    setCurrentScreenIndex(0);
+    setStep('screens');
+    console.log('[OnboardingChannel] Current screen index set to 0, step set to "screens"');
   }
 
   const handleNextClick = () => {
-    setCurrentScreenIndex(prev => prev + 1)
+    console.log('[OnboardingChannel] Next button clicked, advancing from screen', currentScreenIndex);
+    setCurrentScreenIndex(prev => {
+      console.log('[OnboardingChannel] Updating screen index from', prev, 'to', prev + 1);
+      return prev + 1;
+    });
   }
 
   const handleFinishClick = async () => {
@@ -87,6 +108,7 @@ export function OnboardingChannel({
         console.log('[OnboardingChannel] UI state updated to "finish"');
         
         // Make the API call and log response
+        console.log('[OnboardingChannel] Calling completeChannelOnboarding API');
         const response = await completeChannelOnboarding(username, channelDetails);
         console.log('[OnboardingChannel] Onboarding completion response:', response);
         
@@ -94,6 +116,8 @@ export function OnboardingChannel({
         console.log('[OnboardingChannel] Calling onComplete callback');
         onComplete?.();
         console.log('[OnboardingChannel] Onboarding flow completed');
+      } else {
+        console.error('[OnboardingChannel] Finish clicked but channelDetails is missing', { username });
       }
     } catch (error) {
       // Log the error
@@ -134,9 +158,28 @@ export function OnboardingChannel({
               <Text className="text-sm text-muted-foreground mb-4">{currentScreen.description}</Text>
               <View className="flex-row gap-2">
                 {currentScreenIndex > 0 && (
-                  <Button variant="outline" onPress={() => setCurrentScreenIndex(currentScreenIndex - 1)}>Back</Button>
+                  <Button 
+                    variant="outline" 
+                    onPress={() => {
+                      console.log('[OnboardingChannel] Back button clicked, going from screen', currentScreenIndex, 'to', currentScreenIndex - 1);
+                      setCurrentScreenIndex(currentScreenIndex - 1);
+                    }}
+                  >
+                    Back
+                  </Button>
                 )}
-                <Button onPress={handleNextClick} disabled={!canProceed()}>
+                <Button 
+                  onPress={() => {
+                    console.log('[OnboardingChannel] Button clicked on screen', currentScreenIndex);
+                    if (currentScreenIndex === config.screens.length - 1) {
+                      console.log('[OnboardingChannel] Last screen reached, initiating finish process');
+                      handleFinishClick();
+                    } else {
+                      handleNextClick();
+                    }
+                  }} 
+                  disabled={!canProceed()}
+                >
                   {currentScreen.buttontext}
                 </Button>
               </View>
@@ -153,7 +196,15 @@ export function OnboardingChannel({
         </View>
 
         <DialogFooter>
-          <Button variant="outline" onPress={() => onComplete?.()}>Cancel</Button>
+          <Button 
+            variant="outline" 
+            onPress={() => {
+              console.log('[OnboardingChannel] Cancel button clicked, closing dialog');
+              onComplete?.();
+            }}
+          >
+            Cancel
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

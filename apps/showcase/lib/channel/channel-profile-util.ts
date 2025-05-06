@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { View, ScrollView, useWindowDimensions, Text } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Loader2 } from 'lucide-react';
@@ -57,7 +57,7 @@ import { AuthHelper } from '../core/helpers/AuthHelpers';
 export type AccessStatus = 'NONE' | 'PARTIAL' | 'FULL' | string;
 
 // 👇 New custom hook
-export default function useChannelData(usernameStr: string) {
+export default function useChannelData(usernameStr: string, refreshKey: number = 0) {
   const [channel, setChannel] = useState<Channel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,13 +67,76 @@ export default function useChannelData(usernameStr: string) {
   const [accessStatus, setAccessStatus] = useState<AccessStatus>('NONE');
   const { user, isGuest, refreshUserInfo } = AuthHelper();
 
+  console.log('[useChannelData] Hook initialized for channel:', usernameStr);
+  console.log('[useChannelData] Current user state:', user ? 'Logged in' : 'Not logged in');
+  console.log('[useChannelData] Is guest user:', isGuest);
+  console.log('[useChannelData] Using refresh key:', refreshKey);
+
+  // Create a refreshMessages function
+  const refreshMessages = useCallback(async () => {
+    console.log('[useChannelData] Refreshing messages for channel:', usernameStr);
+    if (!user) {
+      console.log('[useChannelData] No user, cannot refresh messages');
+      return;
+    }
+
+    try {
+      setLoadingMessages(true);
+      console.log(`[useChannelData] Refreshing messages API for channel @${usernameStr}...`);
+      
+      // Ensure we have a valid user ID to pass to the API
+      const userId = user?.id || '';
+      
+      // Call the messages API endpoint with optional pagination params
+      const apiUrl = `${config.api.endpoints.channels.base}/${usernameStr}/messages?page_size=20&user_id=${userId}`;
+      console.log(`[useChannelData] Messages refresh API URL: ${apiUrl}`);
+      
+      const res = await fetch(apiUrl);
+      console.log(`[useChannelData] Messages refresh API response status:`, res.status);
+      
+      if (!res.ok) {
+        throw new Error(res.status === 404 ?
+          `Messages for @${usernameStr} not found` :
+          'Failed to fetch channel messages');
+      }
+      
+      const messageData = await res.json();
+      console.log(`[useChannelData] Received ${messageData.messages?.length || 0} refreshed messages for @${usernameStr}`);
+      console.log('[useChannelData] Refreshed access status from API:', messageData.access_status);
+      
+      // Save access status
+      console.log(`[useChannelData] Setting refreshed access status to: ${messageData.access_status || 'NONE'}`);
+      setAccessStatus(messageData.access_status || 'NONE');
+      
+      // Save messages
+      console.log('[useChannelData] Updating messages state with refreshed data');
+      setMessages(messageData.messages || []);
+      setMessageError(null);
+    } catch (err) {
+      console.error('[useChannelData] Error refreshing messages:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Failed to refresh messages';
+      console.error('[useChannelData] Setting message error state during refresh:', errorMsg);
+      // Don't update state on error to preserve existing messages
+    } finally {
+      setLoadingMessages(false);
+      console.log('[useChannelData] Completed message refresh');
+    }
+  }, [usernameStr, user]);
+
   useEffect(() => {
     let isMounted = true;
+    console.log('[useChannelData] Effect triggered with username:', usernameStr);
+    console.log('[useChannelData] Current user ID:', user?.id);
+    console.log('[useChannelData] Refresh key in effect:', refreshKey);
 
     const fetchChannel = async () => {
       try {
-        console.log(`Fetching channel data for @${usernameStr}...`);
-        const res = await fetch(`${config.api.endpoints.channels.base}/${usernameStr}`);
+        console.log(`[useChannelData] Fetching channel data for @${usernameStr}...`);
+        const apiUrl = `${config.api.endpoints.channels.base}/${usernameStr}`;
+        console.log(`[useChannelData] API URL: ${apiUrl}`);
+        
+        const res = await fetch(apiUrl);
+        console.log(`[useChannelData] Channel API response status:`, res.status);
 
         if (!res.ok) {
           throw new Error(res.status === 404 ?
@@ -82,42 +145,53 @@ export default function useChannelData(usernameStr: string) {
         }
 
         const data: ChannelResponse = await res.json();
-        console.log('Channel response data:', data);
+        console.log('[useChannelData] Channel response data:', data);
+        console.log('[useChannelData] Channel is_public:', data.mainChannel?.is_public);
+        console.log('[useChannelData] Channel is_owner_db:', data.mainChannel?.is_owner_db);
         
         if (isMounted) {
+          console.log('[useChannelData] Updating channel state with retrieved data');
           setChannel(data.mainChannel);
           setError(null);
           
           // Now that we have channel details, fetch messages
-          console.log(`Channel details loaded, fetching messages for @${usernameStr}...`);
+          console.log(`[useChannelData] Channel details loaded, fetching messages for @${usernameStr}...`);
           await fetchChannelMessages(usernameStr);
         }
       } catch (err) {
-        console.error('Error fetching channel:', err);
+        console.error('[useChannelData] Error fetching channel:', err);
         if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Failed to load channel');
+          const errorMsg = err instanceof Error ? err.message : 'Failed to load channel';
+          console.error('[useChannelData] Setting error state:', errorMsg);
+          setError(errorMsg);
           setChannel(null);
         }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          console.log('[useChannelData] Completed channel fetch, setting loading to false');
+          setLoading(false);
+        }
       }
     };
-
 
     const fetchChannelMessages = async (username: string) => {
       if (!isMounted) return;
       
-      
       try {
+        console.log(`[useChannelData] Starting message fetch for @${username}`);
         setLoadingMessages(true);
-        console.log(`Calling messages API for channel @${username}...`);
-        console.log(`Current user ID being passed: ${user?.id || 'undefined'}`);
+        console.log(`[useChannelData] Calling messages API for channel @${username}...`);
+        console.log(`[useChannelData] Current user ID being passed: ${user?.id || 'undefined'}`);
         
         // Ensure we have a valid user ID to pass to the API
         const userId = user?.id || '';
         
         // Call the messages API endpoint with optional pagination params
-        const res = await fetch(`${config.api.endpoints.channels.base}/${username}/messages?page_size=20&user_id=${userId}`);
+        const apiUrl = `${config.api.endpoints.channels.base}/${username}/messages?page_size=20&user_id=${userId}`;
+        console.log(`[useChannelData] Messages API URL: ${apiUrl}`);
+        
+        const res = await fetch(apiUrl);
+        console.log(`[useChannelData] Messages API response status:`, res.status);
         
         if (!res.ok) {
           throw new Error(res.status === 404 ?
@@ -126,27 +200,30 @@ export default function useChannelData(usernameStr: string) {
         }
         
         const messageData = await res.json();
-        console.log(`Received ${messageData.messages?.length || 0} messages for @${username}`);
-        
-        // Only log the access_status
-        console.log('Access status:', messageData.access_status);
+        console.log(`[useChannelData] Received ${messageData.messages?.length || 0} messages for @${username}`);
+        console.log('[useChannelData] Access status from API:', messageData.access_status);
         
         if (isMounted) {
           // Save access status
+          console.log(`[useChannelData] Setting access status to: ${messageData.access_status || 'NONE'}`);
           setAccessStatus(messageData.access_status || 'NONE');
           
           // Save messages
+          console.log('[useChannelData] Updating messages state with received data');
           setMessages(messageData.messages || []);
           setMessageError(null);
         }
       } catch (err) {
-        console.error('Error fetching messages:', err);
+        console.error('[useChannelData] Error fetching messages:', err);
         if (isMounted) {
-          setMessageError(err instanceof Error ? err.message : 'Failed to load messages');
+          const errorMsg = err instanceof Error ? err.message : 'Failed to load messages';
+          console.error('[useChannelData] Setting message error state:', errorMsg);
+          setMessageError(errorMsg);
           setMessages([]);
         }
       } finally {
         if (isMounted) {
+          console.log('[useChannelData] Completed message fetch, setting loadingMessages to false');
           setLoadingMessages(false);
         }
       }
@@ -155,9 +232,21 @@ export default function useChannelData(usernameStr: string) {
     fetchChannel();
     
     return () => {
+      console.log('[useChannelData] Cleanup - Component unmounting');
       isMounted = false;
     };
-  }, [usernameStr, user]);
+  }, [usernameStr, user, refreshKey]);
+
+  console.log('[useChannelData] Current state on render:', {
+    loading,
+    hasChannel: !!channel,
+    hasError: !!error,
+    messageCount: messages.length,
+    loadingMessages,
+    hasMessageError: !!messageError,
+    accessStatus,
+    refreshKey
+  });
 
   return {
     channel,
@@ -167,5 +256,6 @@ export default function useChannelData(usernameStr: string) {
     loadingMessages,
     messageError,
     accessStatus,
+    refreshMessages
   };
 }

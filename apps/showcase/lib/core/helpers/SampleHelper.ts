@@ -38,7 +38,7 @@ export interface SampleHelperReturn {
     channelData: Channel | null;
     error: string | null;
   }>;
-  completeChannelOnboarding: (channelUsername: string, channelDetails: Channel) => Promise<boolean>;
+  completeChannelOnboarding: (channelUsername: string, channelDetails: Channel) => Promise<any>;
   fetchChannelMessages: (
     username: string, 
     pageSize: number, 
@@ -384,45 +384,86 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
   };
 
   // New function to handle channel onboarding completion
-  const completeChannelOnboarding = async (channelUsername: string, channelDetails: Channel): Promise<boolean> => {
+  const completeChannelOnboarding = async (channelUsername: string, channelDetails: Channel) => {
     try {
-      console.log('Completing onboarding for channel:', { 
+      console.log('[SampleHelper] completeChannelOnboarding called with params:', { 
         channelUsername, 
-        channelDetails,
-        user: user?.id
+        username: channelDetails?.username,
+        isPublic: channelDetails?.is_public,
+        isOwnerDb: channelDetails?.is_owner_db,
+        userId: user?.id,
+        isGuest
       });
       
+      if (!channelDetails) {
+        console.error('[SampleHelper] completeChannelOnboarding failed - channel details missing');
+        return false;
+      }
+      
       const userId = user?.id || 'guest-id';
+      console.log('[SampleHelper] Using user ID for request:', userId);
+      
+      const endpoint = `${config.api.endpoints.channels.base}/${channelDetails.username}/request-access`;
+      console.log('[SampleHelper] Request access API endpoint:', endpoint);
+      
+      const requestPayload = {
+        user_id: userId,
+        username: channelUsername,
+        config: {
+          channel: channelUsername,
+          user_id: userId,
+          timestamp: new Date().toISOString(),
+          onboarding_completed: true
+        }
+      };
+      console.log('[SampleHelper] Request access payload:', requestPayload);
       
       // Use the Vercel API endpoint instead of direct Supabase call
-      const response = await fetch(`${config.api.endpoints.channels.base}/${channelDetails.username}/request-access`, {
+      console.log('[SampleHelper] Sending request access API call...');
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          user_id: userId,
-          username: channelUsername,
-          config: {
-            channel: channelUsername,
-            user_id: userId,
-            timestamp: new Date().toISOString(),
-            onboarding_completed: true
-          }
-        }),
+        body: JSON.stringify(requestPayload),
       });
+      
+      console.log('[SampleHelper] Request access API response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Error requesting channel access:', errorData);
+        console.error('[SampleHelper] Error requesting channel access:', errorData);
+        console.error('[SampleHelper] HTTP status:', response.status);
+        console.error('[SampleHelper] Status text:', response.statusText);
         return false;
       } else {
         const data = await response.json();
-        console.log('Successfully requested channel access:', data);
-        return true;
+        console.log('[SampleHelper] Successfully requested channel access. Response:', data);
+        
+        // If there are specific fields in the response that indicate success, log them
+        if (data.success) {
+          console.log('[SampleHelper] Request explicitly marked as successful in response');
+        }
+        if (data.status) {
+          console.log('[SampleHelper] Response status:', data.status);
+        }
+        if (data.message) {
+          console.log('[SampleHelper] Response message:', data.message);
+        }
+        if (data.access_granted) {
+          console.log('[SampleHelper] Access granted status:', data.access_granted);
+        }
+        
+        // Return the full response object instead of just true
+        return data;
       }
     } catch (error) {
-      console.error('Error during channel onboarding:', error);
+      console.error('[SampleHelper] Exception during channel onboarding:', error);
+      if (error instanceof Error) {
+        console.error('[SampleHelper] Error name:', error.name);
+        console.error('[SampleHelper] Error message:', error.message);
+        console.error('[SampleHelper] Error stack:', error.stack);
+      }
       return false;
     }
   };

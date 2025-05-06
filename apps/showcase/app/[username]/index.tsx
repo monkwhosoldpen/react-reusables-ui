@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -19,6 +19,8 @@ import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import useChannelData from '~/lib/channel/channel-profile-util';
 import { FollowButton } from '~/components/common/FollowButton';
 import { JoinButton } from '~/components/common/JoinButton';
+import { config } from '~/lib/core/config';
+import { AuthHelper } from '~/lib/core/helpers/AuthHelpers';
 
 export default function ChannelPage() {
   const router = useRouter();
@@ -29,6 +31,16 @@ export default function ChannelPage() {
   const prevActivitiesRef = useRef<typeof channelActivities>([]);
   const processedMessagesRef = useRef<Set<string>>(new Set());
   const isInitialLoadRef = useRef(true);
+  const { user } = AuthHelper();
+  
+  // Add a refreshKey state to force the useChannelData hook to re-fetch data
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Create a function to refresh channel data
+  const refreshChannelData = useCallback(() => {
+    console.log('[ChannelPage] Refreshing channel data with new key:', refreshKey + 1);
+    setRefreshKey(prev => prev + 1);
+  }, [refreshKey]);
 
   // Use the custom hook to fetch channel data
   const {
@@ -38,8 +50,9 @@ export default function ChannelPage() {
     messages,
     loadingMessages,
     messageError,
-    accessStatus
-  } = useChannelData(usernameStr);
+    accessStatus,
+    refreshMessages
+  } = useChannelData(usernameStr, refreshKey);
 
   // Add logging for channel activities
   React.useEffect(() => {
@@ -113,6 +126,35 @@ export default function ChannelPage() {
     );
   }
 
+  // Function to check access status and refresh messages if needed
+  const checkAccessStatusAndRefresh = async (channelResponse: any) => {
+    console.log('[ChannelPage] Checking for updated access status from response:', channelResponse);
+    
+    if (channelResponse && 'access_status' in channelResponse) {
+      console.log('[ChannelPage] New access status detected:', channelResponse.access_status);
+      if (channelResponse.access_status !== accessStatus) {
+        console.log('[ChannelPage] Access status changed, refreshing channel data');
+        refreshChannelData();
+      }
+    } else if (channelResponse && 'status' in channelResponse) {
+      console.log('[ChannelPage] Request status detected:', channelResponse.status);
+      if (channelResponse.status === 'APPROVED') {
+        console.log('[ChannelPage] Request approved, refreshing channel data');
+        refreshChannelData();
+      } else {
+        console.log('[ChannelPage] Request status is:', channelResponse.status, ', refreshing messages');
+        if (refreshMessages) {
+          await refreshMessages();
+        }
+      }
+    } else {
+      console.log('[ChannelPage] No specific status in response, refreshing messages');
+      if (refreshMessages) {
+        await refreshMessages();
+      }
+    }
+  };
+
   return (
     <View className="flex-1 bg-background">
       <ChannelHeader
@@ -148,7 +190,22 @@ export default function ChannelPage() {
             {accessStatus === 'public' ? (
               <FollowButton username={usernameStr} />
             ) : (
-              <JoinButton username={usernameStr} accessStatus={accessStatus} channelDetails={channel} />
+              <JoinButton 
+                username={usernameStr} 
+                accessStatus={accessStatus} 
+                channelDetails={channel} 
+                onJoin={(channelResponse) => {
+                  console.log('[ChannelPage] Join successful for channel:', usernameStr);
+                  console.log('[ChannelPage] Refreshing channel data after successful join');
+                  
+                  // Check for updated access status and refresh data accordingly
+                  checkAccessStatusAndRefresh(channelResponse);
+                }}
+                onRequestAccess={() => {
+                  console.log('[ChannelPage] Access requested for channel:', usernameStr);
+                  console.log('[ChannelPage] Channel details:', channel);
+                }}
+              />
             )}
           </View>
 
