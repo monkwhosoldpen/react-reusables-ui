@@ -207,6 +207,18 @@ export function MainScreen({ initialData }: MainScreenProps) {
     return allData;
   }, [channelData, activeTab]);
 
+  // Calculate message counts for each tab
+  const tabCounts = useMemo(() => {
+    const allData = [...channelData.requests, ...channelData.follows];
+    const privateItems = allData.filter(item => item.isPrivate);
+    const publicItems = allData.filter(item => !item.isPrivate);
+
+    return {
+      private: privateItems.filter(item => (item.channelActivity?.[0]?.message_count || 0) > 0).length,
+      public: publicItems.filter(item => (item.channelActivity?.[0]?.message_count || 0) > 0).length
+    };
+  }, [channelData]);
+
   const renderTabButton = (tab: TabType, label: string) => (
     <TouchableOpacity
       className={`flex-1 py-3 ${
@@ -216,15 +228,22 @@ export function MainScreen({ initialData }: MainScreenProps) {
       }`}
       onPress={() => setActiveTab(tab)}
     >
-      <Text 
-        className={`text-center text-sm font-medium ${
-          activeTab === tab 
-            ? 'text-green-500' 
-            : 'text-gray-500 dark:text-gray-400'
-        }`}
-      >
-        {label}
-      </Text>
+      <View className="flex-row items-center justify-center">
+        <Text 
+          className={`text-center text-sm font-medium ${
+            activeTab === tab 
+              ? 'text-green-500' 
+              : 'text-gray-500 dark:text-gray-400'
+          }`}
+        >
+          {label}
+        </Text>
+        {tabCounts[tab] > 0 && (
+          <View className="ml-2 min-w-[20px] h-5 rounded-full justify-center items-center px-1.5 bg-green-500">
+            <Text className="text-xs font-semibold text-white">{tabCounts[tab]}</Text>
+          </View>
+        )}
+      </View>
     </TouchableOpacity>
   );
 
