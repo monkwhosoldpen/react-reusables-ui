@@ -85,10 +85,22 @@ export default function LanguageChanger({ variant = "default", className = "" }:
             disabled={isChanging}
           >
             <View className="flex-row items-center gap-2">
-              <Text className={variant === "default" ? "text-white" : "text-gray-900 dark:text-white"}>
+              <Text className={cn(
+                "font-medium",
+                variant === "default" 
+                  ? "text-white" 
+                  : "text-gray-900 dark:text-white"
+              )}>
                 {isChanging ? "Changing..." : currentLanguageData?.name || currentLanguage}
               </Text>
-              <ChevronDown size={18} className={variant === "default" ? "text-white" : "text-gray-900 dark:text-white"} />
+              <ChevronDown 
+                size={18} 
+                className={cn(
+                  variant === "default" 
+                    ? "text-white" 
+                    : "text-gray-900 dark:text-white"
+                )} 
+              />
             </View>
           </Button>
         </DropdownMenuTrigger>

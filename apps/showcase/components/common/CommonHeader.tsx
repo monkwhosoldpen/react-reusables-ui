@@ -86,7 +86,7 @@ export function CommonHeader({
             </View>
           )}
           <View className="ml-auto">
-            <LanguageChanger />
+            <LanguageChanger variant="settings" />
           </View>
         </View>
       </View>
