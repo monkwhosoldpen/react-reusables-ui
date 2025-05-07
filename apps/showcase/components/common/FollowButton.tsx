@@ -15,7 +15,7 @@ import {
   DialogOverlay
 } from '~/components/ui/dialog';
 import LoginCommon from '~/components/common/LoginCommon';
-import { View, Text } from 'react-native';
+import { View, Text, useColorScheme } from 'react-native';
 import { indexedDB } from '~/lib/core/services/indexedDB';
 
 interface FollowButtonProps {
@@ -34,6 +34,7 @@ export function FollowButton({
   initialFollowing
 }: FollowButtonProps) {
   const { user, refreshUserInfo, isFollowingChannel, followChannel, unfollowChannel, signInAnonymously, signInAsGuest, signIn } = useAuth();
+  const colorScheme = useColorScheme();
   
   // Use local state to track following status and loading state
   const [following, setFollowing] = useState(initialFollowing ?? false);
@@ -248,22 +249,28 @@ export function FollowButton({
       <Button
         variant={following ? "default" : "outline"}
         size={size}
-        className={`rounded-md px-3 py-1.5 ${following ? 'bg-primary border-transparent' : 'bg-transparent border-primary'}`}
+        className={`rounded-md px-3 py-1.5 ${
+          following 
+            ? 'bg-blue-500 dark:bg-blue-600 border-transparent' 
+            : 'bg-transparent border-blue-500 dark:border-blue-400'
+        }`}
         onPress={handleToggleFollow}
         disabled={loading}
       >
         {loading ? (
-          <Text className={`text-sm ${following ? 'text-white' : 'text-primary'}`}>Loading...</Text>
+          <Text className={`text-sm ${following ? 'text-white' : 'text-blue-500 dark:text-blue-400'}`}>
+            Loading...
+          </Text>
         ) : (
           <View className="flex-row items-center gap-2">
             {showIcon && (
               <Heart 
                 size={16}
-                color={following ? 'white' : '#3B82F6'}
+                color={following ? 'white' : colorScheme === 'dark' ? '#60A5FA' : '#3B82F6'}
                 fill={following ? 'white' : 'none'}
               />
             )}
-            <Text className={`text-sm font-medium ${following ? 'text-white' : 'text-primary'}`}>
+            <Text className={`text-sm font-medium ${following ? 'text-white' : 'text-blue-500 dark:text-blue-400'}`}>
               {following ? 'Following' : 'Follow'}
             </Text>
           </View>

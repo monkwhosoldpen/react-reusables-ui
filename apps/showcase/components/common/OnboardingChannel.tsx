@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "~/components/ui/button"
 import { Channel } from '~/lib/core/types/channel.types';
 import { useAuth } from '~/lib/core/contexts/AuthContext'
-import { View, Text } from 'react-native'
+import { View, Text, useColorScheme } from 'react-native'
 
 export interface OnboardingChannelProps {
   username: string
@@ -20,6 +20,7 @@ export function OnboardingChannel({
   onboardingConfig,
   onComplete
 }: OnboardingChannelProps) {
+  const colorScheme = useColorScheme();
   // Track current screen index for the middle screens
   const [currentScreenIndex, setCurrentScreenIndex] = useState<number>(-1)
   // Track overall step (welcome, screens, finish)
@@ -148,7 +149,16 @@ export function OnboardingChannel({
             <>
               <Text className="text-lg font-medium mb-2">{config.welcomescreen.subtitle}</Text>
               <Text className="text-sm text-muted-foreground mb-4">{config.welcomescreen.description}</Text>
-              <Button onPress={handleStartClick}>{config.welcomescreen.buttontext}</Button>
+              <Button 
+                onPress={handleStartClick}
+                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+              >
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-sm font-medium text-white">
+                    {config.welcomescreen.buttontext}
+                  </Text>
+                </View>
+              </Button>
             </>
           )}
 
@@ -164,8 +174,13 @@ export function OnboardingChannel({
                       console.log('[OnboardingChannel] Back button clicked, going from screen', currentScreenIndex, 'to', currentScreenIndex - 1);
                       setCurrentScreenIndex(currentScreenIndex - 1);
                     }}
+                    className="border-gray-200 dark:border-gray-700"
                   >
-                    Back
+                    <View className="flex-row items-center gap-2">
+                      <Text className="text-sm font-medium text-gray-900 dark:text-white">
+                        Back
+                      </Text>
+                    </View>
                   </Button>
                 )}
                 <Button 
@@ -179,8 +194,13 @@ export function OnboardingChannel({
                     }
                   }} 
                   disabled={!canProceed()}
+                  className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
                 >
-                  {currentScreen.buttontext}
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-sm font-medium text-white">
+                      {currentScreen.buttontext}
+                    </Text>
+                  </View>
                 </Button>
               </View>
             </>
@@ -190,7 +210,16 @@ export function OnboardingChannel({
             <>
               <Text className="text-lg font-medium mb-2">{config.finishscreen.subtitle}</Text>
               <Text className="text-sm text-muted-foreground mb-4">{config.finishscreen.description}</Text>
-              <Button onPress={handleFinishClick}>{config.finishscreen.buttontext}</Button>
+              <Button 
+                onPress={handleFinishClick}
+                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+              >
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-sm font-medium text-white">
+                    {config.finishscreen.buttontext}
+                  </Text>
+                </View>
+              </Button>
             </>
           )}
         </View>
@@ -202,8 +231,13 @@ export function OnboardingChannel({
               console.log('[OnboardingChannel] Cancel button clicked, closing dialog');
               onComplete?.();
             }}
+            className="border-gray-200 dark:border-gray-700"
           >
-            Cancel
+            <View className="flex-row items-center gap-2">
+              <Text className="text-sm font-medium text-gray-900 dark:text-white">
+                Cancel
+              </Text>
+            </View>
           </Button>
         </DialogFooter>
       </DialogContent>

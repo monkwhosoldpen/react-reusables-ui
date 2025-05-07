@@ -76,28 +76,30 @@ export default function LanguageChanger({ variant = "default", className = "" }:
           <Button
             variant={variant === "settings" ? "outline" : "ghost"}
             size="sm"
-            style={{
-              width: 130,
-              height: 36,
-              backgroundColor: variant === "settings" ? "rgba(0, 0, 0, 0.05)" : "rgba(16, 185, 129, 0.2)",
-              borderWidth: 0,
-              borderRadius: variant === "settings" ? 6 : 9999,
-            }}
+            className={cn(
+              "w-[130px] h-9",
+              variant === "settings" 
+                ? "bg-gray-100 dark:bg-gray-800 rounded-md" 
+                : "bg-emerald-500/20 rounded-full"
+            )}
             disabled={isChanging}
           >
             <View className="flex-row items-center gap-2">
-              <Text style={{ color: variant === "default" ? "#ffffff" : undefined }}>
+              <Text className={variant === "default" ? "text-white" : "text-gray-900 dark:text-white"}>
                 {isChanging ? "Changing..." : currentLanguageData?.name || currentLanguage}
               </Text>
-              <ChevronDown 
-                size={18} 
-                className={variant === "default" ? "text-white" : "text-foreground"} 
-              />
+              <ChevronDown size={18} className={variant === "default" ? "text-white" : "text-gray-900 dark:text-white"} />
             </View>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" insets={contentInsets} className="w-64 native:w-72">
-          <DropdownMenuLabel>Select language</DropdownMenuLabel>
+        <DropdownMenuContent 
+          align="end" 
+          insets={contentInsets} 
+          className="w-64 native:w-72 bg-white dark:bg-gray-800"
+        >
+          <DropdownMenuLabel className="text-gray-900 dark:text-white">
+            Select language
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup className="gap-1">
             {languageOptions.map((language) => (
@@ -106,11 +108,16 @@ export default function LanguageChanger({ variant = "default", className = "" }:
                 onPress={() => handleLanguageChange(language.id)}
                 className={cn(
                   "flex-col items-start gap-1",
-                  currentLanguage === language.id ? "bg-secondary/70" : ""
+                  currentLanguage === language.id ? "bg-gray-700/50" : "",
+                  "text-gray-900 dark:text-white"
                 )}
               >
-                <Text>{language.name}</Text>
-                <Text className="text-xs text-muted-foreground">({language.nativeName})</Text>
+                <Text className="text-gray-900 dark:text-white">
+                  {language.name}
+                </Text>
+                <Text className="text-xs text-gray-500 dark:text-gray-400">
+                  ({language.nativeName})
+                </Text>
               </DropdownMenuItem>
             ))}
           </DropdownMenuGroup>

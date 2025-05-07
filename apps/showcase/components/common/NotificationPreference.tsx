@@ -6,6 +6,7 @@ import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Switch } from '~/components/ui/switch';
 import { Globe, TabletSmartphone, Bell, BellOff, AlertTriangle, Database, Check, X, Smartphone, Code } from 'lucide-react-native';
 import { cn } from '~/lib/utils';
+import { useColorScheme } from 'react-native';
 
 interface NotificationPreferenceProps {
   showDescription?: boolean;
@@ -31,11 +32,17 @@ export function NotificationPreference({
     isPrivateBrowsing
   } = useNotification();
   
-  const { 
-    userInfo
-  } = useAuth();
-  
+  const { userInfo } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const colorScheme = useColorScheme();
+
+  // Color variables
+  const bgColor = colorScheme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const textColor = colorScheme === 'dark' ? 'text-white' : 'text-gray-900';
+  const subtitleColor = colorScheme === 'dark' ? 'text-gray-400' : 'text-gray-500';
+  const borderColor = colorScheme === 'dark' ? 'border-gray-700' : 'border-gray-200';
+  const cardBg = colorScheme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-100/70';
+  const debugBg = colorScheme === 'dark' ? 'bg-gray-800/70' : 'bg-gray-100';
 
   // Get push subscription information from userInfo
   const pushSubscriptions = userInfo?.notifications?.subscriptions || [];
@@ -157,14 +164,14 @@ export function NotificationPreference({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           {areNotificationsEnabled ? (
-            <Bell className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            <Bell className={cn("h-5 w-5", colorScheme === 'dark' ? "text-emerald-400" : "text-emerald-600")} />
           ) : (
-            <BellOff className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <BellOff className={cn("h-5 w-5", subtitleColor)} />
           )}
           <div>
-            <h3 className="font-medium text-gray-800 dark:text-gray-200">Notifications</h3>
+            <h3 className={cn("font-medium", textColor)}>Notifications</h3>
             {showDescription && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className={cn("text-sm", subtitleColor)}>
                 {getStatusMessage()}
               </p>
             )}
@@ -186,7 +193,7 @@ export function NotificationPreference({
       </div>
       
       {/* Backend status indicator */}
-      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 bg-gray-100/70 dark:bg-gray-800/50 rounded-md p-2">
+      <div className={cn("flex items-center justify-between text-xs", subtitleColor, cardBg, "rounded-md p-2")}>
         <div className="flex items-center space-x-1.5">
           <Database className="h-3.5 w-3.5" />
           <span>Saved to your account:</span>
@@ -208,26 +215,26 @@ export function NotificationPreference({
       
       {/* Push subscriptions indicator */}
       {hasPushSubscriptions && (
-        <div className="flex flex-col gap-2 text-xs bg-gray-100/70 dark:bg-gray-800/50 rounded-md p-2">
+        <div className={cn("flex flex-col gap-2 text-xs", cardBg, "rounded-md p-2")}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5">
-              <DeviceIcon className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-              <span className="text-gray-500 dark:text-gray-400">Device type:</span>
+              <DeviceIcon className={cn("h-3.5 w-3.5", subtitleColor)} />
+              <span className={subtitleColor}>Device type:</span>
             </div>
-            <div className="font-medium text-gray-700 dark:text-gray-300">
+            <div className={cn("font-medium", textColor)}>
               {providerType === 'web' ? 'Web Browser' : 'Mobile App'}
             </div>
           </div>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5">
-              <Smartphone className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-              <span className="text-gray-500 dark:text-gray-400">Registered devices:</span>
+              <Smartphone className={cn("h-3.5 w-3.5", subtitleColor)} />
+              <span className={subtitleColor}>Registered devices:</span>
             </div>
-            <div className="font-medium text-gray-700 dark:text-gray-300">
+            <div className={cn("font-medium", textColor)}>
               {pushSubscriptionsCount}
               {webSubscriptionsCount > 0 && mobileSubscriptionsCount > 0 && (
-                <span className="text-xs text-gray-500 ml-1">
+                <span className={cn("text-xs ml-1", subtitleColor)}>
                   ({webSubscriptionsCount} web, {mobileSubscriptionsCount} mobile)
                 </span>
               )}
@@ -244,8 +251,8 @@ export function NotificationPreference({
       )}
       
       {isPermissionDenied && !compact && (
-        <div className="rounded-md bg-gray-100 dark:bg-gray-800/70 p-3 text-sm border border-gray-200 dark:border-gray-700">
-          <p className="mb-2 text-gray-700 dark:text-gray-300">
+        <div className={cn("rounded-md p-3 text-sm border", debugBg, borderColor)}>
+          <p className={cn("mb-2", textColor)}>
             Notifications are blocked. To enable notifications, you need to:
           </p>
           {getProviderInstructions()}
@@ -254,29 +261,31 @@ export function NotificationPreference({
 
       {/* Show debug info if enabled */}
       {showDebug && (
-        <div className="rounded-md bg-gray-100 dark:bg-gray-800/70 p-3 text-xs border border-gray-200 dark:border-gray-700 mt-2">
+        <div className={cn("rounded-md p-3 text-xs border mt-2", debugBg, borderColor)}>
           <div className="flex items-center space-x-1.5 mb-2">
-            <Code className="h-3.5 w-3.5 text-gray-500" />
-            <span className="font-medium">Debug Information</span>
+            <Code className={cn("h-3.5 w-3.5", subtitleColor)} />
+            <span className={cn("font-medium", textColor)}>Debug Information</span>
           </div>
           <div className="grid grid-cols-2 gap-1">
-            <span className="text-gray-500">Provider Type:</span>
-            <span>{providerType}</span>
+            <span className={subtitleColor}>Provider Type:</span>
+            <span className={textColor}>{providerType}</span>
             
-            <span className="text-gray-500">Browser:</span>
-            <span>{browserType}</span>
+            <span className={subtitleColor}>Browser:</span>
+            <span className={textColor}>{browserType}</span>
             
-            <span className="text-gray-500">Permission:</span>
-            <span>{permissionStatus}</span>
+            <span className={subtitleColor}>Permission:</span>
+            <span className={textColor}>{permissionStatus}</span>
             
-            <span className="text-gray-500">Active Sub:</span>
-            <span>{hasActiveSubscription ? 'Yes' : 'No'}</span>
+            <span className={subtitleColor}>Active Sub:</span>
+            <span className={textColor}>{hasActiveSubscription ? 'Yes' : 'No'}</span>
             
-            <span className="text-gray-500">Account Pref:</span>
-            <span>{accountPreference === null ? 'Not set' : accountPreference ? 'Enabled' : 'Disabled'}</span>
+            <span className={subtitleColor}>Account Pref:</span>
+            <span className={textColor}>
+              {accountPreference === null ? 'Not set' : accountPreference ? 'Enabled' : 'Disabled'}
+            </span>
             
-            <span className="text-gray-500">Private Mode:</span>
-            <span>{isPrivateBrowsing ? 'Yes' : 'No'}</span>
+            <span className={subtitleColor}>Private Mode:</span>
+            <span className={textColor}>{isPrivateBrowsing ? 'Yes' : 'No'}</span>
           </div>
         </div>
       )}

@@ -25,14 +25,11 @@ interface MainScreenProps {
   };
 }
 
-type TabType = 'private' | 'public';
-
 export function MainScreen({ initialData }: MainScreenProps) {
   const { user, loading: authLoading, userInfo } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const [activeTab, setActiveTab] = useState<TabType>('private');
 
   // Use a single data state to prevent multiple re-renders
   const [channelData, setChannelData] = useState<{
@@ -53,7 +50,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   // Function to load channel data that can be reused
   const loadChannelData = useCallback(async () => {
-    
     // Skip if there's no user
     if (!user?.id) {
       return;
@@ -74,7 +70,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
         indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id),
         indexedDB.getAll('channels_activity')
       ]);
-
 
       // Process follows and requests with activity data
       const followsWithActivity = (follows || []).map(follow => ({
@@ -99,7 +94,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
       
       dataLoadedRef.current = true;
     } catch (err) {
-      console.error('[MainScreen] Error loading data:', err);
       setError('Failed to load data');
     } finally {
       setLoadingState(prev => ({ ...prev, dataLoading: false }));
@@ -111,12 +105,15 @@ export function MainScreen({ initialData }: MainScreenProps) {
     let mounted = true;
 
     const initializeAndLoadData = async () => {
-      
       // Skip if we've already loaded data or if there's no user
-      if (dataLoadedRef.current || !user?.id) return;
+      if (dataLoadedRef.current || !user?.id) {
+        return;
+      }
       
       // Only proceed if component is still mounted
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       
       loadChannelData();
     };
@@ -135,9 +132,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
       if (user?.id) {
         loadChannelData();
       }
-      return () => {
-        // Cleanup if needed
-      };
     }, [user?.id, loadChannelData])
   );
 
@@ -175,7 +169,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
             {item.username?.[0]?.toUpperCase() || '#'}
           </Text>
         </View>
-        <View className="flex-1 mr-3">
+        <View className="flex-1">
           <View className="flex-row justify-between items-center mb-1">
             <Text className="text-base font-semibold text-gray-900 dark:text-white" numberOfLines={1}>
               {item.username || 'Unknown'}
@@ -183,8 +177,8 @@ export function MainScreen({ initialData }: MainScreenProps) {
             <Text className="text-xs text-gray-400 dark:text-gray-500">{formattedDate}</Text>
           </View>
           <View className="flex-row justify-between items-center">
-            <Text className="text-sm text-gray-600 dark:text-gray-300" numberOfLines={1}>
-              {lastMessage ? lastMessage.message_text : 'No messages yet'}
+            <Text className="text-sm text-gray-600 dark:text-gray-300 flex-1 mr-2" numberOfLines={1}>
+              {lastMessage ? lastMessage.content : 'No messages yet'}
             </Text>
             {messageCount > 0 && (
               <View className="min-w-[24px] h-6 rounded-full justify-center items-center px-2 bg-blue-500">
@@ -193,59 +187,33 @@ export function MainScreen({ initialData }: MainScreenProps) {
             )}
           </View>
         </View>
-        <MaterialIcons name="chevron-right" size={24} className="text-gray-400 dark:text-gray-500 opacity-60" />
       </TouchableOpacity>
     );
   }, [selectedItem, router]);
 
-  const filteredData = useMemo(() => {
+  const sortedData = useMemo(() => {
     const allData = [...channelData.requests, ...channelData.follows];
-    
-    if (activeTab === 'private') return allData.filter(item => item.isPrivate);
-    if (activeTab === 'public') return allData.filter(item => !item.isPrivate);
-    
-    return allData;
-  }, [channelData, activeTab]);
 
-  // Calculate message counts for each tab
-  const tabCounts = useMemo(() => {
-    const allData = [...channelData.requests, ...channelData.follows];
-    const privateItems = allData.filter(item => item.isPrivate);
-    const publicItems = allData.filter(item => !item.isPrivate);
+    // Sort all channels by last_updated_at
+    const sorted = allData.sort((a, b) => {
+      const aDate = a.channelActivity?.[0]?.last_updated_at;
+      const bDate = b.channelActivity?.[0]?.last_updated_at;
+      
+      // If both have dates, compare them
+      if (aDate && bDate) {
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
+      }
+      
+      // If only one has a date, prioritize the one with a date
+      if (aDate) return -1;
+      if (bDate) return 1;
+      
+      // If neither has a date, keep original order
+      return 0;
+    });
 
-    return {
-      private: privateItems.filter(item => (item.channelActivity?.[0]?.message_count || 0) > 0).length,
-      public: publicItems.filter(item => (item.channelActivity?.[0]?.message_count || 0) > 0).length
-    };
+    return sorted;
   }, [channelData]);
-
-  const renderTabButton = (tab: TabType, label: string) => (
-    <TouchableOpacity
-      className={`flex-1 py-3 ${
-        activeTab === tab 
-          ? 'border-b-2 border-green-500' 
-          : ''
-      }`}
-      onPress={() => setActiveTab(tab)}
-    >
-      <View className="flex-row items-center justify-center">
-        <Text 
-          className={`text-center text-sm font-medium ${
-            activeTab === tab 
-              ? 'text-green-500' 
-              : 'text-gray-500 dark:text-gray-400'
-          }`}
-        >
-          {label}
-        </Text>
-        {tabCounts[tab] > 0 && (
-          <View className="ml-2 min-w-[20px] h-5 rounded-full justify-center items-center px-1.5 bg-green-500">
-            <Text className="text-xs font-semibold text-white">{tabCounts[tab]}</Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
 
   if (authLoading) {
     return (
@@ -304,15 +272,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
       <View className="flex-1">
-        {/* Tab Pills */}
-        <View className="px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-          <View className="flex-row">
-            {renderTabButton('private', 'Private')}
-            {renderTabButton('public', 'Public')}
-          </View>
-        </View>
-
-        {filteredData.length === 0 ? (
+        {sortedData.length === 0 ? (
           <View className="flex-1 justify-center items-center p-6">
             <View className="p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-lg w-full max-w-md">
               <Text className="text-2xl font-bold text-center text-gray-900 dark:text-white">No Channels</Text>
@@ -329,7 +289,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             <View className="p-4">
               <FlashList
-                data={filteredData}
+                data={sortedData}
                 estimatedItemSize={76}
                 renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
