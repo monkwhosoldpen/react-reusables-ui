@@ -53,19 +53,17 @@ export interface SampleHelperReturn {
 }
 
 export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperReturn {
-  // Remove direct AuthHelper dependency
-  // const { refreshUserInfo } = AuthHelper();
 
   const testFn = async (username: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        console.log('testFn', username);
         resolve();
       }, 1000);
     });
   };
 
   const updateLanguagePreference = async (language: string): Promise<void> => {
+    
     if (!user?.id) return;
     
     try {
@@ -90,14 +88,13 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
       // Update IndexedDB
       await indexedDB.setUserLanguage(user.id, language);
       
-      // No need to refresh user info since we're using the passed user state
     } catch (error) {
-      console.error('Error updating language preference:', error);
       throw error;
     }
   };
 
   const updateNotificationPreference = async (enabled: boolean): Promise<void> => {
+   
     if (!user) return;
 
     try {
@@ -120,14 +117,13 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
       // Update IndexedDB
       await indexedDB.setUserNotifications(user.id, enabled);
       
-      // No need to refresh user info since we're using the passed user state
     } catch (error) {
-      console.error('Error updating notification preference:', error);
       throw error;
     }
   };
 
   const updatePushSubscription = async (subscription: PushSubscription, enabled: boolean): Promise<void> => {
+    
     if (!user) return;
     
     try {
@@ -173,10 +169,7 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
 
       if (error) throw error;
 
-      // No need to refresh user info since we're using the passed user state
-
     } catch (error) {
-      console.error('Error updating push subscription:', error);
       throw error;
     }
   };
@@ -386,25 +379,14 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
   // New function to handle channel onboarding completion
   const completeChannelOnboarding = async (channelUsername: string, channelDetails: Channel) => {
     try {
-      console.log('[SampleHelper] completeChannelOnboarding called with params:', { 
-        channelUsername, 
-        username: channelDetails?.username,
-        isPublic: channelDetails?.is_public,
-        isOwnerDb: channelDetails?.is_owner_db,
-        userId: user?.id,
-        isGuest
-      });
       
       if (!channelDetails) {
-        console.error('[SampleHelper] completeChannelOnboarding failed - channel details missing');
         return false;
       }
       
       const userId = user?.id || 'guest-id';
-      console.log('[SampleHelper] Using user ID for request:', userId);
       
       const endpoint = `${config.api.endpoints.channels.base}/${channelDetails.username}/request-access`;
-      console.log('[SampleHelper] Request access API endpoint:', endpoint);
       
       const requestPayload = {
         user_id: userId,
@@ -416,10 +398,8 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
           onboarding_completed: true
         }
       };
-      console.log('[SampleHelper] Request access payload:', requestPayload);
       
       // Use the Vercel API endpoint instead of direct Supabase call
-      console.log('[SampleHelper] Sending request access API call...');
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -428,41 +408,28 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
         body: JSON.stringify(requestPayload),
       });
       
-      console.log('[SampleHelper] Request access API response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('[SampleHelper] Error requesting channel access:', errorData);
-        console.error('[SampleHelper] HTTP status:', response.status);
-        console.error('[SampleHelper] Status text:', response.statusText);
         return false;
       } else {
         const data = await response.json();
-        console.log('[SampleHelper] Successfully requested channel access. Response:', data);
         
         // If there are specific fields in the response that indicate success, log them
         if (data.success) {
-          console.log('[SampleHelper] Request explicitly marked as successful in response');
         }
         if (data.status) {
-          console.log('[SampleHelper] Response status:', data.status);
         }
         if (data.message) {
-          console.log('[SampleHelper] Response message:', data.message);
         }
         if (data.access_granted) {
-          console.log('[SampleHelper] Access granted status:', data.access_granted);
         }
         
         // Return the full response object instead of just true
         return data;
       }
     } catch (error) {
-      console.error('[SampleHelper] Exception during channel onboarding:', error);
       if (error instanceof Error) {
-        console.error('[SampleHelper] Error name:', error.name);
-        console.error('[SampleHelper] Error message:', error.message);
-        console.error('[SampleHelper] Error stack:', error.stack);
       }
       return false;
     }

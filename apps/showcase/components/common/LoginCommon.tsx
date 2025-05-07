@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { View, Animated, SafeAreaView } from 'react-native';
+import { View, Animated } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Text } from '~/components/ui/text';
@@ -73,14 +73,7 @@ export default function LoginCommon({
 
   return (
     <Animated.View style={{ opacity: fadeAnim }}>
-      <View className="p-6 rounded-2xl bg-white dark:bg-gray-800 mt-6 shadow-lg">
-        <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Sign In
-        </Text>
-        <Text className="text-base text-gray-600 dark:text-gray-300 mb-6">
-          Enter your credentials to access your account
-        </Text>
-
+      <View className="p-6">
         <View className="space-y-4">
           <Input
             placeholder="Email"
@@ -91,6 +84,7 @@ export default function LoginCommon({
             keyboardType="email-address"
             editable={!isEmailLoading}
             accessibilityLabel="Email input"
+            className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
           />
 
           <Input
@@ -101,6 +95,7 @@ export default function LoginCommon({
             secureTextEntry
             editable={!isEmailLoading}
             accessibilityLabel="Password input"
+            className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
           />
         </View>
 
@@ -112,6 +107,7 @@ export default function LoginCommon({
           onPress={handleEmailSubmit}
           disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
           accessibilityLabel="Sign in with email button"
+          className="mt-4 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
         >
           <View className="flex-row items-center gap-2">
             {isEmailLoading ? (
@@ -132,6 +128,7 @@ export default function LoginCommon({
             onPress={handleAnonymousSubmit}
             disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
             accessibilityLabel="Continue anonymously button"
+            className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
           >
             <View className="flex-row items-center gap-2">
               {isAnonymousLoading ? (
@@ -149,6 +146,7 @@ export default function LoginCommon({
             onPress={handleGuestSubmit}
             disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
             accessibilityLabel="Continue as guest button"
+            className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
           >
             <View className="flex-row items-center gap-2">
               {isGuestLoading ? (
@@ -170,6 +168,7 @@ export default function LoginCommon({
             }}
             disabled={isEmailLoading || isAnonymousLoading || isGuestLoading}
             accessibilityLabel="Demo login button"
+            className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
           >
             <View className="flex-row items-center gap-2">
               {isEmailLoading ? (

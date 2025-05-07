@@ -6,6 +6,15 @@
 -- Drop existing tables if they exist
 DROP TABLE IF EXISTS superfeed_responses;
 DROP TABLE IF EXISTS superfeed;
+DROP TABLE IF EXISTS channels_activity;
+
+-- Create channels_activity table for tracking channel last change
+CREATE TABLE IF NOT EXISTS channels_activity (
+    username TEXT PRIMARY KEY,
+    last_updated_at TIMESTAMPTZ DEFAULT NOW(),
+    message_count INTEGER,
+    last_message JSONB
+);
 
 -- Create superfeed table
 CREATE TABLE superfeed (
@@ -245,3 +254,57 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create function to update channels_activity
+CREATE OR REPLACE FUNCTION update_channel_activity()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- For INSERT or UPDATE
+    IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+        INSERT INTO channels_activity (username, last_updated_at, message_count, last_message)
+        VALUES (
+            NEW.channel_username,
+            NOW(),
+            (SELECT COUNT(*) FROM superfeed WHERE channel_username = NEW.channel_username),
+            row_to_json(NEW)
+        )
+        ON CONFLICT (username) DO UPDATE
+        SET 
+            last_updated_at = NOW(),
+            message_count = (SELECT COUNT(*) FROM superfeed WHERE channel_username = NEW.channel_username),
+            last_message = row_to_json(NEW);
+    -- For DELETE
+    ELSIF (TG_OP = 'DELETE') THEN
+        UPDATE channels_activity
+        SET 
+            last_updated_at = NOW(),
+            message_count = (SELECT COUNT(*) FROM superfeed WHERE channel_username = OLD.channel_username),
+            last_message = (
+                SELECT row_to_json(sf.*)
+                FROM superfeed sf
+                WHERE sf.channel_username = OLD.channel_username
+                ORDER BY sf.created_at DESC
+                LIMIT 1
+            )
+        WHERE username = OLD.channel_username;
+    END IF;
+    
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create triggers for superfeed changes
+CREATE TRIGGER trigger_superfeed_channel_activity_insert
+AFTER INSERT ON superfeed
+FOR EACH ROW
+EXECUTE FUNCTION update_channel_activity();
+
+CREATE TRIGGER trigger_superfeed_channel_activity_update
+AFTER UPDATE ON superfeed
+FOR EACH ROW
+EXECUTE FUNCTION update_channel_activity();
+
+CREATE TRIGGER trigger_superfeed_channel_activity_delete
+AFTER DELETE ON superfeed
+FOR EACH ROW
+EXECUTE FUNCTION update_channel_activity();

@@ -45,7 +45,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
   
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [loadingState, setLoadingState] = useState({
-    dbInit: !initialData, // If we have initial data, DB is already initialized
+    dbInit: !initialData,
     dataLoading: false
   });
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +53,11 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   // Function to load channel data that can be reused
   const loadChannelData = useCallback(async () => {
+    
     // Skip if there's no user
-    if (!user?.id) return;
+    if (!user?.id) {
+      return;
+    }
 
     setLoadingState(prev => ({ ...prev, dataLoading: true }));
 
@@ -71,6 +74,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
         indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id),
         indexedDB.getAll('channels_activity')
       ]);
+
 
       // Process follows and requests with activity data
       const followsWithActivity = (follows || []).map(follow => ({
@@ -95,6 +99,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
       
       dataLoadedRef.current = true;
     } catch (err) {
+      console.error('[MainScreen] Error loading data:', err);
       setError('Failed to load data');
     } finally {
       setLoadingState(prev => ({ ...prev, dataLoading: false }));
@@ -106,6 +111,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
     let mounted = true;
 
     const initializeAndLoadData = async () => {
+      
       // Skip if we've already loaded data or if there's no user
       if (dataLoadedRef.current || !user?.id) return;
       
@@ -203,18 +209,18 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   const renderTabButton = (tab: TabType, label: string) => (
     <TouchableOpacity
-      className={`py-2 px-4 mx-1 rounded-full ${
+      className={`flex-1 py-3 ${
         activeTab === tab 
-          ? 'bg-blue-500' 
-          : 'bg-gray-100 dark:bg-gray-700'
+          ? 'border-b-2 border-green-500' 
+          : ''
       }`}
       onPress={() => setActiveTab(tab)}
     >
       <Text 
-        className={`text-sm font-semibold ${
+        className={`text-center text-sm font-medium ${
           activeTab === tab 
-            ? 'text-white' 
-            : 'text-gray-600 dark:text-gray-300'
+            ? 'text-green-500' 
+            : 'text-gray-500 dark:text-gray-400'
         }`}
       >
         {label}
@@ -280,8 +286,8 @@ export function MainScreen({ initialData }: MainScreenProps) {
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
       <View className="flex-1">
         {/* Tab Pills */}
-        <View className="px-4 py-3 bg-white dark:bg-gray-900">
-          <View className="flex-row rounded-sm bg-gray-100 dark:bg-gray-800 py-2 px-4 shadow-sm">
+        <View className="px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+          <View className="flex-row">
             {renderTabButton('private', 'Private')}
             {renderTabButton('public', 'Public')}
           </View>

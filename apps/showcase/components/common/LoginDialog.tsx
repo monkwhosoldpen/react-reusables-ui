@@ -2,11 +2,9 @@
 
 import { useState } from "react"
 import { useAuth } from "~/lib/core/contexts/AuthContext"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog"
+import { Dialog, DialogContent } from "~/components/ui/dialog"
 import LoginCommon from "~/components/common/LoginCommon"
-import { useColorScheme } from "~/lib/core/providers/theme/ColorSchemeProvider"
-import { useDesign } from "~/lib/core/providers/theme/DesignSystemProvider"
-import { StyleSheet, View, Text } from "react-native"
+import { View, Text } from "react-native"
 import { MaterialIcons } from "@expo/vector-icons"
 import { router } from "expo-router"
 
@@ -18,66 +16,10 @@ interface LoginDialogProps {
 
 export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialogProps) {
   const { signIn, signInAnonymously, signInAsGuest } = useAuth()
-  const { colorScheme } = useColorScheme()
-  const { design } = useDesign()
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-
-  const styles = StyleSheet.create({
-    dialogContent: {
-      backgroundColor: colorScheme.colors.background,
-      borderRadius: Number(design.radius.lg),
-      width: '100%',
-      maxWidth: 400,
-      margin: 0,
-      padding: 0,
-    },
-    content: {
-      flex: 1,
-    },
-    header: {
-      marginBottom: Number(design.spacing.padding.card),
-    },
-    sectionHeader: {
-      backgroundColor: 'transparent',
-    },
-    sectionHeaderText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: colorScheme.colors.text,
-      opacity: 0.7,
-      textTransform: 'uppercase',
-      letterSpacing: 1,
-    },
-    titleContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    iconContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 12,
-      backgroundColor: `${colorScheme.colors.primary}1A`,
-    },
-    title: {
-      fontSize: Number(design.spacing.fontSize.xl),
-      fontWeight: '700',
-      color: colorScheme.colors.text,
-      marginBottom: Number(design.spacing.padding.item),
-    },
-    description: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: 0.7,
-      lineHeight: 24,
-    },
-  })
 
   const handleSubmit = async () => {
     console.log('[LoginDialog] Starting email sign in with:', { email });
@@ -139,19 +81,23 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent style={styles.dialogContent}>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionHeaderText}>SIGN IN</Text>
+      <DialogContent className="w-full max-w-[400px] p-0 m-0 bg-white dark:bg-gray-800 rounded-2xl">
+        <View className="flex-1">
+          <View className="p-6">
+            <View className="mb-4">
+              <Text className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                SIGN IN
+              </Text>
             </View>
-            <View style={styles.titleContainer}>
-              <View style={styles.iconContainer}>
-                <MaterialIcons name="login" size={24} color={colorScheme.colors.primary} />
+            <View className="flex-row items-center mb-4">
+              <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-blue-100 dark:bg-blue-900/20">
+                <MaterialIcons name="login" size={24} className="text-blue-500 dark:text-blue-400" />
               </View>
               <View>
-                <Text style={styles.title}>Welcome back</Text>
-                <Text style={styles.description}>
+                <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                  Welcome back
+                </Text>
+                <Text className="text-base text-gray-600 dark:text-gray-300">
                   Sign in to access your account and continue where you left off
                 </Text>
               </View>

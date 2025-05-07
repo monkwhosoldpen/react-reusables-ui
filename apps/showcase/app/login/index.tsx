@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 
 export default function LoginPage() {
-  const { signIn, signInAnonymously, signInAsGuest, user } = useAuth();
+  const { signIn, signInAnonymously, signInAsGuest, user, userInfo, loading } = useAuth();
   const { colorScheme } = useColorScheme();
   const { design } = useDesign();
   const { width } = useWindowDimensions();
@@ -16,9 +16,21 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Log auth state changes
+  useEffect(() => {
+    console.log('[LoginPage] Auth state changed:', { 
+      hasUser: !!user, 
+      hasUserInfo: !!userInfo, 
+      isLoading: loading,
+      userEmail: user?.email,
+      isGuest: userInfo?.is_guest
+    });
+  }, [user, userInfo, loading]);
+
   // Check if user is already logged in
   useEffect(() => {
     if (user) {
+      console.log('[LoginPage] User detected, redirecting to home');
       router.replace('/(tabs)');
     }
   }, [user]);
@@ -82,12 +94,15 @@ export default function LoginPage() {
   });
 
   const handleSubmit = async () => {
+    console.log('[LoginPage] Starting email sign in');
     setIsLoading(true);
     setError('');
     try {
       await signIn(email, password);
+      console.log('[LoginPage] Email sign in successful');
       router.replace('/(tabs)');
     } catch (err) {
+      console.error('[LoginPage] Email sign in error:', err);
       setError(err instanceof Error ? err.message : 'Failed to sign in');
     } finally {
       setIsLoading(false);
@@ -95,12 +110,15 @@ export default function LoginPage() {
   };
 
   const handleAnonymousSignIn = async () => {
+    console.log('[LoginPage] Starting anonymous sign in');
     setIsLoading(true);
     setError('');
     try {
       await signInAnonymously();
+      console.log('[LoginPage] Anonymous sign in successful');
       router.replace('/(tabs)');
     } catch (err) {
+      console.error('[LoginPage] Anonymous sign in error:', err);
       setError(err instanceof Error ? err.message : 'Failed to sign in anonymously');
     } finally {
       setIsLoading(false);
@@ -108,12 +126,15 @@ export default function LoginPage() {
   };
 
   const handleGuestSignIn = async () => {
+    console.log('[LoginPage] Starting guest sign in');
     setIsLoading(true);
     setError('');
     try {
       await signInAsGuest();
+      console.log('[LoginPage] Guest sign in successful');
       router.replace('/(tabs)');
     } catch (err) {
+      console.error('[LoginPage] Guest sign in error:', err);
       setError(err instanceof Error ? err.message : 'Failed to sign in as guest');
     } finally {
       setIsLoading(false);
@@ -123,7 +144,6 @@ export default function LoginPage() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-
         <LoginCommon
           email={email}
           setEmail={setEmail}

@@ -1,15 +1,6 @@
 -- Create extension for UUID generation if not exists
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create channels_activity table for tracking channel last change
-CREATE TABLE IF NOT EXISTS channels_activity (
-    username TEXT PRIMARY KEY,
-    last_updated_at TIMESTAMPTZ DEFAULT NOW(),
-    message_count INTEGER,
-    last_message JSONB
-);
-
-
 -- Drop user_language table if it exists
 DROP TABLE IF EXISTS user_language CASCADE;
 

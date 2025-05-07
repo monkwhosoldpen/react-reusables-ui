@@ -10,28 +10,51 @@ type ChannelsActivityRecord = {
   message_count: number;
   last_message: {
     id: string;
-    message_text?: string;
+    type: string;
+    content: string;
+    caption?: string;
+    message?: string;
+    media: any;
+    metadata: any;
+    stats: any;
+    interactive_content: any;
+    fill_requirement: string;
+    expires_at?: string;
+    channel_username: string;
     created_at: string;
+    updated_at: string;
   };
 };
 
 type RealtimeContextType = {
   channelActivities: ChannelActivity[];
+  error: string | null;
+  isLoading: boolean;
+  setRealtimeChangeHandler: (handler: (payload: RealtimePostgresChangesPayload<ChannelsActivityRecord>) => void) => void;
 };
 
 const RealtimeContext = createContext<RealtimeContextType>({
   channelActivities: [],
+  error: null,
+  isLoading: false,
+  setRealtimeChangeHandler: () => {},
 });
 
 export const useRealtime = () => useContext(RealtimeContext);
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [channelActivities, setChannelActivities] = useState<ChannelActivity[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const debounceTimeoutRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  const onRealtimeChangeRef = useRef<((payload: RealtimePostgresChangesPayload<ChannelsActivityRecord>) => void) | undefined>();
 
   const fetchChannelActivities = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
       console.log('🔍 Fetching channel activities...');
+      
       const { data, error } = await supabase
         .from('channels_activity')
         .select('username, last_updated_at, message_count, last_message')
@@ -39,7 +62,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('❌ Error fetching channel activities:', error);
-        throw error;
+        setError(error.message);
+        return;
       }
 
       // Transform the data to match ChannelActivity type
@@ -51,16 +75,23 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       }));
 
       setChannelActivities(activities);
+      console.log(`✅ Successfully loaded ${activities.length} channel activities`);
     } catch (error) {
-      console.error('❌ Error in fetchChannelActivities:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('❌ Error in fetchChannelActivities:', errorMessage);
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleRealtimeChange = useCallback((payload: any) => {
-    if (!payload) return;
+  const handleRealtimeChange = useCallback((payload: RealtimePostgresChangesPayload<ChannelsActivityRecord>) => {
+    if (!payload || !payload.new && !payload.old) return;
 
     const { eventType, new: newRecord, old: oldRecord } = payload;
-    const username = newRecord?.username || oldRecord?.username;
+    const username = (newRecord as ChannelsActivityRecord)?.username || (oldRecord as ChannelsActivityRecord)?.username;
+
+    if (!username) return;
 
     // Clear any existing timeout for this username
     if (debounceTimeoutRef.current[username]) {
@@ -72,23 +103,31 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       setChannelActivities((prev) => {
         const currentActivity = prev.find(a => a.username === username);
         const oldCount = currentActivity?.message_count || 0;
-        const newCount = newRecord?.message_count || 0;
+        const newCount = (newRecord as ChannelsActivityRecord)?.message_count || 0;
 
-        // Only log if there's a meaningful change in message count
-        if (eventType === 'UPDATE' && oldCount !== newCount) {
-          console.log(`📡 ${username}: ${oldCount} → ${newCount} messages`);
+        // Enhanced logging for different types of changes
+        if (eventType === 'UPDATE') {
+          if (oldCount !== newCount) {
+            console.log(`📡 ${username}: Message count changed ${oldCount} → ${newCount}`);
+          }
+          if ((newRecord as ChannelsActivityRecord)?.last_message?.id !== currentActivity?.last_message?.id) {
+            console.log(`📡 ${username}: New message content updated`);
+          }
         } else if (eventType === 'INSERT') {
           console.log(`📡 New channel: ${username} (${newCount} messages)`);
         } else if (eventType === 'DELETE') {
           console.log(`📡 Channel deleted: ${username}`);
         }
 
+        // Call the external change handler if provided
+        onRealtimeChangeRef.current?.(payload);
+
         switch (eventType) {
           case 'INSERT':
-            return [...prev, newRecord];
+            return [...prev, newRecord as ChannelsActivityRecord];
           case 'UPDATE':
             return prev.map((activity) =>
-              activity.username === username ? newRecord : activity
+              activity.username === username ? (newRecord as ChannelsActivityRecord) : activity
             );
           case 'DELETE':
             return prev.filter((activity) => activity.username !== username);
@@ -115,7 +154,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         },
         handleRealtimeChange
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`📡 Realtime subscription status: ${status}`);
+      });
 
     return () => {
       console.log('🧹 Cleaning up RealtimeProvider...');
@@ -125,10 +166,18 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     };
   }, [handleRealtimeChange]);
 
+  // Function to set the realtime change handler
+  const setRealtimeChangeHandler = useCallback((handler: (payload: RealtimePostgresChangesPayload<ChannelsActivityRecord>) => void) => {
+    onRealtimeChangeRef.current = handler;
+  }, []);
+
   return (
     <RealtimeContext.Provider
       value={{
         channelActivities,
+        error,
+        isLoading,
+        setRealtimeChangeHandler
       }}
     >
       {children}

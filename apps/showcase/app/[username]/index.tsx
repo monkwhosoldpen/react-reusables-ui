@@ -1,46 +1,86 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '~/components/ui/button';
 import { ChannelSidebar } from '~/components/channel-profile/ChannelSidebar';
-import { ChannelDebugInfo } from '~/components/channel-profile/ChannelDebugInfo';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { Loader2 } from 'lucide-react';
 import { useLocalSearchParams } from 'expo-router';
 import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 import { useWindowDimensions } from 'react-native';
-import { useRealtime } from '~/lib/core/providers/RealtimeProvider';
-import ChannelInfoSection from '~/components/channel-profile/ChannelInfoSection';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import useChannelData from '~/lib/channel/channel-profile-util';
 import { FollowButton } from '~/components/common/FollowButton';
 import { JoinButton } from '~/components/common/JoinButton';
-import { config } from '~/lib/core/config';
 import { AuthHelper } from '~/lib/core/helpers/AuthHelpers';
+import { useRealtime } from '~/lib/core/providers/RealtimeProvider';
 
 export default function ChannelPage() {
   const router = useRouter();
   const { username } = useLocalSearchParams();
   const usernameStr = Array.isArray(username) ? username[0] : username || '';
   const { width: screenWidth } = useWindowDimensions();
-  const { channelActivities } = useRealtime();
-  const prevActivitiesRef = useRef<typeof channelActivities>([]);
-  const processedMessagesRef = useRef<Set<string>>(new Set());
-  const isInitialLoadRef = useRef(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { user } = AuthHelper();
   
-  // Add a refreshKey state to force the useChannelData hook to re-fetch data
-  const [refreshKey, setRefreshKey] = useState(0);
-
   // Create a function to refresh channel data
   const refreshChannelData = useCallback(() => {
-    console.log('[ChannelPage] Refreshing channel data with new key:', refreshKey + 1);
     setRefreshKey(prev => prev + 1);
   }, [refreshKey]);
+
+  // Use the realtime provider for logging
+  const { setRealtimeChangeHandler } = useRealtime();
+  const pendingUpdatesRef = useRef<boolean>(false);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Handle realtime changes
+  useEffect(() => {
+    setRealtimeChangeHandler((payload) => {
+      const { eventType, new: newRecord, old: oldRecord } = payload;
+      const username = (newRecord as any)?.username || (oldRecord as any)?.username;
+
+      if (username !== usernameStr) return;
+
+      // Clear any existing timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      if (eventType === 'UPDATE') {
+        if (newRecord?.last_message?.id !== oldRecord?.last_message?.id) {
+          console.log(`[ChannelPage] New message in channel ${username}:`, newRecord?.last_message);
+          pendingUpdatesRef.current = true;
+        }
+        if (newRecord?.message_count !== oldRecord?.message_count) {
+          console.log(`[ChannelPage] Channel ${username} message count changed: ${oldRecord?.message_count} → ${newRecord?.message_count}`);
+          pendingUpdatesRef.current = true;
+        }
+      } else if (eventType === 'INSERT') {
+        console.log(`[ChannelPage] New channel added: ${username} (${newRecord?.message_count} messages)`);
+        pendingUpdatesRef.current = true;
+      } else if (eventType === 'DELETE') {
+        console.log(`[ChannelPage] Channel deleted: ${username}`);
+        pendingUpdatesRef.current = true;
+      }
+
+      // Set a new timeout to debounce the update
+      debounceTimeoutRef.current = setTimeout(() => {
+        if (pendingUpdatesRef.current) {
+          pendingUpdatesRef.current = false;
+          refreshChannelData();
+        }
+      }, 1000); // Debounce for 1 second
+    });
+
+    // Cleanup function
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [usernameStr, setRealtimeChangeHandler, refreshChannelData]);
 
   // Use the custom hook to fetch channel data
   const {
@@ -53,32 +93,6 @@ export default function ChannelPage() {
     accessStatus,
     refreshMessages
   } = useChannelData(usernameStr, refreshKey);
-
-  // Add logging for channel activities
-  React.useEffect(() => {
-    if (isInitialLoadRef.current) {
-      // Skip logging on initial load
-      isInitialLoadRef.current = false;
-      prevActivitiesRef.current = channelActivities;
-      return;
-    }
-
-    // Compare with previous activities to detect changes
-    channelActivities.forEach(activity => {
-      const prevActivity = prevActivitiesRef.current.find(a => a.username === activity.username);
-
-      if (activity.last_message &&
-        (!prevActivity || prevActivity.last_message?.id !== activity.last_message?.id) &&
-        !processedMessagesRef.current.has(activity.last_message.id)) {
-
-        // Mark this message as processed
-        processedMessagesRef.current.add(activity.last_message.id);
-      }
-    });
-
-    // Update previous activities
-    prevActivitiesRef.current = channelActivities;
-  }, [channelActivities]);
 
   // Calculate widths
   const sidebarWidth = Math.floor(screenWidth * 0.20);
@@ -128,27 +142,20 @@ export default function ChannelPage() {
 
   // Function to check access status and refresh messages if needed
   const checkAccessStatusAndRefresh = async (channelResponse: any) => {
-    console.log('[ChannelPage] Checking for updated access status from response:', channelResponse);
     
     if (channelResponse && 'access_status' in channelResponse) {
-      console.log('[ChannelPage] New access status detected:', channelResponse.access_status);
       if (channelResponse.access_status !== accessStatus) {
-        console.log('[ChannelPage] Access status changed, refreshing channel data');
         refreshChannelData();
       }
     } else if (channelResponse && 'status' in channelResponse) {
-      console.log('[ChannelPage] Request status detected:', channelResponse.status);
       if (channelResponse.status === 'APPROVED') {
-        console.log('[ChannelPage] Request approved, refreshing channel data');
         refreshChannelData();
       } else {
-        console.log('[ChannelPage] Request status is:', channelResponse.status, ', refreshing messages');
         if (refreshMessages) {
           await refreshMessages();
         }
       }
     } else {
-      console.log('[ChannelPage] No specific status in response, refreshing messages');
       if (refreshMessages) {
         await refreshMessages();
       }
@@ -186,15 +193,11 @@ export default function ChannelPage() {
                 accessStatus={accessStatus} 
                 channelDetails={channel} 
                 onJoin={(channelResponse) => {
-                  console.log('[ChannelPage] Join successful for channel:', usernameStr);
-                  console.log('[ChannelPage] Refreshing channel data after successful join');
                   
                   // Check for updated access status and refresh data accordingly
                   checkAccessStatusAndRefresh(channelResponse);
                 }}
                 onRequestAccess={() => {
-                  console.log('[ChannelPage] Access requested for channel:', usernameStr);
-                  console.log('[ChannelPage] Channel details:', channel);
                 }}
               />
             )}
