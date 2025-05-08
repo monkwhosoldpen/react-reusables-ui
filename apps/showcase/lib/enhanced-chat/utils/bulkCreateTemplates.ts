@@ -364,7 +364,7 @@ export function generateBulkShortMessages(count: number): FormDataType[] {
     media: [],
     metadata: {
       ...DEFAULT_METADATA,
-      isCollapsible: true,
+      isCollapsible: false,
       mediaLayout: 'grid',
       visibility: {
         ...DEFAULT_METADATA.visibility,
