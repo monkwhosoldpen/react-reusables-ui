@@ -28,51 +28,78 @@ export function ChannelSidebar({
     router.push(`/${channelUsername}`)
   }
 
-  return (
-    <View style={{ width: sidebarWidth }} className="h-full border-r border-border bg-background">
-      <ScrollView className="flex-1">
-        {/* Parent Channel */}
-        {channelDetails.parent_channel && (
-          <Pressable onPress={() => handleChannelPress(channelDetails.parent_channel.username)}>
-            <View className={`flex-col items-center py-0.5 px-0 rounded-lg m-0. ${
-              selectedChannel === channelDetails.parent_channel.username ? 'bg-muted' : 'bg-card'
-            }`}>
-              <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
-                <Users size={16} color={colorScheme.colors.primary} />
-              </View>
-              <Text 
-                className="text-[9px] text-center mt-0.5 font-medium px-1 w-full"
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {channelDetails.parent_channel.username}
-              </Text>
-            </View>
-          </Pressable>
-        )}
+  const handleSettingsPress = () => {
+    console.log('Settings pressed')
+  }
 
-        {/* Related Channels */}
-        {channelDetails.related_channels
-          ?.sort((a, b) => a.username.localeCompare(b.username))
-          .map((related) => (
-          <Pressable key={related.username} onPress={() => handleChannelPress(related.username)}>
-            <View className={`flex-col items-center py-0.5 px-0 ${
-              selectedChannel === related.username ? 'bg-muted' : 'bg-card'
-            }`}>
-              <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
-                <Users size={16} color={colorScheme.colors.primary} />
+  return (
+    <View style={{ width: sidebarWidth }} className="h-full border-r border-border bg-white dark:bg-gray-800">
+      <View className="flex-1">
+        <ScrollView className="flex-1">
+          {/* Parent Channel */}
+          {channelDetails.parent_channel && (
+            <Pressable onPress={() => handleChannelPress(channelDetails.parent_channel.username)}>
+              <View className={`flex-col items-center py-2 px-1 m-1 shadow-sm ${
+                selectedChannel === channelDetails.parent_channel.username 
+                  ? 'bg-gray-50 dark:bg-gray-700/50' 
+                  : 'bg-white dark:bg-gray-800'
+              }`}>
+                <View className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center shadow-sm">
+                  <Users size={20} color={colorScheme.colors.primary} />
+                </View>
+                <Text 
+                  className="text-xs text-center mt-1.5 font-medium px-1 w-full text-gray-900 dark:text-white"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {channelDetails.parent_channel.username}
+                </Text>
               </View>
-              <Text 
-                className="text-[9px] text-center mt-0.5 px-1 w-full"
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {related.username}
-              </Text>
+            </Pressable>
+          )}
+
+          {/* Related Channels */}
+          {channelDetails.related_channels
+            ?.sort((a, b) => a.username.localeCompare(b.username))
+            .map((related) => (
+            <Pressable key={related.username} onPress={() => handleChannelPress(related.username)}>
+              <View className={`flex-col items-center py-2 px-1 m-1 shadow-sm ${
+                selectedChannel === related.username 
+                  ? 'bg-gray-50 dark:bg-gray-700/50' 
+                  : 'bg-white dark:bg-gray-800'
+              }`}>
+                <View className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center shadow-sm">
+                  <Users size={20} color={colorScheme.colors.primary} />
+                </View>
+                <Text 
+                  className="text-xs text-center mt-1.5 px-1 w-full text-gray-900 dark:text-white"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {related.username}
+                </Text>
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        {/* Settings Section */}
+        <View className="border-t border-gray-200 dark:border-gray-700 mt-2">
+          <Pressable 
+            onPress={handleSettingsPress}
+            className="flex-col items-center py-3 px-1"
+          >
+            <View className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 items-center justify-center shadow-sm">
+              <Settings size={20} color={colorScheme.colors.primary} />
             </View>
+            <Text 
+              className="text-xs text-center mt-1.5 font-medium text-gray-900 dark:text-white"
+            >
+              Settings
+            </Text>
           </Pressable>
-        ))}
-      </ScrollView>
+        </View>
+      </View>
     </View>
   )
 } 

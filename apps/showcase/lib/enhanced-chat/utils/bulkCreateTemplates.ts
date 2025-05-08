@@ -364,7 +364,7 @@ export function generateBulkShortMessages(count: number): FormDataType[] {
     media: [],
     metadata: {
       ...DEFAULT_METADATA,
-      isCollapsible: false,
+      isCollapsible: true,
       mediaLayout: 'grid',
       visibility: {
         ...DEFAULT_METADATA.visibility,
@@ -398,12 +398,12 @@ export function generateBulkPollMessages(count: number): FormDataType[] {
     media: [],
     metadata: {
       ...DEFAULT_METADATA,
-      isCollapsible: false,
+      isCollapsible: true,
       mediaLayout: 'grid',
       interactiveType: 'poll',
       visibility: {
         ...DEFAULT_METADATA.visibility,
-        footer: true
+        footer: false
       }
     },
     interactive_content: {
@@ -424,7 +424,7 @@ export function generateBulkQuizMessages(count: number): FormDataType[] {
       interactiveType: 'quiz',
       visibility: {
         ...DEFAULT_METADATA.visibility,
-        footer: true
+        footer: false
       }
     },
     interactive_content: {
@@ -445,7 +445,7 @@ export function generateBulkSurveyMessages(count: number): FormDataType[] {
       interactiveType: 'survey',
       visibility: {
         ...DEFAULT_METADATA.visibility,
-        footer: true
+        footer: false
       }
     },
     interactive_content: {

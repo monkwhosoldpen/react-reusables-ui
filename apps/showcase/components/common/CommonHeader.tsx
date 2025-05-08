@@ -43,7 +43,7 @@ export function CommonHeader({
           {showBackButton && (
             <TouchableOpacity 
               onPress={handleBackPress} 
-              className="mr-2 p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+              className="mr-2 p-2"
             >
               <ChevronLeft size={24} className="text-gray-900 dark:text-white" />
             </TouchableOpacity>

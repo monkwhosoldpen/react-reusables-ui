@@ -5,9 +5,7 @@ import { Button } from '~/components/ui/button';
 import { FormDataType, InteractiveContent, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
 import { useInteractiveContent } from '~/lib/enhanced-chat/hooks/useInteractiveContent';
 import { LinearGradient } from 'expo-linear-gradient';
-import Markdown from 'react-native-markdown-display';
 import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { calculateMaxHeight } from '~/lib/enhanced-chat/utils/heightCalculations';
 
 interface FeedItemProps {
@@ -18,7 +16,6 @@ interface FeedItemProps {
 
 export function FeedItem({ data, showHeader = true, showFooter = true }: FeedItemProps) {
   const { colorScheme } = useColorScheme();
-  const { design } = useDesign();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const [isCollapsed, setIsCollapsed] = useState(data.metadata?.isCollapsible ?? true);
@@ -513,9 +510,6 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
               >
                 {data.content}
               </Text>
-              <View className="flex-row justify-end mt-1">
-                <Text className="text-[10px] text-primary">✓</Text>
-              </View>
             </View>
           )}
           
@@ -565,32 +559,6 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         )}
       </View>
       
-      {showFooter && (
-        <View className={`w-full ${isDesktop ? 'px-6 py-4' : 'px-2 py-1'}`}>
-          <View className="flex-row items-center justify-end max-w-full flex-wrap gap-2">
-            <Pressable className={`flex-row items-center gap-1 py-1 px-2 rounded-full ${isDesktop ? 'min-w-[60px]' : 'min-w-[40px]'}`}>
-              <Text className={`${isDesktop ? 'text-base' : 'text-sm'} text-foreground opacity-80`}>💬</Text>
-              <Text className={`${isDesktop ? 'text-sm' : 'text-xs'} text-foreground opacity-80`}>{data.stats?.responses || 0}</Text>
-            </Pressable>
-            
-            <Pressable className={`flex-row items-center gap-1 py-1 px-2 rounded-full ${isDesktop ? 'min-w-[60px]' : 'min-w-[40px]'}`}>
-              <Text className={`${isDesktop ? 'text-base' : 'text-sm'} text-foreground opacity-80`}>🔁</Text>
-              <Text className={`${isDesktop ? 'text-sm' : 'text-xs'} text-foreground opacity-80`}>{data.stats?.shares || 0}</Text>
-            </Pressable>
-            
-            <Pressable className={`flex-row items-center gap-1 py-1 px-2 rounded-full ${isDesktop ? 'min-w-[60px]' : 'min-w-[40px]'}`}>
-              <Text className={`${isDesktop ? 'text-base' : 'text-sm'} text-foreground opacity-80`}>♡</Text>
-              <Text className={`${isDesktop ? 'text-sm' : 'text-xs'} text-foreground opacity-80`}>{data.stats?.likes || 0}</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

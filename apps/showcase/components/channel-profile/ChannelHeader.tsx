@@ -21,20 +21,24 @@ export function ChannelHeader({ username, channelDetails, onBack }: ChannelHeade
     <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
       <View className="w-full max-w-[1200px] self-center">
         <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-3">
+          <View className="flex-row items-center gap-3 flex-1 min-w-0">
             <TouchableOpacity 
               onPress={onBack || (() => router.push('/'))}
-              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+              className="p-2"
             >
               <ChevronLeft size={24} className="text-gray-900 dark:text-white" />
             </TouchableOpacity>
-            <View className="w-10 h-10 rounded-full items-center justify-center bg-gray-200 dark:bg-gray-700">
+            <View className="w-10 h-10 rounded-full items-center justify-center bg-gray-200 dark:bg-gray-700 flex-shrink-0">
               <Text className="text-lg font-semibold text-gray-900 dark:text-white">
                 {username[0]?.toUpperCase() || '#'}
               </Text>
             </View>
-            <View>
-              <Text className={`text-lg font-semibold ${channelDetails.is_premium ? 'text-yellow-500' : 'text-gray-900 dark:text-white'}`}>
+            <View className="flex-1 min-w-0">
+              <Text 
+                className={`text-lg font-semibold ${channelDetails.is_premium ? 'text-yellow-500' : 'text-gray-900 dark:text-white'}`}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 @{username}
               </Text>
               <Text className="text-sm text-gray-600 dark:text-gray-300">
@@ -42,7 +46,7 @@ export function ChannelHeader({ username, channelDetails, onBack }: ChannelHeade
               </Text>
             </View>
           </View>
-          <View className="flex-row items-center gap-2">
+          <View className="flex-row items-center gap-2 flex-shrink-0">
             <LanguageChanger variant="settings" />
           </View>
         </View>

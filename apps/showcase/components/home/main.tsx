@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Constants from "expo-constants";
 import {
   Text,
   View,
@@ -16,7 +15,6 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { indexedDB } from '~/lib/core/services/indexedDB';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
-import { MaterialIcons } from "@expo/vector-icons";
 
 interface MainScreenProps {
   initialData?: {
@@ -28,8 +26,6 @@ interface MainScreenProps {
 export function MainScreen({ initialData }: MainScreenProps) {
   const { user, loading: authLoading, userInfo } = useAuth();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
 
   // Use a single data state to prevent multiple re-renders
   const [channelData, setChannelData] = useState<{
