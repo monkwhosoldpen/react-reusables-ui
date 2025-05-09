@@ -37,7 +37,7 @@
     "@tanstack/react-table": "^8.11.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "expo": "^52.0.25",
+    "expo": "~52.0.46",
     "expo-blur": "~14.0.2",
     "expo-clipboard": "~7.0.1",
     "expo-font": "~13.0.3",
