@@ -36,7 +36,33 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "React Native Reusables Showcase",
+      "shortName": "RNR Showcase",
+      "lang": "en",
+      "scope": "/",
+      "display": "standalone",
+      "startUrl": "/",
+      "orientation": "portrait",
+      "backgroundColor": "#18181B",
+      "themeColor": "#18181B",
+      "icons": [
+        {
+          "src": "./assets/images/favicon.png",
+          "sizes": "64x64 32x32 24x24 16x16",
+          "type": "image/png"
+        },
+        {
+          "src": "./assets/images/icon.png",
+          "type": "image/png",
+          "sizes": "192x192"
+        },
+        {
+          "src": "./assets/images/adaptive-icon.png",
+          "type": "image/png",
+          "sizes": "512x512"
+        }
+      ]
     },
     "plugins": [
       "expo-router",

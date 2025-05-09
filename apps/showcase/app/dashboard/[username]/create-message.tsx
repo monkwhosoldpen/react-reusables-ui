@@ -36,6 +36,7 @@ import {
   generateBulkQuizMessages,
   generateBulkSurveyMessages
 } from '~/lib/enhanced-chat/utils/bulkCreateTemplates';
+import { PREMIUM_CONFIGS } from '~/lib/in-app-db/states/telangana/premium-data';
 
 type InteractiveType = 'poll' | 'quiz' | 'survey';
 
@@ -47,6 +48,45 @@ export default function CreateMessageScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();
   const { colorScheme } = useColorScheme();
   const styles = createMessageStyles(colorScheme);
+
+  // Log channel data
+  useEffect(() => {
+    // Check direct channel
+    const directChannel = PREMIUM_CONFIGS[username];
+    
+    // Check all channels for related channels containing the username
+    const allChannels = Object.entries(PREMIUM_CONFIGS).map(([ownerUsername, config]) => {
+      const relatedChannel = config.related_channels?.find(channel => channel.username === username);
+      if (relatedChannel) {
+        return {
+          ownerUsername,
+          channel: relatedChannel
+        };
+      }
+      return null;
+    }).filter(Boolean);
+
+    console.log('Channel Data Analysis:', {
+      username,
+      directChannel: directChannel ? {
+        username,
+        isPremium: directChannel.is_premium,
+        isUpdateOnly: directChannel.is_update_only,
+        isPublic: directChannel.is_public,
+        isOwnerDb: directChannel.is_owner_db
+      } : null,
+      foundInRelatedChannels: allChannels.map(({ ownerUsername, channel }) => ({
+        ownerUsername,
+        channel: {
+          username: channel.username,
+          isPremium: channel.is_premium,
+          isUpdateOnly: channel.is_update_only,
+          isPublic: channel.is_public,
+          isOwnerDb: channel.is_owner_db
+        }
+      }))
+    });
+  }, [username]);
 
   // State declarations with proper types
   const [selectedType, setSelectedType] = useState<FeedItemType>('whatsapp');
