@@ -22,6 +22,7 @@ import { Button } from '~/components/ui/button';
 import { ChevronDown } from '~/lib/icons/ChevronDown';
 import { Muted } from '~/components/ui/typography';
 import LanguageChanger from '~/components/common/LanguageChanger';
+import { PWADebug } from '~/components/pwa-debug';
 
 const contentInsets = {
   left: 12,
@@ -153,6 +154,16 @@ export default function SettingsScreen() {
                 </View>
                 <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
               </View>
+            </View>
+
+            {/* PWA Section */}
+            <View className="py-3 px-1 mt-6">
+              <Text className={`text-xs font-semibold uppercase tracking-wider ${subtitleColor}`}>
+                PWA
+              </Text>
+            </View>
+            <View className={`${cardBg} rounded-xl shadow-sm overflow-hidden`}>
+              <PWADebug />
             </View>
           </View>
 
