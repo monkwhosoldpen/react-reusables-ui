@@ -19,6 +19,9 @@ import { useTheme } from '~/lib/core/providers/theme/ThemeProvider';
 import { createClient } from '@supabase/supabase-js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
+import { StatusBar } from './StatusBar';
+import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
+import { useAuth } from '~/lib/core/contexts/AuthContext';
 
 const supabaseUrl = 'https://risbemjewosmlvzntjkd.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM';
@@ -48,8 +51,39 @@ export default function RequestsTab() {
   const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRequests, setFilteredRequests] = useState<TenantRequest[]>([]);
+  const { user } = useAuth();
 
   const iconColor = colorScheme === 'dark' ? '#fff' : '#111827'; // Tailwind gray-900
+
+  // Find the channel in all configs to get owner
+  const findChannelOwner = () => {
+    for (const [ownerUsername, config] of Object.entries(PREMIUM_CONFIGS)) {
+      const channel = config?.related_channels?.find(ch => ch.username === username);
+      if (channel) {
+        return {
+          ownerUsername,
+          channel,
+          config
+        };
+      }
+    }
+    return null;
+  };
+
+  const channelInfo = findChannelOwner();
+  const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username as string];
+  const clientType = premiumConfig?.client_type || 'public';
+  const isPublic = !premiumConfig || Object.keys(premiumConfig).length === 0 || premiumConfig.is_public;
+  
+  // Get user role and access
+  const userRole = premiumConfig?.roles ? 
+    Object.entries(premiumConfig.roles).find(([_, emails]) => 
+      Array.isArray(emails) && emails.includes(user?.email || '')
+    )?.[0] : null;
+
+  const hasAccess = !premiumConfig || Object.keys(premiumConfig).length === 0 
+    ? (user?.email ? user.email === global_superadmin : false) 
+    : userRole !== null;
 
   // Load tenant requests
   useEffect(() => {
@@ -268,6 +302,12 @@ export default function RequestsTab() {
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
       <View className="flex-1 p-6">
+        <StatusBar 
+          isPublic={isPublic}
+          clientType={clientType}
+          hasAccess={hasAccess}
+          userRole={userRole ? { role: userRole } : null}
+        />
 
         {/* Search Bar */}
         <View className="flex-row items-center p-4 rounded-xl mb-6 bg-white dark:bg-gray-800 shadow-sm">

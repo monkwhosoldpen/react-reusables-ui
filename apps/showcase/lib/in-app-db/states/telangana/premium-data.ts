@@ -2,6 +2,7 @@ import { MOCK_ONBOARDING_CONFIG } from "./onboardingConfig";
 
 const janedoe_tenant_supabase_url = 'https://risbemjewosmlvzntjkd.supabase.co';
 const janedoe_tenant_supabase_anon_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM';
+export const global_superadmin= 'monkwhosoldpen@gmail.com';
 
 export const PREMIUM_CONFIGS: Record<string, any> = {
   elonmusk: {},
@@ -12,7 +13,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
     onesignal_app_id: 'mock-onesignal-id',
     onesignal_api_key: 'mock-onesignal-key',
     roles: {
-      super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+      super_admin: [global_superadmin, 'superadmin@janedoe.com'],
       viewer: ['viewer1@janedoe.com', 'viewer2@janedoe.com'],
       verifier: ['verifier1@janedoe.com'],
       onboarder: ['onboarder1@janedoe.com']
@@ -26,7 +27,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         is_update_only: true,
         is_premium: true,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -39,7 +40,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -53,7 +54,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         username: "janedoe_superfans",
         owner_username: "janedoe",
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -68,7 +69,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -83,7 +84,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -98,7 +99,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -113,7 +114,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -128,7 +129,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -143,7 +144,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -159,7 +160,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe.com'],
           onboarder: ['onboarder1@janedoe.com']
@@ -186,7 +187,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
       email: "donor@janedoe.com",
     },
     roles: {
-      super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+      super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
       viewer: ['viewer1@janedoe_pro.com', 'viewer2@janedoe_pro.com'],
       verifier: ['verifier1@janedoe_pro.com'],
       onboarder: ['onboarder1@janedoe_pro.com']
@@ -198,7 +199,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe_pro",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']
@@ -213,7 +214,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe_pro",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']
@@ -227,7 +228,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         username: "janedoe_pro_superfans",
         owner_username: "janedoe_pro",
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe_pro.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']
@@ -242,7 +243,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe_pro",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe_pro.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']
@@ -257,7 +258,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe_pro",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe_pro.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']
@@ -272,7 +273,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe_pro",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe_pro.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']
@@ -287,7 +288,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe_pro",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe_pro.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']
@@ -302,7 +303,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe_pro",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe_pro.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']
@@ -317,7 +318,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe_pro",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe_pro.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']
@@ -333,7 +334,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         owner_username: "janedoe_pro",
         onboardingConfig: MOCK_ONBOARDING_CONFIG,
         roles: {
-          super_admin: ['monkwhosoldpen@gmail.com', 'superadmin@janedoe_pro.com'],
+          super_admin: [global_superadmin, 'superadmin@janedoe_pro.com'],
           viewer: ['viewer1@janedoe_pro.com'],
           verifier: ['verifier1@janedoe_pro.com'],
           onboarder: ['onboarder1@janedoe_pro.com']

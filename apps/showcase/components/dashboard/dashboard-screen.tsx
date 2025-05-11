@@ -2,20 +2,15 @@ import { useScrollToTop } from '@react-navigation/native';
 import * as React from 'react';
 import { View, ScrollView, TouchableOpacity, useWindowDimensions, SafeAreaView, useColorScheme } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { Card } from '~/components/ui/card';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
-import { PREMIUM_CONFIGS } from '~/lib/in-app-db/states/telangana/premium-data';
+import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+
 
 // Import the route components
 import AIDashboardTab from '~/components/dashboard/ai-dashboard';
 import RequestsTab from '~/components/dashboard/requests';
 import CreateMessageScreen from './create-message';
 import OverviewTab from './overview';
-
-const Tab = createMaterialTopTabNavigator();
 
 interface DashboardScreenProps {
   username: string;
@@ -70,7 +65,6 @@ const TAB_CONFIGS: TabConfig[] = [
 
 // Replace the TabContent component with this
 function TabContent({ tabName, username }: { tabName: string; username: string }) {
-  const params = useLocalSearchParams();
   const { user } = useAuth();
 
   // Find the channel in all configs to get owner
@@ -94,6 +88,18 @@ function TabContent({ tabName, username }: { tabName: string; username: string }
     const channelInfo = findChannelOwner();
     const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username];
     
+    // For public channels (empty config), add global super admin role
+    if (!premiumConfig || Object.keys(premiumConfig).length === 0) {
+      if (user?.email && user.email === global_superadmin) {
+        allRoles.push({
+          email: user.email,
+          role: ROLES.SUPER_ADMIN,
+          channelUsername: username
+        });
+      }
+      return allRoles;
+    }
+    
     // Check current channel only
     if (premiumConfig?.roles) {
       Object.entries(premiumConfig.roles).forEach(([role, emails]) => {
@@ -113,9 +119,12 @@ function TabContent({ tabName, username }: { tabName: string; username: string }
   const channelInfo = findChannelOwner();
   const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username];
   const userRoles = getAllUserRoles();
-  const hasAccess = userRoles.some(ur => ur.email === user?.email);
+  const hasAccess = !premiumConfig || Object.keys(premiumConfig).length === 0 
+    ? (user?.email ? user.email === global_superadmin : false) 
+    : userRoles.some(ur => ur.email === user?.email);
   const userRole = userRoles.find(ur => ur.email === user?.email);
   const relatedChannelsCount = premiumConfig?.related_channels?.length || 0;
+  const isPublic = !premiumConfig || Object.keys(premiumConfig).length === 0 || premiumConfig.is_public;
 
   // Map tab names to their components
   const tabComponents = {
@@ -136,11 +145,6 @@ function TabContent({ tabName, username }: { tabName: string; username: string }
   };
 
   const TabComponent = tabComponents[tabName as keyof typeof tabComponents];
-
-  React.useEffect(() => {
-    // Log the current tab for debugging
-    console.log('[TabContent]', { tabName, params });
-  }, [tabName, params]);
 
   return TabComponent ? <TabComponent /> : null;
 }
@@ -172,6 +176,20 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
   // Get all user roles across all channels
   const getAllUserRoles = (): UserRole[] => {
     const allRoles: UserRole[] = [];
+    const channelInfo = findChannelOwner();
+    const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username];
+    
+    // For public channels (empty config), add global super admin role
+    if (!premiumConfig || Object.keys(premiumConfig).length === 0) {
+      if (user?.email && user.email === global_superadmin) {
+        allRoles.push({
+          email: user.email,
+          role: ROLES.SUPER_ADMIN,
+          channelUsername: username
+        });
+      }
+      return allRoles;
+    }
     
     // Check current channel only
     if (premiumConfig?.roles) {
@@ -190,10 +208,13 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
   };
 
   const userRoles = getAllUserRoles();
-  const hasAccess = userRoles.some(ur => ur.email === user?.email);
+  const hasAccess = !premiumConfig || Object.keys(premiumConfig).length === 0 
+    ? (user?.email ? user.email === global_superadmin : false) 
+    : userRoles.some(ur => ur.email === user?.email);
   const userRole = userRoles.find(ur => ur.email === user?.email);
   const clientType = premiumConfig?.client_type || 'public';
   const relatedChannelsCount = premiumConfig?.related_channels?.length || 0;
+  const isPublic = !premiumConfig || Object.keys(premiumConfig).length === 0 || premiumConfig.is_public;
 
   // Determine auth type
   const getAuthType = () => {
@@ -209,6 +230,7 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
       clientType,
       relatedChannelsCount,
       hasAccess,
+      isPublic,
       userRoles,
       currentUser: {
         id: user?.id,
@@ -223,16 +245,16 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
         isPremium: channelInfo.channel.is_premium
       } : null
     });
-  }, [username, clientType, relatedChannelsCount, hasAccess, userRoles, user, channelInfo, userRole]);
+  }, [username, clientType, relatedChannelsCount, hasAccess, userRoles, user, channelInfo, userRole, isPublic]);
   
   useScrollToTop(ref);
 
   const isDesktop = width >= 768;
 
   // Add this before the return statement
-  const filteredTabs = TAB_CONFIGS.filter(tab => 
-    userRole ? tab.allowedRoles.includes(userRole.role) : false
-  );
+  const filteredTabs = !premiumConfig || Object.keys(premiumConfig).length === 0 
+    ? TAB_CONFIGS // Show all tabs for public channels
+    : TAB_CONFIGS.filter(tab => userRole ? tab.allowedRoles.includes(userRole.role) : false);
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
@@ -242,9 +264,8 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
         contentContainerStyle={{ flexGrow: 1 }}
       >
         <View className={`flex-1 p-4 ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
-          {/* Tab Navigation */}
           {hasAccess && filteredTabs.length > 0 && (
-            <View className="flex-1 mt-4">
+            <View className="flex-1">
               <View className="flex-row border-b border-gray-200 dark:border-gray-700">
                 {filteredTabs.map((tab) => (
                   <TouchableOpacity
