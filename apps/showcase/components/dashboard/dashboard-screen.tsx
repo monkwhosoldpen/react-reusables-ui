@@ -71,7 +71,6 @@ const TAB_CONFIGS: TabConfig[] = [
 // Replace the TabContent component with this
 function TabContent({ tabName }: { tabName: string }) {
   const params = useLocalSearchParams();
-  const router = useRouter();
 
   // Map tab names to their components
   const tabComponents = {
@@ -83,7 +82,7 @@ function TabContent({ tabName }: { tabName: string }) {
   const TabComponent = tabComponents[tabName as keyof typeof tabComponents];
 
   React.useEffect(() => {
-    // Log the current route and params for debugging
+    // Log the current tab for debugging
     console.log('[TabContent]', { tabName, params });
   }, [tabName, params]);
 
@@ -96,6 +95,7 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = React.useState(tabname || 'chat');
   
   // Find the channel in all configs to get owner
   const findChannelOwner = () => {
@@ -286,33 +286,32 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
           {/* Tab Navigation */}
           {hasAccess && filteredTabs.length > 0 && (
             <View className="flex-1 mt-4">
-              <Tab.Navigator
-                id={undefined}
-                screenOptions={{
-                  tabBarStyle: {
-                    backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#FFFFFF',
-                  },
-                  tabBarIndicatorStyle: {
-                    backgroundColor: colorScheme === 'dark' ? '#3B82F6' : '#2563EB',
-                  },
-                  tabBarLabelStyle: {
-                    color: colorScheme === 'dark' ? '#E5E7EB' : '#374151',
-                    textTransform: 'none',
-                  },
-                }}
-              >
+              <View className="flex-row border-b border-gray-200 dark:border-gray-700">
                 {filteredTabs.map((tab) => (
-                  <Tab.Screen
+                  <TouchableOpacity
                     key={tab.name}
-                    name={tab.name}
-                    options={{
-                      title: tab.title,
-                    }}
+                    onPress={() => setActiveTab(tab.name)}
+                    className={`flex-1 py-3 px-4 ${
+                      activeTab === tab.name
+                        ? 'border-b-2 border-blue-500'
+                        : 'border-b-2 border-transparent'
+                    }`}
                   >
-                    {() => <TabContent tabName={tab.name} />}
-                  </Tab.Screen>
+                    <Text
+                      className={`text-center font-medium ${
+                        activeTab === tab.name
+                          ? 'text-blue-500'
+                          : 'text-gray-600 dark:text-gray-400'
+                      }`}
+                    >
+                      {tab.title}
+                    </Text>
+                  </TouchableOpacity>
                 ))}
-              </Tab.Navigator>
+              </View>
+              <View className="flex-1 mt-4">
+                <TabContent tabName={activeTab} />
+              </View>
             </View>
           )}
         </View>
