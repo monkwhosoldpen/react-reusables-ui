@@ -8,17 +8,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { PREMIUM_CONFIGS } from '~/lib/in-app-db/states/telangana/premium-data';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '~/components/ui/accordion';
 
 // Import the route components
 import AIDashboardTab from '~/components/dashboard/ai-dashboard';
 import RequestsTab from '~/components/dashboard/requests';
 import CreateMessageScreen from './create-message';
+import OverviewTab from './overview';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -52,6 +47,11 @@ interface TabConfig {
 
 const TAB_CONFIGS: TabConfig[] = [
   {
+    name: 'overview',
+    title: 'Overview',
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.VIEWER, ROLES.VERIFIER, ROLES.ONBOARDER]
+  },
+  {
     name: 'chat',
     title: 'Chat',
     allowedRoles: [ROLES.SUPER_ADMIN, ROLES.VIEWER, ROLES.VERIFIER, ROLES.ONBOARDER]
@@ -69,11 +69,67 @@ const TAB_CONFIGS: TabConfig[] = [
 ];
 
 // Replace the TabContent component with this
-function TabContent({ tabName }: { tabName: string }) {
+function TabContent({ tabName, username }: { tabName: string; username: string }) {
   const params = useLocalSearchParams();
+  const { user } = useAuth();
+
+  // Find the channel in all configs to get owner
+  const findChannelOwner = () => {
+    for (const [ownerUsername, config] of Object.entries(PREMIUM_CONFIGS)) {
+      const channel = config?.related_channels?.find(ch => ch.username === username);
+      if (channel) {
+        return {
+          ownerUsername,
+          channel,
+          config
+        };
+      }
+    }
+    return null;
+  };
+
+  // Get all user roles across all channels
+  const getAllUserRoles = (): UserRole[] => {
+    const allRoles: UserRole[] = [];
+    const channelInfo = findChannelOwner();
+    const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username];
+    
+    // Check current channel only
+    if (premiumConfig?.roles) {
+      Object.entries(premiumConfig.roles).forEach(([role, emails]) => {
+        if (Array.isArray(emails)) {
+          allRoles.push(...emails.map(email => ({
+            email,
+            role: role as Role,
+            channelUsername: username
+          })));
+        }
+      });
+    }
+
+    return allRoles;
+  };
+
+  const channelInfo = findChannelOwner();
+  const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username];
+  const userRoles = getAllUserRoles();
+  const hasAccess = userRoles.some(ur => ur.email === user?.email);
+  const userRole = userRoles.find(ur => ur.email === user?.email);
+  const relatedChannelsCount = premiumConfig?.related_channels?.length || 0;
 
   // Map tab names to their components
   const tabComponents = {
+    'overview': () => (
+      <OverviewTab 
+        username={username}
+        user={user}
+        userRole={userRole}
+        hasAccess={hasAccess}
+        premiumConfig={premiumConfig}
+        channelInfo={channelInfo}
+        relatedChannelsCount={relatedChannelsCount}
+      />
+    ),
     'chat': () => <CreateMessageScreen />,
     'ai-dashboard': () => <AIDashboardTab />,
     'requests': () => <RequestsTab />
@@ -95,7 +151,7 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = React.useState(tabname || 'chat');
+  const [activeTab, setActiveTab] = React.useState(tabname || 'overview');
   
   // Find the channel in all configs to get owner
   const findChannelOwner = () => {
@@ -188,101 +244,6 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
         contentContainerStyle={{ flexGrow: 1 }}
       >
         <View className={`flex-1 p-4 ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
-          {/* User Info Accordion */}
-          <Accordion
-            type="single"
-            collapsible
-            className="mb-4"
-          >
-            <AccordionItem value="user-info">
-              <AccordionTrigger>
-                <View className="flex-row items-center justify-between w-full">
-                  <View className="flex-row items-center">
-                    <View className="w-10 h-10 rounded-full justify-center items-center mr-3 bg-blue-50 dark:bg-blue-900/30">
-                      <MaterialIcons name="person" size={20} color={colorScheme === 'dark' ? '#93C5FD' : '#3B82F6'} />
-                    </View>
-                    <View>
-                      <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
-                        {username}
-                      </Text>
-                      <Text className="text-sm text-gray-600 dark:text-gray-400">
-                        {relatedChannelsCount} Related Channels
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Card className="p-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-                  {/* Current User Info */}
-                  <View className="mb-4">
-                    <View className="flex-row items-center">
-                      <View className="w-10 h-10 rounded-full justify-center items-center mr-3 bg-blue-50 dark:bg-blue-900/30">
-                        <MaterialIcons name="person" size={20} color={colorScheme === 'dark' ? '#93C5FD' : '#3B82F6'} />
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
-                          {user?.email || 'Guest'}
-                        </Text>
-                        <View className="flex-row items-center gap-2">
-                          <Text className="text-gray-600 dark:text-gray-300">
-                            {userRole ? userRole.role.replace('_', ' ').toUpperCase() : 'No Role'}
-                          </Text>
-                          <View className={`px-2 py-0.5 rounded-full ${hasAccess ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
-                            <Text className={hasAccess ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}>
-                              {hasAccess ? 'Has Access' : 'No Access'}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* User Info Card */}
-                  <View className="mb-4">
-                    <View className="flex-row items-center mb-3">
-                      <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-blue-50 dark:bg-blue-900/30">
-                        <MaterialIcons name="person" size={24} color={colorScheme === 'dark' ? '#93C5FD' : '#3B82F6'} />
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                          {username}
-                        </Text>
-                        <Text className="text-gray-600 dark:text-gray-300">
-                          {premiumConfig?.tenant_supabase_url ? 'Telangana' : 'No location set'}
-                        </Text>
-                        <View className="flex-row items-center mt-1">
-                          <Text className="text-sm text-gray-500 dark:text-gray-400">Owner: </Text>
-                          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {channelInfo?.ownerUsername || 'N/A'}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Related Channels */}
-                  {premiumConfig?.related_channels && premiumConfig.related_channels.length > 0 && (
-                    <View>
-                      <Text className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Related Channels</Text>
-                      <View className="flex-row flex-wrap gap-2">
-                        {premiumConfig.related_channels.map((channel) => (
-                          <TouchableOpacity 
-                            key={channel.username}
-                            className="px-3 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full"
-                            onPress={() => router.push(`/dashboard/${channel.username}`)}
-                          >
-                            <Text className="text-blue-700 dark:text-blue-400">{channel.username}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                </Card>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-
           {/* Tab Navigation */}
           {hasAccess && filteredTabs.length > 0 && (
             <View className="flex-1 mt-4">
@@ -310,7 +271,7 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
                 ))}
               </View>
               <View className="flex-1 mt-4">
-                <TabContent tabName={activeTab} />
+                <TabContent tabName={activeTab} username={username} />
               </View>
             </View>
           )}
