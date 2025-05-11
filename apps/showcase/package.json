@@ -9,7 +9,7 @@
     "dev:android": "expo start -c --android",
     "dev:web": "expo start -c --web",
     "build": "npx expo export -p web",
-    "build:web": "npx expo export -p web && npx workbox-cli generateSW workbox-config.js",
+    "build:web": "npx expo export -p web",
     "serve": "npx serve dist --single",
     "clean": "rm -rf .expo node_modules",
     "postinstall": "npx tailwindcss -i ./global.css -o ./node_modules/.cache/nativewind/global.css"

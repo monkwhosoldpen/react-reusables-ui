@@ -28,12 +28,12 @@ export const LANDING_CONTENT = {
     {
       text: 'Get Started',
       href: '/login',
-      variant: 'default' as const
+      className: 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600'
     },
     {
       text: 'Explore',
       href: '/explore',
-      variant: 'outline' as const
+      className: 'bg-white hover:bg-gray-100 text-gray-900 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100 dark:border-gray-600'
     }
   ],
   heroImage: "https://placehold.co/600x400"

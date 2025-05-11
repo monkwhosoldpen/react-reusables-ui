@@ -18,6 +18,7 @@ import {
 import { useTheme } from '~/lib/core/providers/theme/ThemeProvider';
 import { createClient } from '@supabase/supabase-js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams } from 'expo-router';
 
 const supabaseUrl = 'https://risbemjewosmlvzntjkd.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM';
@@ -35,7 +36,8 @@ interface TenantRequest {
   updated_at: string;
 }
 
-export default function TenantRequestsPage() {
+export default function RequestsTab() {
+  const { username } = useLocalSearchParams();
   const { theme } = useTheme();
   const colorScheme = useColorScheme();
   const { width } = useWindowDimensions();

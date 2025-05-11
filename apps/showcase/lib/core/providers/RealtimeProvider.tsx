@@ -53,7 +53,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       setError(null);
-      console.log('🔍 Fetching channel activities...');
       
       const { data, error } = await supabase
         .from('channels_activity')
@@ -61,7 +60,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         .order('last_updated_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Error fetching channel activities:', error);
         setError(error.message);
         return;
       }
@@ -75,10 +73,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       }));
 
       setChannelActivities(activities);
-      console.log(`✅ Successfully loaded ${activities.length} channel activities`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.error('❌ Error in fetchChannelActivities:', errorMessage);
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -108,15 +104,11 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         // Enhanced logging for different types of changes
         if (eventType === 'UPDATE') {
           if (oldCount !== newCount) {
-            console.log(`📡 ${username}: Message count changed ${oldCount} → ${newCount}`);
           }
           if ((newRecord as ChannelsActivityRecord)?.last_message?.id !== currentActivity?.last_message?.id) {
-            console.log(`📡 ${username}: New message content updated`);
           }
         } else if (eventType === 'INSERT') {
-          console.log(`📡 New channel: ${username} (${newCount} messages)`);
         } else if (eventType === 'DELETE') {
-          console.log(`📡 Channel deleted: ${username}`);
         }
 
         // Call the external change handler if provided
@@ -139,7 +131,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    console.log('🚀 Initializing RealtimeProvider...');
     fetchChannelActivities();
 
     // Subscribe to channel activity changes
@@ -155,11 +146,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         handleRealtimeChange
       )
       .subscribe((status) => {
-        console.log(`📡 Realtime subscription status: ${status}`);
       });
 
     return () => {
-      console.log('🧹 Cleaning up RealtimeProvider...');
       // Clear all debounce timeouts on cleanup
       Object.values(debounceTimeoutRef.current).forEach(timeout => clearTimeout(timeout));
       channelActivitySubscription.unsubscribe();

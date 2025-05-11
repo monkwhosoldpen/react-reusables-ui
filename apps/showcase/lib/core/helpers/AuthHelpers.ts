@@ -7,6 +7,7 @@ import { indexedDB } from '~/lib/core/services/indexedDB';
 import { UserInfo } from '../types/channel.types';
 import { router } from 'expo-router';
 import { config } from '~/lib/core/config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Singleton for auth initialization
 export class AuthInitializer {
@@ -116,6 +117,7 @@ export interface AuthHelperReturn {
   signInAsGuest: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshUserInfo: () => Promise<void>;
+  cleanup: () => void;
 }
 
 export function AuthHelper(): AuthHelperReturn {
@@ -131,6 +133,56 @@ export function AuthHelper(): AuthHelperReturn {
   const MIN_FETCH_INTERVAL = 30000; // 30 seconds
   const userInfoCache = useRef<Record<string, { data: any, timestamp: number }>>({});
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  // Add refs inside the function
+  const signInTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  // Define signOut first
+  const signOut = async () => {
+    try {
+      console.log('[AuthHelpers] Starting sign out process');
+      
+      // Clear any existing timeouts
+      if (signInTimeoutRef.current) {
+        clearTimeout(signInTimeoutRef.current);
+      }
+      
+      // Clear any existing intervals
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+      
+      // Clear any existing cleanup functions
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+      
+      // Reset all refs
+      signInTimeoutRef.current = null;
+      refreshIntervalRef.current = null;
+      cleanupRef.current = null;
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear local storage
+      await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem('session');
+      
+      // Reset state
+      setUser(null);
+      setUserInfo(null);
+      setIsGuest(false);
+      
+      console.log('[AuthHelpers] Sign out completed successfully');
+    } catch (error) {
+      console.error('[AuthHelpers] Error during sign out:', error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -466,6 +518,7 @@ export function AuthHelper(): AuthHelperReturn {
     signInAsGuest,
     signOut,
     refreshUserInfo,
+    cleanup: authInitializer.current.cleanup,
   };
 
   // Rest of the functions
@@ -700,46 +753,4 @@ export function AuthHelper(): AuthHelperReturn {
       throw error;
     }
   }
-
-  async function signOut() {
-    try {
-      // Clear IndexedDB including tenant requests
-      await indexedDB.clearAll();
-
-      if (isGuest) {
-        setIsGuest(false);
-      } else {
-        // Regular user flow - unsubscribe from push notifications if service worker is registered
-        if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.getRegistration();
-          if (registration) {
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-              // Delete the subscription from Supabase before unsubscribing
-              const userId = user?.id;
-              if (userId) {
-                await supabase
-                  .from('push_subscriptions')
-                  .delete()
-                  .eq('user_id', userId);
-              }
-
-              // Unsubscribe from push
-              await subscription.unsubscribe();
-            }
-          }
-        }
-
-        // Then sign out from Supabase
-        await supabase.auth.signOut();
-      }
-
-      setUser(null);
-      setUserInfo(null);
-      router.push('/');
-    } catch (error) {
-      console.error("Sign out error:", error);
-    }
-  }
-
 }
