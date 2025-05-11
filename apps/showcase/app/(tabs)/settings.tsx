@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Animated, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Animated, useColorScheme, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from 'expo-router';
@@ -21,6 +21,7 @@ import { Button } from '~/components/ui/button';
 import { ChevronDown } from '~/lib/icons/ChevronDown';
 import { Muted } from '~/components/ui/typography';
 import LanguageChanger from '~/components/common/LanguageChanger';
+import AddToHomescreenButton from '~/components/AddToHomescreenButton';
 
 const contentInsets = {
   left: 12,
@@ -202,6 +203,37 @@ export default function SettingsScreen() {
                 </View>
               </TouchableOpacity>
             </View>
+
+            {/* PWA Section - Only show on web */}
+            {Platform.OS === 'web' && (
+              <>
+                <View className="py-3 px-1 mt-6">
+                  <Text className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                    PWA
+                  </Text>
+                </View>
+                <View className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                  <View className="flex-row items-center p-4">
+                    <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-blue-50 dark:bg-blue-900/30">
+                      <MaterialIcons 
+                        name="install-desktop" 
+                        size={24} 
+                        color={isDarkMode ? '#fff' : '#111827'}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base font-semibold text-gray-900 dark:text-white">
+                        Install App
+                      </Text>
+                      <Text className="text-sm text-gray-600 dark:text-gray-300">
+                        Add to your home screen
+                      </Text>
+                    </View>
+                    <AddToHomescreenButton />
+                  </View>
+                </View>
+              </>
+            )}
           </View>
         </View>
       </ScrollView>
