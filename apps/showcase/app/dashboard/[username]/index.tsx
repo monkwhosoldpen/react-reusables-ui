@@ -209,14 +209,6 @@ export default function DashboardRoute({ username }: { username: string }) {
 
       {/* Right Content - Create Message */}
       <View className="flex-1 bg-gray-50 dark:bg-gray-900">
-        <View className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {selectedChannel}
-          </Text>
-          <Text className="text-sm text-gray-600 dark:text-gray-400">
-            Channel Details
-          </Text>
-        </View>
         <View className="flex-1">
           <DashboardScreen username={selectedChannel as string} tabname={'overview'} />
         </View>
