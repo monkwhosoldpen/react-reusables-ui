@@ -130,7 +130,7 @@ function TabContent({ tabName, username }: { tabName: string; username: string }
         relatedChannelsCount={relatedChannelsCount}
       />
     ),
-    'chat': () => <CreateMessageScreen />,
+    'chat': () => <CreateMessageScreen username={username as string} />,
     'ai-dashboard': () => <AIDashboardTab />,
     'requests': () => <RequestsTab />
   };
@@ -147,8 +147,6 @@ function TabContent({ tabName, username }: { tabName: string; username: string }
 
 export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
   const ref = React.useRef(null);
-  const colorScheme = useColorScheme();
-  const router = useRouter();
   const { width } = useWindowDimensions();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState(tabname || 'overview');

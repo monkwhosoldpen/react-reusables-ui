@@ -44,8 +44,7 @@ interface CreateMessageScreenProps {
   username: string;
 }
 
-export default function CreateMessageScreen() {
-  const { username } = useLocalSearchParams<{ username: string }>();
+export default function CreateMessageScreen({ username }: CreateMessageScreenProps) {
   const { colorScheme } = useColorScheme();
   const styles = createMessageStyles(colorScheme);
 

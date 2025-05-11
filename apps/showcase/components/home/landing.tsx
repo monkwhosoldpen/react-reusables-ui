@@ -44,13 +44,13 @@ export function Landing() {
           <View className="space-y-4">
             {LANDING_CONTENT.ctas.map((cta, index) => (
               <Link key={index} href={cta.href} asChild>
-                <Button variant={cta.variant}>
-                  <Text className={cta.variant === 'default' ? 'text-white' : 'text-gray-900'}>
+                <Button>
+                  <Text className={cta.className}>
                     {cta.text}
                   </Text>
                   <ChevronRight 
                     size={18} 
-                    color={cta.variant === 'default' ? 'white' : '#1A1A1A'} 
+                    color={cta.className === 'text-white' ? 'white' : '#1A1A1A'} 
                   />
                 </Button>
               </Link>
@@ -82,14 +82,14 @@ export function Landing() {
             <View className="space-x-4 flex flex-row">
               {LANDING_CONTENT.ctas.map((cta, index) => (
                 <Link key={index} href={cta.href} asChild>
-                  <Button variant={cta.variant}>
+                  <Button>
                     <View className="flex-row items-center gap-2">
-                      <Text className={cta.variant === 'default' ? 'text-white' : 'text-gray-900'}>
+                      <Text className={cta.className === 'text-white' ? 'text-white' : 'text-gray-900'}>
                         {cta.text}
                       </Text>
                       <ChevronRight 
                         size={18} 
-                        color={cta.variant === 'default' ? 'white' : '#1A1A1A'} 
+                        color={cta.className === 'text-white' ? 'white' : '#1A1A1A'} 
                       />
                     </View>
                   </Button>
