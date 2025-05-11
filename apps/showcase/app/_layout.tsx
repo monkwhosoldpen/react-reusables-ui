@@ -7,11 +7,10 @@ import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ThemeToggle } from '~/components/settings/ThemeToggle';
+import { ThemeToggle } from '~/components/ThemeToggle';
 import { Text } from '~/components/ui/text';
 import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
-import { NAV_THEME } from '~/lib/core/constants/constants';
-import { Providers } from '~/lib/providers/Providers';
+import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 
 const { ToastProvider } = DeprecatedUi;
@@ -59,74 +58,40 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <Providers>
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-          <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <BottomSheetModalProvider>
-              <Stack
-                initialRouteName='(tabs)'
-                screenOptions={{
-                  headerShown: false,
-                  headerBackTitle: 'Back',
-                  headerTitle(props) {
-                    return <Text className='text-xl font-semibold'>{toOptions(props.children)}</Text>;
-                  },
-                  headerRight: () => <ThemeToggle />,
-                }}
-              >
-                <Stack.Screen
-                  name='(tabs)'
-                  options={{
-                    headerShown: false,
-                  }}
-                />
+    <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+      <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider>
+          <Stack
+            initialRouteName='(tabs)'
+            screenOptions={{
+              headerBackTitle: 'Back',
+              headerTitle(props) {
+                return <Text className='text-xl font-semibold'>{toOptions(props.children)}</Text>;
+              },
+              headerRight: () => <ThemeToggle />,
+            }}
+          >
+            <Stack.Screen
+              name='(tabs)'
+              options={{
+                headerShown: false,
+              }}
+            />
 
-                {/* <Stack.Screen
-                  name='login'
-                  options={{
-                    headerShown: false,
-                  }}
-                />
-
-                <Stack.Screen
-                  name='explore'
-                  options={{
-                    headerShown: true,
-                  }}
-                />
-
-                <Stack.Screen
-                  name='[username]'
-                  options={{
-                    headerShown: true,
-                  }}
-                />
-
-                <Stack.Screen
-                  name='dashboard'
-                  options={{
-                    headerShown: true,
-                  }}
-                /> */}
-
-                <Stack.Screen
-                  name='modal'
-                  options={{
-                    presentation: 'modal',
-                    title: 'Modal',
-                    headerShown: true,
-                  }}
-                />
-              </Stack>
-            </BottomSheetModalProvider>
-            <PortalHost />
-          </GestureHandlerRootView>
-          <ToastProvider />
-        </ThemeProvider>
-      </Providers>
-    </>
+            <Stack.Screen
+              name='modal'
+              options={{
+                presentation: 'modal',
+                title: 'Modal',
+              }}
+            />
+          </Stack>
+        </BottomSheetModalProvider>
+        <PortalHost />
+      </GestureHandlerRootView>
+      <ToastProvider />
+    </ThemeProvider>
   );
 }
 
