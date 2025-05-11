@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ColorSchemeConfig } from '~/lib/core/themes/types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
 import { Platform } from 'react-native';
 import { 
@@ -62,21 +61,6 @@ export function ColorSchemeProvider({
   const [themeName, setThemeName] = useState<ThemeName>(initialTheme);
   const [isDarkMode, setIsDarkMode] = useState(initialDarkMode);
 
-  useEffect(() => {
-    // Load saved preferences
-    Promise.all([
-      AsyncStorage.getItem(THEME_STORAGE_KEY),
-      AsyncStorage.getItem(DARK_MODE_STORAGE_KEY)
-    ]).then(([savedTheme, savedDarkMode]) => {
-      if (savedTheme && savedTheme in themes) {
-        setThemeName(savedTheme as ThemeName);
-      }
-      if (savedDarkMode !== null) {
-        setIsDarkMode(savedDarkMode === 'true');
-      }
-    });
-  }, []);
-
   const colorScheme = themes[themeName][isDarkMode ? 'dark' : 'light'];
 
   useEffect(() => {
@@ -91,9 +75,6 @@ export function ColorSchemeProvider({
       document.documentElement.classList.add(colorScheme.name);
     }
 
-    // Persist preferences
-    AsyncStorage.setItem(COLOR_SCHEME_STORAGE_KEY, colorScheme.name);
-    AsyncStorage.setItem(THEME_STORAGE_KEY, themeName);
   }, [colorScheme.name, themeName]);
 
   const updateTheme = (newThemeName: ThemeName) => {
@@ -103,7 +84,6 @@ export function ColorSchemeProvider({
   const toggleDarkMode = () => {
     setIsDarkMode(prev => {
       const newValue = !prev;
-      AsyncStorage.setItem(DARK_MODE_STORAGE_KEY, String(newValue));
       return newValue;
     });
   };

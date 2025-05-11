@@ -7,7 +7,6 @@ import { indexedDB } from '~/lib/core/services/indexedDB';
 import { UserInfo } from '../types/channel.types';
 import { router } from 'expo-router';
 import { config } from '~/lib/core/config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Singleton for auth initialization
 export class AuthInitializer {
@@ -167,10 +166,6 @@ export function AuthHelper(): AuthHelperReturn {
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      // Clear local storage
-      await AsyncStorage.removeItem('user');
-      await AsyncStorage.removeItem('session');
       
       // Reset state
       setUser(null);
