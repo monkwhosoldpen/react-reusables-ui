@@ -12,6 +12,31 @@ export default function Root({ children }: PropsWithChildren) {
         <meta charSet='utf-8' />
         <meta httpEquiv='X-UA-Compatible' content='IE=edge' />
         <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no' />
+        
+        {/* PWA Meta Tags */}
+        <meta name='theme-color' content='#18181B' />
+        <meta name='description' content='React Native Reusables Showcase' />
+        <link rel='manifest' href='/manifest.json' />
+        <link rel='apple-touch-icon' href='/icon-192x192.png' />
+        
+        {/* Service Worker Registration Script */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                      console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                      console.log('ServiceWorker registration failed: ', err);
+                    });
+                });
+              }
+            `,
+          }}
+        />
 
         {/*
           Disable body scrolling on web. This makes ScrollView components work closer to how they do on native.
