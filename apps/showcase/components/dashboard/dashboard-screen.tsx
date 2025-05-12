@@ -4,7 +4,8 @@ import { View, ScrollView, TouchableOpacity, useWindowDimensions, SafeAreaView, 
 import { Text } from '~/components/ui/text';
 import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
-
+import { DashboardHeader } from './DashboardHeader';
+import { Sidebar } from './Sidebar';
 
 // Import the route components
 import AIDashboardTab from '~/components/dashboard/ai-dashboard';
@@ -256,46 +257,70 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
     ? TAB_CONFIGS // Show all tabs for public channels
     : TAB_CONFIGS.filter(tab => userRole ? tab.allowedRoles.includes(userRole.role) : false);
 
+  // Add helper function to determine border color based on client type
+  const getBorderColorClass = () => {
+    if (clientType === 'basic') {
+      return 'border-red-500 dark:border-red-600';
+    }
+    if (clientType === 'pro') {
+      return 'border-blue-500 dark:border-blue-600';
+    }
+    return 'border-gray-500 dark:border-gray-600'; // default case
+  };
+
+  // Add helper function to determine text color based on client type
+  const getTextColorClass = (isActive: boolean) => {
+    if (!isActive) return 'text-gray-600 dark:text-gray-400';
+    
+    if (clientType === 'basic') {
+      return 'text-red-500 dark:text-red-400';
+    }
+    if (clientType === 'pro') {
+      return 'text-blue-500 dark:text-blue-400';
+    }
+    return 'text-gray-500 dark:text-gray-400'; // default case
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
-      <ScrollView 
-        ref={ref}
-        className="flex-1"
-        contentContainerStyle={{ flexGrow: 1 }}
-      >
-        <View className={`flex-1 p-4 ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
-          {hasAccess && filteredTabs.length > 0 && (
-            <View className="flex-1">
-              <View className="flex-row border-b border-gray-200 dark:border-gray-700">
-                {filteredTabs.map((tab) => (
-                  <TouchableOpacity
-                    key={tab.name}
-                    onPress={() => setActiveTab(tab.name)}
-                    className={`flex-1 py-3 px-4 ${
-                      activeTab === tab.name
-                        ? 'border-b-2 border-blue-500'
-                        : 'border-b-2 border-transparent'
-                    }`}
-                  >
-                    <Text
-                      className={`text-center font-medium ${
-                        activeTab === tab.name
-                          ? 'text-blue-500'
-                          : 'text-gray-600 dark:text-gray-400'
-                      }`}
-                    >
-                      {tab.title}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+      <DashboardHeader
+        title="Dashboard"
+        username={username}
+        isPublic={isPublic}
+        clientType={clientType}
+        hasAccess={hasAccess}
+        userRole={userRole}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+      <View className="flex-1 flex-row">
+        {/* Sidebar - Only show on desktop */}
+        {isDesktop && (
+          <Sidebar
+            username={username}
+            ownerUsername={channelInfo?.ownerUsername || username}
+            clientType={clientType}
+            relatedChannels={premiumConfig?.related_channels}
+          />
+        )}
+        
+        {/* Main Content */}
+        <ScrollView 
+          ref={ref}
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <View className={`flex-1 p-4 ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
+            {hasAccess && filteredTabs.length > 0 && (
+              <View className="flex-1">
+                <View className="flex-1">
+                  <TabContent tabName={activeTab} username={username} />
+                </View>
               </View>
-              <View className="flex-1 mt-4">
-                <TabContent tabName={activeTab} username={username} />
-              </View>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+            )}
+          </View>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 } 

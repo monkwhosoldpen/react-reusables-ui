@@ -1,7 +1,6 @@
 import { View } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useLocalSearchParams } from 'expo-router';
-import { StatusBar } from './StatusBar';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
 
@@ -41,12 +40,6 @@ export default function AIDashboardTab() {
   
   return (
     <View className="p-4">
-      <StatusBar 
-        isPublic={isPublic}
-        clientType={clientType}
-        hasAccess={hasAccess}
-        userRole={userRole ? { role: userRole } : null}
-      />
       <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
         AI Dashboard Content
       </Text>

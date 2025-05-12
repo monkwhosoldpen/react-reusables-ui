@@ -19,7 +19,6 @@ import { useTheme } from '~/lib/core/providers/theme/ThemeProvider';
 import { createClient } from '@supabase/supabase-js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
-import { StatusBar } from './StatusBar';
 import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 
@@ -302,12 +301,6 @@ export default function RequestsTab() {
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
       <View className="flex-1 p-6">
-        <StatusBar 
-          isPublic={isPublic}
-          clientType={clientType}
-          hasAccess={hasAccess}
-          userRole={userRole ? { role: userRole } : null}
-        />
 
         {/* Search Bar */}
         <View className="flex-row items-center p-4 rounded-xl mb-6 bg-white dark:bg-gray-800 shadow-sm">

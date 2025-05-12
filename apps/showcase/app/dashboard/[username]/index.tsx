@@ -188,26 +188,6 @@ export default function DashboardRoute({ username }: { username: string }) {
 
   return (
     <View className="flex-1 flex-row">
-      {/* Left Sidebar - Related Channels */}
-      <View className={`${isDesktop ? 'w-64' : 'w-20'} border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}>
-        <View className="p-3 border-b border-gray-200 dark:border-gray-700">
-          <Text className="text-sm font-semibold text-gray-900 dark:text-white">
-            {isDesktop ? 'Related Channels' : 'Channels'}
-          </Text>
-        </View>
-        <ScrollView className="flex-1">
-          <View className="p-2">
-            <FlashList
-              data={allChannels}
-              estimatedItemSize={60}
-              renderItem={renderChannelItem}
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
-        </ScrollView>
-      </View>
-
-      {/* Right Content - Create Message */}
       <View className="flex-1 bg-gray-50 dark:bg-gray-900">
         <View className="flex-1">
           <DashboardScreen username={selectedChannel as string} tabname={'overview'} />

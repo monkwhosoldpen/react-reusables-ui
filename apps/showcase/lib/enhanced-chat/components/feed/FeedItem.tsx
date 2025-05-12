@@ -182,14 +182,14 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     
     return (
       <View className="mt-4 w-full">
-        <Text className="text-base font-bold mb-4 text-foreground">{poll.question}</Text>
+        <Text className="text-base font-bold mb-4 text-gray-900 dark:text-white">{poll.question}</Text>
         
         {poll.description && (
-          <Text className="text-base text-muted-foreground mb-4">{poll.description}</Text>
+          <Text className="text-base text-gray-600 dark:text-gray-300 mb-4">{poll.description}</Text>
         )}
         
         {error && (
-          <Text className="text-destructive text-sm mt-4">{error.message}</Text>
+          <Text className="text-red-600 dark:text-red-400 text-sm mt-4">{error.message}</Text>
         )}
         
         <View className="mt-2 space-y-2">
@@ -199,16 +199,17 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
               variant={selectedPollOptions.includes(index) ? 'default' : 'secondary'}
               onPress={() => !showResults && setSelectedPollOptions([index])}
               disabled={isSubmitting || (showResults && !isAuthenticated)}
+              className={selectedPollOptions.includes(index) ? 'bg-blue-500 dark:bg-blue-600' : 'bg-gray-100 dark:bg-gray-700'}
             >
-              <Text className="flex-1 text-base">{option}</Text>
+              <Text className="flex-1 text-base text-gray-900 dark:text-white">{option}</Text>
               
               {showResults && (
                 <View className="flex-row items-center space-x-2">
-                  <Text className="text-muted-foreground">
+                  <Text className="text-gray-600 dark:text-gray-300">
                     {Math.floor(Math.random() * 100)}%
                   </Text>
                   
-                  <View className="h-1 bg-primary rounded" style={{ width: `${Math.floor(Math.random() * 100)}%` }} />
+                  <View className="h-1 bg-blue-500 dark:bg-blue-600 rounded" style={{ width: `${Math.floor(Math.random() * 100)}%` }} />
                 </View>
               )}
             </Button>
@@ -220,14 +221,15 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             variant="default" 
             onPress={handlePollSubmit} 
             disabled={isSubmitting || selectedPollOptions.length === 0}
+            className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
           >
-            <Text>Vote</Text>
+            <Text className="text-white">Vote</Text>
           </Button>
         )}
         
         {showResults && (
           <View className="mt-4 items-center">
-            <Text className="text-sm text-muted-foreground">
+            <Text className="text-sm text-gray-600 dark:text-gray-300">
               {data.stats?.responses || 0} votes
             </Text>
           </View>
@@ -243,14 +245,14 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     
     return (
       <View className="mt-4 w-full">
-        {quiz.title && <Text className="text-base font-bold mb-4 text-foreground">{quiz.title}</Text>}
+        {quiz.title && <Text className="text-base font-bold mb-4 text-gray-900 dark:text-white">{quiz.title}</Text>}
         
         {quiz.description && (
-          <Text className="text-base text-muted-foreground mb-4">{quiz.description}</Text>
+          <Text className="text-base text-gray-600 dark:text-gray-300 mb-4">{quiz.description}</Text>
         )}
         
         {error && (
-          <Text className="text-destructive text-sm mt-4">{error.message}</Text>
+          <Text className="text-red-600 dark:text-red-400 text-sm mt-4">{error.message}</Text>
         )}
         
         {quiz.questions?.map((question, qIndex) => {
@@ -260,7 +262,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
           
           return (
             <View key={qIndex} className="mb-6">
-              <Text className="text-base mb-4">{question.text}</Text>
+              <Text className="text-base text-gray-900 dark:text-white mb-4">{question.text}</Text>
               
               <View className="space-y-2">
                 {question.options.map((option, oIndex) => {
@@ -272,11 +274,12 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
                       variant={(quizAnswers[qIndex] ?? -1) === oIndex ? 'default' : 'secondary'}
                       onPress={() => setQuizAnswers(prev => ({ ...prev, [qIndex]: oIndex }))}
                       disabled={isSubmitting || (showResults && !isAuthenticated)}
+                      className={(quizAnswers[qIndex] ?? -1) === oIndex ? 'bg-blue-500 dark:bg-blue-600' : 'bg-gray-100 dark:bg-gray-700'}
                     >
-                      <Text className="flex-1 text-base">{option}</Text>
+                      <Text className="flex-1 text-base text-gray-900 dark:text-white">{option}</Text>
                       
                       {showResults && (
-                        <Text className="text-muted-foreground">
+                        <Text className="text-gray-600 dark:text-gray-300">
                           {oIndex === question.correct_option ? '✅' : '❌'}
                         </Text>
                       )}
@@ -293,8 +296,9 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             variant="default" 
             onPress={handleQuizSubmit} 
             disabled={isSubmitting || Object.keys(quizAnswers).length !== quiz.questions?.length}
+            className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
           >
-            <Text>Submit Answers</Text>
+            <Text className="text-white">Submit Answers</Text>
           </Button>
         )}
       </View>
@@ -308,19 +312,19 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     
     return (
       <View className="mt-4 w-full">
-        <Text className="text-xl font-semibold mb-4 w-full flex-wrap px-4">{survey.title}</Text>
+        <Text className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{survey.title}</Text>
         
         {survey.description && (
-          <Text className="text-base text-muted-foreground mb-4">{survey.description}</Text>
+          <Text className="text-base text-gray-600 dark:text-gray-300 mb-4">{survey.description}</Text>
         )}
         
         {error && (
-          <Text className="text-destructive text-sm mt-4">{error.message}</Text>
+          <Text className="text-red-600 dark:text-red-400 text-sm mt-4">{error.message}</Text>
         )}
         
         {survey.questions.map((question, qIndex) => (
-          <View key={qIndex} className="mb-4 p-6 bg-background rounded-sm">
-            <Text className="text-base mb-4">{question.text}</Text>
+          <View key={qIndex} className="mb-4 p-6 bg-white dark:bg-gray-800 rounded-lg">
+            <Text className="text-base text-gray-900 dark:text-white mb-4">{question.text}</Text>
             
             <View className="space-y-2">
               {question.options.map((option, oIndex) => (
@@ -329,8 +333,9 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
                   variant={surveyAnswers[qIndex] === oIndex ? 'default' : 'secondary'}
                   onPress={() => handleSurveyResponse(qIndex, oIndex)}
                   disabled={isSubmitting || (showResults && !isAuthenticated)}
+                  className={surveyAnswers[qIndex] === oIndex ? 'bg-blue-500 dark:bg-blue-600' : 'bg-gray-100 dark:bg-gray-700'}
                 >
-                  <Text className="text-base">{option}</Text>
+                  <Text className="text-base text-gray-900 dark:text-white">{option}</Text>
                 </Button>
               ))}
             </View>
@@ -342,14 +347,15 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             variant="default" 
             onPress={handleSurveySubmit} 
             disabled={isSubmitting || Object.keys(surveyAnswers).length !== survey.questions.length}
+            className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
           >
-            <Text>Submit Survey</Text>
+            <Text className="text-white">Submit Survey</Text>
           </Button>
         )}
         
         {showResults && (
           <View className="mt-4 items-center">
-            <Text className="text-base text-primary font-semibold">Thank you for your feedback!</Text>
+            <Text className="text-base text-blue-600 dark:text-blue-400 font-semibold">Thank you for your feedback!</Text>
           </View>
         )}
       </View>
@@ -445,7 +451,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         {data.media.map((item, index) => (
           <View 
             key={index} 
-            className={`relative overflow-hidden rounded-md bg-background ${getMediaItemClass(index)} ${isCollapsed ? `max-h-[${maxHeight}px]` : ''}`}
+            className={`relative overflow-hidden rounded-lg bg-white dark:bg-gray-800 ${getMediaItemClass(index)} ${isCollapsed ? `max-h-[${maxHeight}px]` : ''}`}
           >
             <Image
               source={{ uri: item.type === 'video' ? item.thumbnail : item.url }}
@@ -454,7 +460,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
             />
             
             {item.caption && (
-              <Text className="absolute bottom-0 left-0 right-0 bg-black/70 text-background p-4 text-sm">
+              <Text className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-4 text-sm">
                 {item.type === 'video' ? '🎥 ' : ''}{item.caption}
               </Text>
             )}
@@ -480,18 +486,18 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
   };
 
   return (
-    <View className={`bg-card rounded-2xl border border-border overflow-hidden w-full self-stretch shadow-sm mb-2 ${isDesktop ? 'max-w-[800px] mx-auto' : ''}`}>
+    <View className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden w-full self-stretch shadow-sm mb-2 ${isDesktop ? 'max-w-[800px] mx-auto' : ''}`}>
       {showHeader && (
         <View className={`flex-row justify-between items-start ${isDesktop ? 'px-6 py-4' : 'px-3 py-1'} flex-wrap`}>
           <View className="flex-1 flex-row items-center justify-between min-w-[200px]">
             <Text 
-              className={`${isDesktop ? 'text-base' : 'text-sm'} font-semibold text-foreground`}
+              className={`${isDesktop ? 'text-base' : 'text-sm'} font-semibold text-gray-900 dark:text-white`}
               numberOfLines={1}
             >
               {data.channel_username}
             </Text>
             
-            <Text className={`${isDesktop ? 'text-sm' : 'text-[11px]'} text-muted-foreground`}>
+            <Text className={`${isDesktop ? 'text-sm' : 'text-[11px]'} text-gray-600 dark:text-gray-300`}>
               {formatTimestamp(data.metadata?.timestamp || '')}
             </Text>
           </View>
@@ -505,7 +511,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
           {data.content && (
             <View className={`${isDesktop ? 'px-6 py-2' : 'px-3 py-1'}`}>
               <Text 
-                className={`${isDesktop ? 'text-base' : 'text-sm'} text-foreground`}
+                className={`${isDesktop ? 'text-base' : 'text-sm'} text-gray-900 dark:text-white`}
                 numberOfLines={isCollapsed ? 2 : undefined}
               >
                 {data.content}
@@ -530,8 +536,9 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
           <LinearGradient
             colors={[
               'rgba(255, 255, 255, 0)',
-              `${colorScheme.colors.background}99`,
-              colorScheme.colors.background
+              'rgba(255, 255, 255, 0.6)',
+              'rgba(255, 255, 255, 0.8)',
+              'rgba(255, 255, 255, 1)',
             ]}
             className="absolute bottom-0 left-0 right-0 h-[30px] justify-end pb-2 z-10"
             pointerEvents="box-none"
@@ -541,7 +548,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
                 variant="ghost"
                 onPress={toggleCollapse}
               >
-                <Text className="text-sm text-foreground font-bold">Show more</Text>
+                <Text className="text-sm text-gray-900 dark:text-white font-bold">Show more</Text>
               </Button>
             </View>
           </LinearGradient>
@@ -553,7 +560,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
               variant="ghost"
               onPress={toggleCollapse}
             >
-              <Text className="text-sm text-foreground font-medium">Show less</Text>
+              <Text className="text-sm text-gray-900 dark:text-white font-medium">Show less</Text>
             </Button>
           </View>
         )}
