@@ -94,11 +94,29 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
   };
 
   const updateNotificationPreference = async (enabled: boolean): Promise<void> => {
-   
-    if (!user) return;
+    if (!user) {
+      console.log('[SampleHelper] Cannot update notification preference - no user', {
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
 
     try {
+      console.log('[SampleHelper] Starting notification preference update', {
+        userId: user.id,
+        enabled,
+        currentState: await indexedDB.getUserNotifications(user.id),
+        timestamp: new Date().toISOString()
+      });
+
       // Update backend
+      console.log('[SampleHelper] Sending preference update to API', {
+        endpoint: config.api.endpoints.user.notification,
+        userId: user.id,
+        enabled,
+        timestamp: new Date().toISOString()
+      });
+
       const response = await fetch(config.api.endpoints.user.notification, {
         method: 'POST',
         headers: {
@@ -110,66 +128,207 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
         }),
       });
 
+      const responseData = await response.text();
+      console.log('[SampleHelper] Received API response', {
+        status: response.status,
+        ok: response.ok,
+        responseData: responseData,
+        timestamp: new Date().toISOString()
+      });
+
       if (!response.ok) {
+        console.error('[SampleHelper] API preference update failed', {
+          status: response.status,
+          statusText: response.statusText,
+          error: responseData,
+          userId: user.id,
+          timestamp: new Date().toISOString()
+        });
         throw new Error('Failed to save notification preference');
       }
 
+      // Verify the update was successful by fetching current state
+      const verifyResponse = await fetch(`${config.api.endpoints.user.notification}?userId=${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const verifyData = await verifyResponse.json();
+      console.log('[SampleHelper] Verified API state', {
+        userId: user.id,
+        apiEnabled: verifyData?.notifications_enabled,
+        requestedEnabled: enabled,
+        timestamp: new Date().toISOString()
+      });
+
       // Update IndexedDB
+      console.log('[SampleHelper] Updating IndexedDB preference', {
+        userId: user.id,
+        enabled,
+        timestamp: new Date().toISOString()
+      });
+
       await indexedDB.setUserNotifications(user.id, enabled);
+
+      // Verify IndexedDB update
+      const verifiedDbState = await indexedDB.getUserNotifications(user.id);
+      console.log('[SampleHelper] Verified IndexedDB state', {
+        userId: user.id,
+        dbEnabled: verifiedDbState,
+        requestedEnabled: enabled,
+        timestamp: new Date().toISOString()
+      });
+
+      if (verifiedDbState !== enabled) {
+        console.warn('[SampleHelper] IndexedDB state mismatch', {
+          userId: user.id,
+          dbState: verifiedDbState,
+          requestedState: enabled,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      console.log('[SampleHelper] Notification preference update complete', {
+        userId: user.id,
+        enabled,
+        apiState: verifyData?.notifications_enabled,
+        dbState: verifiedDbState,
+        timestamp: new Date().toISOString()
+      });
       
     } catch (error) {
+      console.error('[SampleHelper] Failed to update notification preference', {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: user.id,
+        enabled,
+        timestamp: new Date().toISOString()
+      });
       throw error;
     }
   };
 
   const updatePushSubscription = async (subscription: PushSubscription, enabled: boolean): Promise<void> => {
-    
-    if (!user) return;
-    
+    if (!user) {
+      console.log('[SampleHelper] Cannot update push subscription - no user', {
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+
     try {
+      console.log('[SampleHelper] Starting push subscription update', {
+        userId: user.id,
+        endpoint: subscription.endpoint,
+        enabled,
+        subscriptionKeys: Object.keys(subscription.toJSON().keys || {}),
+        timestamp: new Date().toISOString()
+      });
+
       // First update IndexedDB
       const subscriptionData: PushSubscriptionData = {
         user_id: user.id,
         endpoint: subscription.endpoint,
         keys: subscription.toJSON().keys,
-        device_type: 'unknown',
-        browser: 'unknown',
-        os: 'unknown',
-        platform: 'unknown',
-        device_id: 'unknown',
-        app_version: 'unknown',
+        device_type: 'web',
+        browser: navigator.userAgent,
+        os: navigator.platform,
+        platform: 'browser',
+        device_id: subscription.endpoint,
+        app_version: '1.0.0',
         notifications_enabled: enabled,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
-      
+
+      console.log('[SampleHelper] Saving subscription to IndexedDB', {
+        userId: user.id,
+        endpoint: subscription.endpoint,
+        deviceInfo: {
+          browser: subscriptionData.browser,
+          os: subscriptionData.os,
+          platform: subscriptionData.platform
+        },
+        timestamp: new Date().toISOString()
+      });
+
       await indexedDB.savePushSubscription(subscriptionData);
+      console.log('[SampleHelper] Successfully saved to IndexedDB', {
+        timestamp: new Date().toISOString()
+      });
 
       // Then update backend
-      const { error } = await supabase
+      console.log('[SampleHelper] Preparing Supabase upsert', {
+        userId: user.id,
+        endpoint: subscription.endpoint,
+        hasKeys: !!subscription.toJSON().keys,
+        timestamp: new Date().toISOString()
+      });
+
+      const supabaseData = {
+        user_id: user.id,
+        endpoint: subscription.endpoint,
+        keys: JSON.stringify({
+          p256dh: subscription.toJSON().keys?.p256dh,
+          auth: subscription.toJSON().keys?.auth,
+        }),
+        device_type: 'web',
+        browser: navigator.userAgent,
+        os: navigator.platform,
+        platform: 'browser',
+        device_id: subscription.endpoint,
+        app_version: '1.0.0',
+        notifications_enabled: enabled,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('[SampleHelper] Upserting to Supabase', {
+        table: 'push_subscriptions',
+        data: {
+          ...supabaseData,
+          keys: '(encrypted)'
+        },
+        timestamp: new Date().toISOString()
+      });
+
+      const { data, error } = await supabase
         .from('push_subscriptions')
-        .upsert({
-          user_id: user.id,
-          endpoint: subscription.endpoint,
-          keys: JSON.stringify({
-            p256dh: subscription.toJSON().keys?.p256dh,
-            auth: subscription.toJSON().keys?.auth,
-          }),
-          device_type: 'unknown',
-          browser: 'unknown',
-          os: 'unknown',
-          platform: 'unknown',
-          device_id: 'unknown',
-          app_version: 'unknown',
-          notifications_enabled: enabled,
-          updated_at: new Date().toISOString()
-        }, {
+        .upsert(supabaseData, {
           onConflict: 'endpoint'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[SampleHelper] Supabase upsert error', {
+          error: {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          },
+          userId: user.id,
+          endpoint: subscription.endpoint,
+          timestamp: new Date().toISOString()
+        });
+        throw error;
+      }
+
+      console.log('[SampleHelper] Successfully updated Supabase subscription', {
+        userId: user.id,
+        endpoint: subscription.endpoint,
+        response: data,
+        timestamp: new Date().toISOString()
+      });
 
     } catch (error) {
+      console.error('[SampleHelper] Failed to update push subscription', {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: user.id,
+        endpoint: subscription.endpoint,
+        timestamp: new Date().toISOString()
+      });
       throw error;
     }
   };
@@ -262,14 +421,38 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
   };
 
   const getChannelActivity = async () => {
-    if (!user) return {
-      channelActivityRecords: [],
-      userLanguage: 'english',
-      tenantRequests: []
-    };
+    if (!user) {
+      console.log('[SampleHelper] Cannot fetch channel activity - no user', {
+        timestamp: new Date().toISOString()
+      });
+      return {
+        channelActivityRecords: [],
+        userLanguage: 'english',
+        tenantRequests: []
+      };
+    }
 
     try {
-      // Fetch from API instead of direct Supabase call
+      console.log('[SampleHelper] Starting channel activity fetch', {
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      });
+
+      // Get current notification state from IndexedDB for comparison
+      const currentDbState = await indexedDB.getUserNotifications(user.id);
+      console.log('[SampleHelper] Current IndexedDB notification state', {
+        userId: user.id,
+        enabled: currentDbState,
+        timestamp: new Date().toISOString()
+      });
+
+      // Fetch from API
+      console.log('[SampleHelper] Fetching myinfo data', {
+        userId: user.id,
+        endpoint: `${config.api.endpoints.myinfo}?userId=${user.id}`,
+        timestamp: new Date().toISOString()
+      });
+
       const response = await fetch(`${config.api.endpoints.myinfo}?userId=${user.id}`, {
         method: 'POST',
         headers: {
@@ -282,60 +465,97 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
       
       const data = await response.json();
 
+      console.log('[SampleHelper] Received myinfo response', {
+        userId: user.id,
+        success: data.success,
+        hasUserPreferences: !!data.userPreferences,
+        notificationState: data.userPreferences?.notifications_enabled,
+        pushSubscriptionCount: data.userPreferences?.push_subscriptions?.length || 0,
+        timestamp: new Date().toISOString()
+      });
+
       if (data.success) {
         try {
+          // Check for state inconsistencies
+          const apiNotificationState = data.userPreferences?.notifications_enabled;
+          if (currentDbState !== apiNotificationState) {
+            console.warn('[SampleHelper] Notification state mismatch', {
+              userId: user.id,
+              dbState: currentDbState,
+              apiState: apiNotificationState,
+              timestamp: new Date().toISOString()
+            });
+          }
+
+          console.log('[SampleHelper] Processing myinfo data', {
+            userId: user.id,
+            preferencesKeys: Object.keys(data.userPreferences || {}),
+            pushSubscriptionsCount: data.userPreferences?.push_subscriptions?.length || 0,
+            channelsActivityCount: data.userPreferences?.channels_activity?.length || 0,
+            timestamp: new Date().toISOString()
+          });
+
           // Save all raw API data to IndexedDB
           await indexedDB.saveRawApiData(user.id, data);
           
           // Extract relevant data for returning
           const preferences = data.userPreferences;
-          
-          // Extract language from user_language array
           const language = preferences.user_language?.length > 0 
             ? preferences.user_language[0].language 
             : 'english';
-          
-          // Extract tenant requests from either field - handle both possible names
           const tenantRequests = preferences.tenant_requests || preferences.tena || [];
           
-          // Return the data the UI expects
+          console.log('[SampleHelper] Processed myinfo data', {
+            userId: user.id,
+            language,
+            tenantRequestsCount: tenantRequests.length,
+            channelsActivityCount: (preferences.channels_activity || []).length,
+            notificationState: preferences.notifications_enabled,
+            timestamp: new Date().toISOString()
+          });
+
           return {
             channelActivityRecords: preferences.channels_activity || [],
             userLanguage: language,
             tenantRequests: tenantRequests
           };
         } catch (syncError) {
-          console.error('Error syncing data to IndexedDB:', syncError);
+          console.error('[SampleHelper] Error syncing data to IndexedDB', {
+            error: syncError instanceof Error ? syncError.message : syncError,
+            stack: syncError instanceof Error ? syncError.stack : undefined,
+            userId: user.id,
+            timestamp: new Date().toISOString()
+          });
         }
       }
 
-      // If no API data or sync failed, return local data from IndexedDB
-      const rawData = await indexedDB.getAllRawData(user.id);
-      const localLanguage = rawData.user_language?.length > 0 
-        ? rawData.user_language[0].language 
-        : 'english';
-      const localTenantRequests = rawData.tenant_requests || [];
-      const localChannelActivity = rawData.channels_activity || [];
+      // Fallback to IndexedDB
+      console.log('[SampleHelper] API request failed, falling back to IndexedDB', {
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      });
 
+      const rawData = await indexedDB.getAllRawData(user.id);
       return {
-        channelActivityRecords: localChannelActivity,
-        userLanguage: localLanguage,
-        tenantRequests: localTenantRequests
+        channelActivityRecords: rawData.channels_activity || [],
+        userLanguage: rawData.user_language?.[0]?.language || 'english',
+        tenantRequests: rawData.tenant_requests || []
       };
 
     } catch (error) {
-      console.error('Failed to fetch user data:', error);
+      console.error('[SampleHelper] Failed to fetch user data', {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      });
+
       // Return local data as fallback
       const rawData = await indexedDB.getAllRawData(user.id);
-      const localLanguage = rawData.user_language?.length > 0 
-        ? rawData.user_language[0].language 
-        : 'english';
-      const localTenantRequests = rawData.tenant_requests || [];
-      
       return {
         channelActivityRecords: [],
-        userLanguage: localLanguage,
-        tenantRequests: localTenantRequests
+        userLanguage: rawData.user_language?.[0]?.language || 'english',
+        tenantRequests: rawData.tenant_requests || []
       };
     }
   };

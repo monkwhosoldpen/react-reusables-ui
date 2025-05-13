@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Switch } from '~/components/ui/switch';
 import { cn } from '~/lib/utils';
+import { NotificationPreference } from '~/components/common/NotificationPreference';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -119,6 +120,16 @@ export default function SettingsScreen() {
                   </View>
                 </TouchableOpacity>
               )}
+            </View>
+
+            {/* Notifications Section */}
+            <View className="py-3 px-1 mt-6">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                NOTIFICATIONS
+              </Text>
+            </View>
+            <View className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden p-4">
+              <NotificationPreference showDescription={true} showDebug={false} />
             </View>
 
             {/* Appearance Section */}

@@ -54,15 +54,28 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setError(null);
       
+      console.log('[RealtimeProvider] Fetching channel activities', {
+        timestamp: new Date().toISOString()
+      });
+
       const { data, error } = await supabase
         .from('channels_activity')
         .select('username, last_updated_at, message_count, last_message')
         .order('last_updated_at', { ascending: false });
 
       if (error) {
+        console.error('[RealtimeProvider] Error fetching channel activities', {
+          error: error.message,
+          timestamp: new Date().toISOString()
+        });
         setError(error.message);
         return;
       }
+
+      console.log('[RealtimeProvider] Successfully fetched channel activities', {
+        count: data?.length || 0,
+        timestamp: new Date().toISOString()
+      });
 
       // Transform the data to match ChannelActivity type
       const activities = (data || []).map(item => ({
@@ -75,6 +88,11 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       setChannelActivities(activities);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('[RealtimeProvider] Error in fetchChannelActivities', {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      });
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -82,15 +100,39 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleRealtimeChange = useCallback((payload: RealtimePostgresChangesPayload<ChannelsActivityRecord>) => {
-    if (!payload || !payload.new && !payload.old) return;
+    if (!payload || !payload.new && !payload.old) {
+      console.log('[RealtimeProvider] Invalid payload received', {
+        payload,
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
 
     const { eventType, new: newRecord, old: oldRecord } = payload;
     const username = (newRecord as ChannelsActivityRecord)?.username || (oldRecord as ChannelsActivityRecord)?.username;
 
-    if (!username) return;
+    if (!username) {
+      console.warn('[RealtimeProvider] Missing username in payload', {
+        eventType,
+        newRecord,
+        oldRecord,
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+
+    console.log('[RealtimeProvider] Processing realtime change', {
+      eventType,
+      username,
+      timestamp: new Date().toISOString()
+    });
 
     // Clear any existing timeout for this username
     if (debounceTimeoutRef.current[username]) {
+      console.log('[RealtimeProvider] Clearing existing debounce timeout', {
+        username,
+        timestamp: new Date().toISOString()
+      });
       clearTimeout(debounceTimeoutRef.current[username]);
     }
 
@@ -103,16 +145,35 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
         // Enhanced logging for different types of changes
         if (eventType === 'UPDATE') {
-          if (oldCount !== newCount) {
-          }
-          if ((newRecord as ChannelsActivityRecord)?.last_message?.id !== currentActivity?.last_message?.id) {
-          }
+          console.log('[RealtimeProvider] Processing UPDATE event', {
+            username,
+            oldCount,
+            newCount,
+            messageChanged: (newRecord as ChannelsActivityRecord)?.last_message?.id !== currentActivity?.last_message?.id,
+            timestamp: new Date().toISOString()
+          });
         } else if (eventType === 'INSERT') {
+          console.log('[RealtimeProvider] Processing INSERT event', {
+            username,
+            newCount,
+            timestamp: new Date().toISOString()
+          });
         } else if (eventType === 'DELETE') {
+          console.log('[RealtimeProvider] Processing DELETE event', {
+            username,
+            timestamp: new Date().toISOString()
+          });
         }
 
         // Call the external change handler if provided
-        onRealtimeChangeRef.current?.(payload);
+        if (onRealtimeChangeRef.current) {
+          console.log('[RealtimeProvider] Calling external change handler', {
+            eventType,
+            username,
+            timestamp: new Date().toISOString()
+          });
+          onRealtimeChangeRef.current(payload);
+        }
 
         switch (eventType) {
           case 'INSERT':
@@ -131,9 +192,17 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    console.log('[RealtimeProvider] Initializing realtime provider', {
+      timestamp: new Date().toISOString()
+    });
+
     fetchChannelActivities();
 
     // Subscribe to channel activity changes
+    console.log('[RealtimeProvider] Setting up channel activity subscription', {
+      timestamp: new Date().toISOString()
+    });
+
     const channelActivitySubscription = supabase
       .channel('channel-activity-changes')
       .on(
@@ -146,9 +215,16 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         handleRealtimeChange
       )
       .subscribe((status) => {
+        console.log('[RealtimeProvider] Subscription status update', {
+          status,
+          timestamp: new Date().toISOString()
+        });
       });
 
     return () => {
+      console.log('[RealtimeProvider] Cleaning up realtime provider', {
+        timestamp: new Date().toISOString()
+      });
       // Clear all debounce timeouts on cleanup
       Object.values(debounceTimeoutRef.current).forEach(timeout => clearTimeout(timeout));
       channelActivitySubscription.unsubscribe();
