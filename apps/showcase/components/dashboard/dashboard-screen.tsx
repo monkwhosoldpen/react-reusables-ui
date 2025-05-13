@@ -4,8 +4,9 @@ import { View, ScrollView, TouchableOpacity, useWindowDimensions, SafeAreaView, 
 import { Text } from '~/components/ui/text';
 import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
-import { DashboardHeader } from './DashboardHeader';
 import { Sidebar } from './Sidebar';
+import { MaterialIcons } from '@expo/vector-icons';
+import { StatusBar } from './StatusBar';
 
 // Import the route components
 import AIDashboardTab from '~/components/dashboard/ai-dashboard';
@@ -155,6 +156,7 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
   const { width } = useWindowDimensions();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState(tabname || 'overview');
+  const colorScheme = useColorScheme();
   
   // Find the channel in all configs to get owner
   const findChannelOwner = () => {
@@ -257,7 +259,14 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
     ? TAB_CONFIGS // Show all tabs for public channels
     : TAB_CONFIGS.filter(tab => userRole ? tab.allowedRoles.includes(userRole.role) : false);
 
-  // Add helper function to determine border color based on client type
+  const navItems = [
+    { name: 'overview', label: 'Overview' },
+    { name: 'chat', label: 'Chat' },
+    { name: 'ai-dashboard', label: 'AI Dashboard' },
+    { name: 'requests', label: 'Requests' }
+  ];
+
+  // Helper function to determine border color based on client type
   const getBorderColorClass = () => {
     if (clientType === 'basic') {
       return 'border-red-500 dark:border-red-600';
@@ -265,34 +274,86 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
     if (clientType === 'pro') {
       return 'border-blue-500 dark:border-blue-600';
     }
-    return 'border-gray-500 dark:border-gray-600'; // default case
-  };
-
-  // Add helper function to determine text color based on client type
-  const getTextColorClass = (isActive: boolean) => {
-    if (!isActive) return 'text-gray-600 dark:text-gray-400';
-    
-    if (clientType === 'basic') {
-      return 'text-red-500 dark:text-red-400';
-    }
-    if (clientType === 'pro') {
-      return 'text-blue-500 dark:text-blue-400';
-    }
-    return 'text-gray-500 dark:text-gray-400'; // default case
+    return 'border-gray-500 dark:border-gray-600';
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
-      <DashboardHeader
-        title="Dashboard"
-        username={username}
-        isPublic={isPublic}
-        clientType={clientType}
-        hasAccess={hasAccess}
-        userRole={userRole}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+      <View className="bg-white dark:bg-gray-900">
+        {/* Status Bar Section */}
+        <View className="px-4 py-2">
+          <StatusBar 
+            isPublic={isPublic}
+            clientType={clientType}
+            hasAccess={hasAccess}
+            userRole={userRole}
+          />
+        </View>
+
+        {/* Navigation Section */}
+        <View className="border-t border-b border-gray-200 dark:border-gray-700">
+          <View className={`px-4 py-4 flex-row items-center justify-between ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
+            {/* Navigation Links */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="flex-1"
+            >
+              <View className="flex-row items-center space-x-6">
+                {navItems.map((item) => (
+                  <TouchableOpacity
+                    key={item.name}
+                    className={`py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 border-b-2 ${
+                      activeTab === item.name
+                        ? getBorderColorClass()
+                        : 'border-transparent'
+                    }`}
+                    onPress={() => setActiveTab(item.name)}
+                  >
+                    <Text className={`text-base font-medium whitespace-nowrap ${
+                      activeTab === item.name
+                        ? clientType === 'basic'
+                          ? 'text-red-500 dark:text-red-400'
+                          : clientType === 'pro'
+                          ? 'text-blue-500 dark:text-blue-400'
+                          : 'text-gray-900 dark:text-gray-100'
+                        : 'text-gray-600 dark:text-gray-400'
+                    }`}>
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            {/* User Icon */}
+            <View className="ml-6">
+              {user && (
+                <View className={`w-8 h-8 rounded-full justify-center items-center ${
+                  clientType === 'basic'
+                    ? 'bg-red-50 dark:bg-red-900/30'
+                    : clientType === 'pro'
+                    ? 'bg-blue-50 dark:bg-blue-900/30'
+                    : 'bg-gray-100 dark:bg-gray-800'
+                }`}>
+                  <MaterialIcons 
+                    name="person" 
+                    size={20} 
+                    color={
+                      clientType === 'basic'
+                        ? colorScheme === 'dark' ? '#FCA5A5' : '#EF4444'
+                        : clientType === 'pro'
+                        ? colorScheme === 'dark' ? '#93C5FD' : '#3B82F6'
+                        : colorScheme === 'dark' ? '#E5E7EB' : '#4B5563'
+                    }
+                  />
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </View>
+
       <View className="flex-1 flex-row">
         {/* Sidebar - Only show on desktop */}
         {isDesktop && (
