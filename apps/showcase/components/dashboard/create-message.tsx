@@ -215,7 +215,7 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
             )}
             
             {/* Quick Action Buttons */}
-            <View className="flex-row gap-2 p-4">
+            <View className="flex-row gap-2 p-4 border-2 border-pink-500 rounded-lg">
               <Button
                 variant="outline"
                 onPress={() => handleQuickActionClick('small')}
@@ -254,7 +254,7 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
             </View>
 
             {/* Interactive Bulk Create Buttons */}
-            <View className="flex-row gap-2 p-4">
+            <View className="flex-row gap-2 p-4 border-2 border-pink-500 rounded-lg mt-2">
               <Button
                 variant="outline"
                 onPress={handleBulkCreatePolls}
@@ -280,7 +280,7 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
 
             <View className="flex-1 flex-row p-4 gap-4">
 
-              <View className="flex-[0.4]">
+              <View className="flex-[0.4] border-2 border-green-500 rounded-lg p-2">
                 <Text className="text-sm font-medium text-gray-900 dark:text-white mb-4">
                   Total Messages: {messageCount}
                 </Text>
@@ -304,180 +304,181 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
                 </ScrollView>
               </View>
 
-              <View className="flex-[0.3] border-r border-gray-200 dark:border-gray-700 pr-4">
-                <ScrollView className="p-4">
-                  {/* Content Section */}
-                  <View className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-                    <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Content</Text>
-                    <View className="flex-row items-center mb-2">
-                      <Text className="text-base text-gray-700 dark:text-gray-300">Make Content Collapsible</Text>
-                      <Switch
-                        value={formData.metadata?.isCollapsible ?? true}
-                        onValueChange={(value) => handleFormDataChange({
-                          metadata: {
-                            ...DEFAULT_METADATA,
-                            ...formData.metadata,
-                            isCollapsible: value
-                          }
-                        })}
-                      />
-                    </View>
-                    <View className="flex-row items-center mb-2">
-                      <Text className="text-base text-gray-700 dark:text-gray-300">Include Content</Text>
-                      <Switch
-                        value={includeContent}
-                        onValueChange={setIncludeContent}
-                      />
-                    </View>
-                    <View className="flex-row items-center mb-2">
-                      <Text className="text-base text-gray-700 dark:text-gray-300">Show Footer</Text>
-                      <Switch
-                        value={formData.metadata?.visibility?.footer ?? true}
-                        onValueChange={(value) => handleFormDataChange({
-                          metadata: {
-                            ...formData.metadata,
-                            visibility: {
-                              ...formData.metadata?.visibility,
-                              footer: value
+              <View className="flex-[0.6] border-2 border-blue-500 rounded-lg p-2 flex-row">
+                <View className="flex-[0.5] pr-4">
+                  <ScrollView className="p-4">
+                    {/* Content Section */}
+                    <View className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                      <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Content</Text>
+                      <View className="flex-row items-center mb-2">
+                        <Text className="text-base text-gray-700 dark:text-gray-300">Make Content Collapsible</Text>
+                        <Switch
+                          value={formData.metadata?.isCollapsible ?? true}
+                          onValueChange={(value) => handleFormDataChange({
+                            metadata: {
+                              ...DEFAULT_METADATA,
+                              ...formData.metadata,
+                              isCollapsible: value
                             }
-                          }
-                        })}
-                      />
+                          })}
+                        />
+                      </View>
+                      <View className="flex-row items-center mb-2">
+                        <Text className="text-base text-gray-700 dark:text-gray-300">Include Content</Text>
+                        <Switch
+                          value={includeContent}
+                          onValueChange={setIncludeContent}
+                        />
+                      </View>
+                      <View className="flex-row items-center mb-2">
+                        <Text className="text-base text-gray-700 dark:text-gray-300">Show Footer</Text>
+                        <Switch
+                          value={formData.metadata?.visibility?.footer ?? true}
+                          onValueChange={(value) => handleFormDataChange({
+                            metadata: {
+                              ...formData.metadata,
+                              visibility: {
+                                ...formData.metadata?.visibility,
+                                footer: value
+                              }
+                            }
+                          })}
+                        />
+                      </View>
+                      {includeContent && (
+                        <TextInput
+                          className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                          value={formData.content}
+                          onChangeText={(text) => handleFormDataChange({ ...formData, content: text })}
+                          placeholder="Enter your content"
+                          multiline
+                          numberOfLines={4}
+                        />
+                      )}
                     </View>
-                    {includeContent && (
-                      <TextInput
-                        className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                        value={formData.content}
-                        onChangeText={(text) => handleFormDataChange({ ...formData, content: text })}
-                        placeholder="Enter your content"
-                        multiline
-                        numberOfLines={4}
-                      />
-                    )}
-                  </View>
 
-                  {/* Media Section */}
-                  <View className="p-4 mt-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-                    <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Media</Text>
-                    <View className="flex-row items-center mb-2">
-                      <Text className="text-base text-gray-700 dark:text-gray-300">Include Media</Text>
-                      <Switch
-                        value={includeMedia}
-                        onValueChange={setIncludeMedia}
-                      />
-                    </View>
-                    {includeMedia && (
-                      <View>
-                        <View className="mb-4">
-                          <Text className="text-base font-semibold mb-2 text-gray-900 dark:text-white">Layout Style</Text>
-                          <View className="flex-row gap-2">
-                            {MEDIA_LAYOUTS.map((layout) => (
-                              <TouchableOpacity
-                                key={layout}
-                                className={`flex-1 p-3 border rounded-lg ${
-                                  formData.metadata?.mediaLayout === layout 
-                                    ? 'border-black bg-primary'
-                                    : 'border-gray-200'
-                                }`}
-                                onPress={() => handleMediaLayoutChange(layout)}
-                              >
-                                <Text className={
-                                  formData.metadata?.mediaLayout === layout 
-                                    ? 'text-white'
-                                    : 'text-gray-700'
-                                }>
-                                  {getMediaLayoutLabel(layout)}
+                    {/* Media Section */}
+                    <View className="p-4 mt-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                      <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Media</Text>
+                      <View className="flex-row items-center mb-2">
+                        <Text className="text-base text-gray-700 dark:text-gray-300">Include Media</Text>
+                        <Switch
+                          value={includeMedia}
+                          onValueChange={setIncludeMedia}
+                        />
+                      </View>
+                      {includeMedia && (
+                        <View>
+                          <View className="mb-4">
+                            <Text className="text-base font-semibold mb-2 text-gray-900 dark:text-white">Layout Style</Text>
+                            <View className="flex-row gap-2">
+                              {MEDIA_LAYOUTS.map((layout) => (
+                                <TouchableOpacity
+                                  key={layout}
+                                  className={`flex-1 p-3 border rounded-lg ${
+                                    formData.metadata?.mediaLayout === layout 
+                                      ? 'border-black bg-primary'
+                                      : 'border-gray-200'
+                                  }`}
+                                  onPress={() => handleMediaLayoutChange(layout)}
+                                >
+                                  <Text className={
+                                    formData.metadata?.mediaLayout === layout 
+                                      ? 'text-white'
+                                      : 'text-gray-700'
+                                  }>
+                                    {getMediaLayoutLabel(layout)}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                          </View>
+
+                          {/* Media Items List */}
+                          <View className="mb-4">
+                            {formData.media?.map((item, index) => (
+                              <View key={index} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg mb-2">
+                                <Text className="text-sm font-medium mb-2 text-gray-900 dark:text-white">
+                                  {item.type === 'image' ? `Image ${index + 1}` : `Video ${index + 1}`}
                                 </Text>
-                              </TouchableOpacity>
+                                <TextInput
+                                  className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                                  value={item.url}
+                                  onChangeText={(text) => handleMediaUrlChange(index, text)}
+                                  placeholder={`https://placeholder.co/800x600?text=${item.type}+${index + 1}`}
+                                />
+                                <TextInput
+                                  className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                                  value={item.caption}
+                                  onChangeText={(text) => handleMediaCaptionChange(index, text)}
+                                  placeholder={`Enter caption for ${item.type} ${index + 1}`}
+                                />
+                              </View>
                             ))}
                           </View>
-                        </View>
 
-                        {/* Media Items List */}
-                        <View className="mb-4">
-                          {formData.media?.map((item, index) => (
-                            <View key={index} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg mb-2">
-                              <Text className="text-sm font-medium mb-2 text-gray-900 dark:text-white">
-                                {item.type === 'image' ? `Image ${index + 1}` : `Video ${index + 1}`}
-                              </Text>
-                              <TextInput
-                                className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                                value={item.url}
-                                onChangeText={(text) => handleMediaUrlChange(index, text)}
-                                placeholder={`https://placeholder.co/800x600?text=${item.type}+${index + 1}`}
-                              />
-                              <TextInput
-                                className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                                value={item.caption}
-                                onChangeText={(text) => handleMediaCaptionChange(index, text)}
-                                placeholder={`Enter caption for ${item.type} ${index + 1}`}
-                              />
-                            </View>
-                          ))}
+                          <View className="flex-row gap-2">
+                            <Button
+                              onPress={handleAddImage}
+                              variant="default"
+                              size="default"
+                              className="flex-1"
+                            >
+                              <Text className="text-gray-900 dark:text-white">Add Image</Text>
+                            </Button>
+                            <Button
+                              onPress={handleAddVideo}
+                              variant="default"
+                              size="default"
+                              className="flex-1"
+                            >
+                              <Text className="text-gray-900 dark:text-white">Add Video</Text>
+                            </Button>
+                          </View>
                         </View>
-
-                        <View className="flex-row gap-2">
-                          <Button
-                            onPress={handleAddImage}
-                            variant="default"
-                            size="default"
-                            className="flex-1"
-                          >
-                            <Text className="text-gray-900 dark:text-white">Add Image</Text>
-                          </Button>
-                          <Button
-                            onPress={handleAddVideo}
-                            variant="default"
-                            size="default"
-                            className="flex-1"
-                          >
-                            <Text className="text-gray-900 dark:text-white">Add Video</Text>
-                          </Button>
-                        </View>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Interactive Section */}
-                  <View className="p-4 mt-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-                    <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Interactive Content</Text>
-                    <View className="flex-row items-center mb-2">
-                      <Text className="text-base text-gray-700 dark:text-gray-300">Enable Interactive Content</Text>
-                      <Switch
-                        value={isInteractive}
-                        onValueChange={setIsInteractive}
-                      />
+                      )}
                     </View>
-                    {isInteractive && (
-                      <InteractiveContentSection
-                        formData={formData}
-                        selectedInteractiveType={formData.metadata?.interactiveType}
-                        onTypeChange={(type) => handleFormDataChange({
-                          metadata: {
-                            ...formData.metadata,
-                            interactiveType: type
-                          }
-                        })}
-                        onFormDataChange={handleFormDataChange}
-                      />
-                    )}
-                  </View>
-                </ScrollView>
-              </View>
 
-              <View className="flex-[0.3] border-r border-gray-200 dark:border-gray-700 pr-4">
-                <ScrollView className="p-4">
-                  <Card className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-                    <FeedItem
-                      key={`preview-${previewKey}`}
-                      data={previewData}
-                      showHeader={previewData.metadata?.visibility?.header ?? true}
-                      showFooter={previewData.metadata?.visibility?.footer ?? false}
-                    />
-                  </Card>
-                </ScrollView>
+                    {/* Interactive Section */}
+                    <View className="p-4 mt-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                      <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Interactive Content</Text>
+                      <View className="flex-row items-center mb-2">
+                        <Text className="text-base text-gray-700 dark:text-gray-300">Enable Interactive Content</Text>
+                        <Switch
+                          value={isInteractive}
+                          onValueChange={setIsInteractive}
+                        />
+                      </View>
+                      {isInteractive && (
+                        <InteractiveContentSection
+                          formData={formData}
+                          selectedInteractiveType={formData.metadata?.interactiveType}
+                          onTypeChange={(type) => handleFormDataChange({
+                            metadata: {
+                              ...formData.metadata,
+                              interactiveType: type
+                            }
+                          })}
+                          onFormDataChange={handleFormDataChange}
+                        />
+                      )}
+                    </View>
+                  </ScrollView>
+                </View>
+
+                <View className="flex-[0.5]">
+                  <ScrollView className="p-4">
+                    <Card className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                      <FeedItem
+                        key={`preview-${previewKey}`}
+                        data={previewData}
+                        showHeader={previewData.metadata?.visibility?.header ?? true}
+                        showFooter={previewData.metadata?.visibility?.footer ?? false}
+                      />
+                    </Card>
+                  </ScrollView>
+                </View>
               </View>
-              
             </View>
           </ScrollView>
         </View>
