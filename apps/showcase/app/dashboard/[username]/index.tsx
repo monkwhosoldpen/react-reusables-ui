@@ -119,7 +119,7 @@ export default function DashboardRoute({ username }: { username: string }) {
     return (
       <View className="flex-1 bg-white dark:bg-gray-900">
         <Text>Hello, LOGIN REQUIRED</Text>
-        <Button onPress={() => router.push('/login')}>Login</Button>
+        <Button onPress={() => router.push('/login')}><Text>Login</Text></Button>
       </View>
     );
   }
