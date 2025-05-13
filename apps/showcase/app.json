@@ -38,6 +38,14 @@
       "output": "single",
       "favicon": "./assets/images/favicon.png",
       "name": "React Native Reusables Showcase",
+      "manifest": {
+        "short_name": "PushPWA",
+        "name": "Push Only PWA",
+        "start_url": "/",
+        "display": "standalone",
+        "theme_color": "#ffffff",
+        "background_color": "#ffffff"
+      },
       "shortName": "RNR Showcase",
       "lang": "en",
       "scope": "/",

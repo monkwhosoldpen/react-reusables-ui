@@ -13,6 +13,8 @@ import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
 import { NAV_THEME } from '~/lib/core/constants/constants';
 import { Providers } from '~/lib/providers/Providers';
 import { useColorScheme } from '~/lib/useColorScheme';
+import { registerServiceWorker } from '../utils/register-sw';
+import { useEffect } from 'react';
 
 const { ToastProvider } = DeprecatedUi;
 
@@ -40,6 +42,11 @@ export default function RootLayout() {
   const { colorScheme, isDarkColorScheme } = useColorScheme();
   const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
 
+  useEffect(() => {
+    console.log('[App] useEffect triggered - registering SW...');
+    registerServiceWorker();
+  }, []);
+  
   useIsomorphicLayoutEffect(() => {
     if (hasMounted.current) {
       return;
