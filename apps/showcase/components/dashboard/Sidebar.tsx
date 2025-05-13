@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, TouchableOpacity, useColorScheme, ScrollView } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -97,24 +97,26 @@ export function Sidebar({ username, ownerUsername, clientType, relatedChannels =
   };
 
   return (
-    <View className="w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
-      {/* Owner Channel Section */}
-      <View className="mb-6">
-        <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
-          Owner Channel
-        </Text>
-        {renderChannelItem(ownerUsername, true)}
-      </View>
-
-      {/* Related Channels Section */}
-      {relatedChannels.length > 0 && (
-        <View>
+    <View className="w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+      <ScrollView className="flex-1 p-4">
+        {/* Owner Channel Section */}
+        <View className="mb-6">
           <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
-            Related Channels
+            Owner Channel
           </Text>
-          {relatedChannels.map(channel => renderChannelItem(channel.username))}
+          {renderChannelItem(ownerUsername, true)}
         </View>
-      )}
+
+        {/* Related Channels Section */}
+        {relatedChannels.length > 0 && (
+          <View>
+            <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
+              Related Channels
+            </Text>
+            {relatedChannels.map(channel => renderChannelItem(channel.username))}
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 } 
