@@ -126,7 +126,6 @@ function TabContent({ tabName, username }: { tabName: string; username: string }
     : userRoles.some(ur => ur.email === user?.email);
   const userRole = userRoles.find(ur => ur.email === user?.email);
   const relatedChannelsCount = premiumConfig?.related_channels?.length || 0;
-  const isPublic = !premiumConfig || Object.keys(premiumConfig).length === 0 || premiumConfig.is_public;
 
   // Map tab names to their components
   const tabComponents = {
