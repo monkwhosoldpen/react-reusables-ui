@@ -28,73 +28,38 @@ export const registerServiceWorker = async () => {
 
     try {
         registrationInProgress = true;
-        
-        // Only check permission status, don't request it here
-        console.log('[App] Checking existing notification permission:', Notification.permission);
-        
-        // Check for existing service worker registrations
+
+        // Check existing permission
+        const permission = Notification.permission;
+        console.log('[App] Checking existing notification permission:', permission);
+
+        // Check for existing registrations
         console.log('[App] Checking for existing service worker registrations...');
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        console.log('[App] Found existing service workers:', registrations.length);
+        const existingRegistration = await navigator.serviceWorker.getRegistration();
 
-        // If we have an active registration with the correct scope, use it
-        const existingReg = registrations.find(reg => 
-            reg.active && 
-            reg.scope === window.location.origin + '/'
-        );
-
-        if (existingReg) {
-            console.log('[App] Found valid existing service worker, using it');
-            currentRegistration = existingReg;
-            return existingReg;
+        if (existingRegistration) {
+            console.log('[App] Found existing service workers:', 1);
+            
+            // Check if there's an existing subscription
+            const subscription = await existingRegistration.pushManager.getSubscription();
+            if (subscription) {
+                console.log('[App] Found existing push subscription');
+                currentRegistration = existingRegistration;
+                currentSubscription = subscription;
+                console.log('[App] Found valid existing service worker, using it');
+                return existingRegistration;
+            }
         }
 
-        // Unregister any other service workers
-        for (const registration of registrations) {
-            console.log('[App] Unregistering service worker for scope:', registration.scope);
-            await registration.unregister();
-            console.log('[App] Successfully unregistered service worker');
-        }
+        // Register new service worker if no valid existing one found
+        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        console.log('[App] Service Worker registered successfully');
+        
+        currentRegistration = registration;
+        return registration;
 
-        // Get the absolute path to service worker
-        const swUrl = new URL('/service-worker.js', window.location.origin).href;
-        console.log('[App] Registering new service worker from:', swUrl);
-
-        // Register new service worker
-        const reg = await navigator.serviceWorker.register(swUrl, {
-            scope: '/',
-            updateViaCache: 'none'
-        });
-        
-        console.log('[App] ✅ Service Worker registered successfully. Scope:', reg.scope);
-
-        // Wait for the service worker to be ready
-        console.log('[App] Waiting for service worker to be ready...');
-        await navigator.serviceWorker.ready;
-        
-        // Wait for the service worker to be activated
-        if (reg.installing) {
-            await new Promise<void>((resolve) => {
-                reg.installing?.addEventListener('statechange', (e) => {
-                    if ((e.target as ServiceWorker).state === 'activated') {
-                        resolve();
-                    }
-                });
-            });
-        }
-        
-        console.log('[App] Service Worker is ready. Controller:', navigator.serviceWorker.controller?.state);
-        
-        currentRegistration = reg;
-        return reg;
-    } catch (err) {
-        console.error('[App] ❌ Service Worker registration failed:', err);
-        if (err instanceof Error) {
-            console.error('[App] Error details:', {
-                message: err.message,
-                stack: err.stack
-            });
-        }
+    } catch (error) {
+        console.error('[App] Service Worker registration failed:', error);
         return null;
     } finally {
         registrationInProgress = false;

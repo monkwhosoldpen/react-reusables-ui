@@ -302,16 +302,22 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       // Set account preference based on user preferences if available, otherwise use subscription status
       setAccountPreference(notificationPreference !== undefined ? notificationPreference : hasSubscriptions);
 
-      // Set notifications enabled based on both preference and permission status
-      if (permissionStatus === 'granted') {
-        // If permission is granted, use the preference from the database
-        setNotificationsEnabled(notificationPreference !== undefined ? notificationPreference : isEnabled);
-      } else {
-        // If permission is not granted, notifications cannot be enabled
-        setNotificationsEnabled(false);
-      }
-
-      setHasActiveSubscription(hasSubscriptions);
+      // Check for existing subscription
+      navigator.serviceWorker.ready.then(registration => {
+        registration.pushManager.getSubscription().then(subscription => {
+          if (subscription) {
+            // If we have a subscription and permission is granted, enable notifications
+            if (permissionStatus === 'granted') {
+              setNotificationsEnabled(true);
+              setHasActiveSubscription(true);
+            }
+          } else {
+            // If no subscription, notifications should be disabled
+            setNotificationsEnabled(false);
+            setHasActiveSubscription(false);
+          }
+        });
+      });
 
     } else if (!user) {
       // Reset state when user is logged out
@@ -552,11 +558,10 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       duration: 5000,
     });
 
-    // Show push notification if enabled and app is not focused
-    if (notificationsEnabled && permissionStatus === 'granted' && document.visibilityState !== 'visible') {
+    // Show push notification if enabled and permission is granted, regardless of focus state
+    if (notificationsEnabled && permissionStatus === 'granted') {
       provider.sendNotification(title, message);
     }
-
   };
 
   // Update badge count when unread count changes

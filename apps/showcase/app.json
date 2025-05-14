@@ -43,34 +43,27 @@
         "name": "Push Only PWA",
         "start_url": "/",
         "display": "standalone",
-        "theme_color": "#ffffff",
-        "background_color": "#ffffff"
-      },
-      "shortName": "RNR Showcase",
-      "lang": "en",
-      "scope": "/",
-      "display": "standalone",
-      "startUrl": "/",
-      "orientation": "portrait",
-      "backgroundColor": "#18181B",
-      "themeColor": "#18181B",
-      "icons": [
-        {
-          "src": "./assets/images/favicon.png",
-          "sizes": "64x64 32x32 24x24 16x16",
-          "type": "image/png"
-        },
-        {
-          "src": "./assets/images/icon.png",
-          "type": "image/png",
-          "sizes": "192x192"
-        },
-        {
-          "src": "./assets/images/adaptive-icon.png",
-          "type": "image/png",
-          "sizes": "512x512"
-        }
-      ]
+        "theme_color": "#18181B",
+        "background_color": "#18181B",
+        "orientation": "portrait",
+        "icons": [
+          {
+            "src": "./assets/images/favicon.png",
+            "sizes": "64x64 32x32 24x24 16x16",
+            "type": "image/png"
+          },
+          {
+            "src": "./assets/images/icon.png",
+            "type": "image/png",
+            "sizes": "192x192"
+          },
+          {
+            "src": "./assets/images/adaptive-icon.png",
+            "type": "image/png",
+            "sizes": "512x512"
+          }
+        ]
+      }
     },
     "plugins": [
       "expo-router",
