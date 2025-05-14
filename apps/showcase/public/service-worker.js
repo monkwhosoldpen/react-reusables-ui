@@ -1,8 +1,10 @@
 // Service Worker for Web Push Notifications
 
-// Cache name for offline support
-const CACHE_NAME = 'app-cache-v1';
-const DEBUG = false;
+// Version control
+const SW_VERSION = '1.0.0';
+const CACHE_VERSION = '1';
+const CACHE_NAME = `app-cache-v${CACHE_VERSION}`;
+const DEBUG = true; // Set to true to enable all logging
 
 // Check if we're in development mode
 const isDevelopment = self.location.hostname === 'localhost' || 
@@ -14,8 +16,8 @@ const CACHING_ENABLED = !isDevelopment;
 
 // Log development mode status
 if (DEBUG) {
-  console.log(`[Service Worker] Running in ${isDevelopment ? 'DEVELOPMENT' : 'PRODUCTION'} mode`);
-  console.log(`[Service Worker] Caching ${CACHING_ENABLED ? 'ENABLED' : 'DISABLED'}`);
+  console.log(`[Service Worker v${SW_VERSION}] Running in ${isDevelopment ? 'DEVELOPMENT' : 'PRODUCTION'} mode`);
+  console.log(`[Service Worker v${SW_VERSION}] Caching ${CACHING_ENABLED ? 'ENABLED' : 'DISABLED'}`);
 }
 
 // Badge configuration
@@ -31,7 +33,9 @@ const BADGE_CONFIG = {
   }
 };
 
-// Keep track of notification count
+// State tracking
+let isInitialized = false;
+let isAuthenticated = false;
 let notificationCount = 0;
 
 // Helper function to get appropriate badge based on count
@@ -41,10 +45,37 @@ function getBadgeForCount(count) {
   return BADGE_CONFIG.NUMBER_BADGES[count] || BADGE_CONFIG.DEFAULT_BADGE;
 }
 
-// Enhanced logging function
+// Log with timestamp and version
 function log(...args) {
   if (DEBUG) {
-    console.log('[Service Worker]', ...args);
+    console.log(`[Service Worker v${SW_VERSION}]`, ...args, {
+      timestamp: new Date().toISOString(),
+      initialized: isInitialized,
+      authenticated: isAuthenticated
+    });
+  }
+}
+
+// Initialize service worker state
+async function initializeServiceWorker() {
+  if (isInitialized) {
+    log('🔄 Service worker already initialized');
+    return;
+  }
+
+  try {
+    log('🚀 Initializing service worker');
+    
+    // Check if we have any existing notifications
+    const notifications = await self.registration.getNotifications();
+    notificationCount = notifications.length;
+    log(`📊 Found ${notificationCount} existing notifications`);
+
+    isInitialized = true;
+    log('✅ Service worker initialized successfully');
+  } catch (error) {
+    log('❌ Error initializing service worker:', error);
+    isInitialized = false;
   }
 }
 
@@ -149,17 +180,20 @@ const textFormat = {
   }
 };
 
-// Track if we have an authenticated user
-let isAuthenticated = false;
-
 // Listen for messages from the client
 self.addEventListener('message', (event) => {
   log('📩 Message received from client:', event.data);
   
-  // Handle auth status updates
   if (event.data && event.data.type === 'AUTH_STATUS') {
     isAuthenticated = event.data.isAuthenticated;
     log(`🔐 Authentication status updated: ${isAuthenticated ? 'Logged in' : 'Logged out'}`);
+    
+    // Re-initialize on auth status change
+    if (isAuthenticated) {
+      initializeServiceWorker().catch(error => {
+        log('❌ Error reinitializing after auth change:', error);
+      });
+    }
   }
   
   // Handle manual notification request from test page
@@ -217,68 +251,79 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Log service worker lifecycle events
+// Enhanced install handler
 self.addEventListener('install', (event) => {
-  log('🟢 Installing service worker version:', CACHE_NAME);
+  log(`🟢 Installing service worker version: ${SW_VERSION}`);
   
-  if (CACHING_ENABLED) {
-    event.waitUntil(
-      caches.open(CACHE_NAME).then((cache) => {
-        log('📦 Caching app assets');
-        return cache.addAll([
-          '/',
-          '/icons/icon-192x192.png',
-          '/icons/icon-512x512.png'
-        ]);
-      })
-    );
-  } else {
-    log('📦 Caching DISABLED in development mode');
-  }
-  
-  // Force the waiting service worker to become the active service worker
-  self.skipWaiting();
-  log('⏩ Skip waiting - forcing activation');
+  event.waitUntil(
+    (async () => {
+      try {
+        // Initialize service worker
+        await initializeServiceWorker();
+        
+        if (CACHING_ENABLED) {
+          const cache = await caches.open(CACHE_NAME);
+          log('📦 Caching app assets');
+          await cache.addAll([
+            '/',
+            '/icons/icon-192x192.png',
+            '/icons/icon-512x512.png'
+          ]);
+        } else {
+          log('📦 Caching DISABLED in development mode');
+        }
+
+        // Force activation
+        await self.skipWaiting();
+        log('⏩ Skip waiting - forcing activation');
+      } catch (error) {
+        log('❌ Error during installation:', error);
+      }
+    })()
+  );
 });
 
+// Enhanced activate handler
 self.addEventListener('activate', (event) => {
   log('🔵 Activating service worker');
   
-  // In development mode, clear ALL caches to ensure fresh content
-  if (!CACHING_ENABLED) {
-    log('🧹 Development mode: clearing ALL caches');
-    event.waitUntil(
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            log('🗑️ Deleting cache:', cacheName);
-            return caches.delete(cacheName);
-          })
-        );
-      }).then(() => {
-        log('✅ All caches cleared in development mode');
-      })
-    );
-  } else {
-    // In production, only clear old caches
-    event.waitUntil(
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME) {
-              log('🗑️ Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      }).then(() => {
+  event.waitUntil(
+    (async () => {
+      try {
+        // Clear caches based on environment
+        if (!CACHING_ENABLED) {
+          log('🧹 Development mode: clearing ALL caches');
+          const cacheKeys = await caches.keys();
+          await Promise.all(
+            cacheKeys.map(key => caches.delete(key))
+          );
+          log('✅ All caches cleared in development mode');
+        } else {
+          // In production, only clear old caches
+          const cacheKeys = await caches.keys();
+          await Promise.all(
+            cacheKeys.map(key => {
+              if (key !== CACHE_NAME) {
+                log('🗑️ Deleting old cache:', key);
+                return caches.delete(key);
+              }
+            })
+          );
+        }
+
+        // Take control of all clients
+        await self.clients.claim();
         log('✅ Service worker activated and controlling all clients');
-      })
-    );
-  }
-  
-  // Take control of all clients immediately
-  self.clients.claim();
+
+        // Re-initialize if needed
+        if (!isInitialized) {
+          await initializeServiceWorker();
+        }
+      } catch (error) {
+        log('❌ Error during activation:', error);
+      }
+    })()
+  );
 });
 
 // Fetch event - serve from cache if available, otherwise fetch from network
@@ -453,18 +498,33 @@ async function sendToastToClient(notification) {
 
 // Push event - handle incoming push notifications
 self.addEventListener('push', (event) => {
-  log('📨 Push received PushEvent');
+  log('📨 Push received with raw data:', event.data ? event.data.text() : 'No data');
   
   let notificationData = {};
+  let rawData = '';
   
   try {
-    // Try to parse the data from the push event
+    // First store the raw data
+    rawData = event.data ? event.data.text() : '';
+    log('📝 Raw push data:', rawData);
+
+    // Try to parse as JSON
     if (event.data) {
-      notificationData = event.data.json();
-      log('📊 Push data received:', notificationData);
+      try {
+        notificationData = event.data.json();
+        log('📊 Successfully parsed JSON data:', JSON.stringify(notificationData, null, 2));
+      } catch (jsonError) {
+        // If JSON parsing fails, use the raw text as message
+        log('ℹ️ Not JSON data, using as plain text message');
+        notificationData = {
+          title: 'New Message',
+          message: rawData,
+          icon: '/icons/icon-192x192.png'
+        };
+      }
     }
   } catch (error) {
-    log('❌ Error parsing push data:', error);
+    log('❌ Error handling push data:', error);
     notificationData = {
       title: 'New Notification',
       message: 'You have a new notification',
@@ -475,27 +535,23 @@ self.addEventListener('push', (event) => {
   // Extract notification details from the payload
   const notification = notificationData.notification || notificationData;
   
-  // Log user ID for end-to-end testing if available
-  if (notification.data && notification.data.userId) {
-    log(`[E2E-TEST] Processing push notification for user: ${notification.data.userId.slice(0, 8)}...`, {
-      title: notification.title || notificationData.title,
-      type: notification.data.type,
-      timestamp: new Date().toISOString(),
-      testInfo: notification.data.testInfo || {
-        source: 'service-worker',
-        endpoint: 'push-handler',
-        component: 'PushEvent'
-      }
-    });
-  }
-  
+  log('🔔 Processing notification payload:', {
+    title: notification.title,
+    message: notification.message || notification.body,
+    data: notification.data,
+    timestamp: new Date().toISOString()
+  });
+
   // Update notification count and get appropriate badge
   notificationCount++;
   const badgeUrl = getBadgeForCount(notificationCount);
   
+  // Generate a unique tag for the notification
+  const notificationTag = `notification-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  
   // Ensure we have the required fields with fallbacks
   let title = notification.title || notificationData.title || 'New Notification';
-  let message = notification.message || notification.body || notificationData.message || 'You have a new notification';
+  let message = notification.message || notification.body || notificationData.message || rawData || 'You have a new notification';
   
   // Apply text formatting if specified
   if (notification.formatting) {
@@ -514,126 +570,105 @@ self.addEventListener('push', (event) => {
     
     // Visual elements
     icon: notification.icon || '/icons/icon-192x192.png',
-    badge: badgeUrl, // Use our dynamic badge
+    badge: badgeUrl,
     image: notification.image,
     
     // Styling
     dir: notification.dir || 'ltr',
     lang: notification.lang || 'en',
-    tag: notification.tag,
+    tag: notification.tag || notificationTag, // Use provided tag or generated one
     
     // Behavior
-    requireInteraction: notification.requireInteraction === true,
-    renotify: notification.renotify === true,
-    silent: notification.silent === true,
+    requireInteraction: true, // Always require interaction
+    renotify: true, // Always show new notifications
+    silent: false, // Never silent
     timestamp: notification.timestamp || Date.now(),
     vibrate: notification.vibrate || [100, 50, 100],
     
     // Actions (buttons)
-    actions: notification.actions || [],
+    actions: notification.actions || [
+      {
+        action: 'view',
+        title: 'View'
+      }
+    ],
     
     // Data to be used when notification is clicked
     data: {
-      url: '/janedoe', // Hardcoded URL as requested
+      url: notification.data?.url || '/janedoe',
       notificationCount: notificationCount,
-      deliveryMethod: 'push', // Track how this notification was delivered
+      deliveryMethod: 'push',
       deliveryTimestamp: new Date().toISOString(),
+      rawPushData: rawData,
+      notificationId: notificationTag,
       ...notification.data
     }
   };
 
-  // Create a simplified toast notification object
-  const toastNotification = {
+  log('📱 Showing notification with options:', {
     title,
-    message: options.body,
-    icon: options.icon,
-    image: options.image,
-    data: {
-      ...options.data,
-      deliveryMethod: 'toast', // Override to indicate toast delivery
-    },
-    actions: options.actions,
-    formatting: notification.formatting // Pass formatting to toast
-  };
+    tag: options.tag,
+    options: JSON.stringify(options, null, 2),
+    timestamp: new Date().toISOString()
+  });
 
-  log('🔔 Preparing notification:', { title, options });
-  log(`🔐 Current authentication status: ${isAuthenticated ? 'Logged in' : 'Logged out'}`);
-  
-  // Log user ID again for end-to-end testing
-  if (options.data && options.data.userId) {
-    log(`[E2E-TEST] Showing notification for user: ${options.data.userId.slice(0, 8)}...`, {
-      title,
-      message: options.body,
-      timestamp: new Date().toISOString(),
-      deliveryMethod: 'pending', // Will be updated to 'push' or 'toast'
-      testInfo: options.data.testInfo || {
-        source: 'service-worker',
-        endpoint: 'notification-display',
-        component: 'ShowNotification'
-      }
-    });
-  }
-
-  // Check if we should show the notification
+  // Always show both push notification and toast
   event.waitUntil(
-    self.clients.matchAll({ type: 'window' })
-      .then(async clientList => {
-        // Always show push notification regardless of client state
-        const pushPromise = self.registration.showNotification(title, options)
-          .then(() => {
-            // Log successful push notification
-            if (options.data && options.data.userId) {
-              log(`[E2E-TEST] Push notification shown for user: ${options.data.userId.slice(0, 8)}...`, {
-                title,
-                message: options.body,
-                timestamp: new Date().toISOString(),
-                deliveryMethod: 'push',
-                testInfo: options.data.testInfo || {
-                  source: 'service-worker',
-                  endpoint: 'push-delivery',
-                  component: 'PushNotification',
-                  status: 'success'
-                }
-              });
-            }
-            return true;
-          });
+    (async () => {
+      try {
+        // Always show push notification
+        await self.registration.showNotification(title, options);
+        log('✅ Push notification shown successfully');
 
-        // If we have open clients, also send toast notification
-        if (clientList.length > 0) {
-          log('🔍 Found open windows:', clientList.length);
-          
-          // Send toast notification
-          const toastSent = await sendToastToClient(toastNotification);
-          
-          if (toastSent) {
-            log('✅ Toast notification sent successfully');
-          } else {
-            log('⚠️ Failed to send toast notification');
-          }
+        // Create toast notification
+        const toastNotification = {
+          title,
+          message: options.body,
+          icon: options.icon,
+          image: options.image,
+          data: {
+            ...options.data,
+            deliveryMethod: 'toast',
+          },
+          actions: options.actions,
+          formatting: notification.formatting
+        };
+
+        // Send toast to all clients
+        const clients = await self.clients.matchAll({ type: 'window' });
+        if (clients.length > 0) {
+          log(`📬 Sending toast to ${clients.length} clients`);
+          await Promise.all(clients.map(client => 
+            client.postMessage({
+              type: 'TOAST_NOTIFICATION',
+              notification: toastNotification
+            })
+          ));
+          log('✅ Toast notifications sent to all clients');
         }
 
-        return pushPromise;
-      })
-      .catch(error => {
-        log('❌ Error handling notification:', error);
-        
-        // Log error for E2E testing
-        if (options.data && options.data.userId) {
-          log(`[E2E-TEST] Notification error for user: ${options.data.userId.slice(0, 8)}...`, {
-            title,
-            message: options.body,
-            error: error.message,
-            timestamp: new Date().toISOString(),
-            testInfo: options.data.testInfo || {
-              source: 'service-worker',
-              endpoint: 'notification-display',
-              component: 'ShowNotification',
-              status: 'error'
-            }
+        log('🎉 All notifications delivered successfully', {
+          pushShown: true,
+          toastsSent: clients.length,
+          notificationId: notificationTag,
+          timestamp: new Date().toISOString()
+        });
+      } catch (error) {
+        log('❌ Error showing notifications:', error);
+        // Try to show a basic notification as fallback
+        try {
+          await self.registration.showNotification('New Notification', {
+            body: 'You have a new notification',
+            icon: '/icons/icon-192x192.png',
+            tag: `fallback-${notificationTag}`, // Add tag to fallback notification
+            renotify: true
           });
+          log('✅ Fallback notification shown');
+        } catch (fallbackError) {
+          log('❌ Even fallback notification failed:', fallbackError);
         }
-      })
+      }
+    })()
   );
 });
 
@@ -782,4 +817,4 @@ self.addEventListener('error', (event) => {
   log('❌ Service Worker error:', event.message, event.filename, event.lineno);
 });
 
-log('🚀 Service Worker loaded with toast notification support'); 
+log('🚀 Service Worker v${SW_VERSION} loaded with toast notification support'); 

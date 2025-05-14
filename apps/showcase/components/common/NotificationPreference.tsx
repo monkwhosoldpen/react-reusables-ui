@@ -1,11 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, AlertTriangle, Database, Check, X, Smartphone, Code, Eye, Globe, TabletSmartphone } from 'lucide-react';
 import { useNotification } from '~/lib/core/contexts/NotificationContext';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { cn } from '~/lib/utils';
 import { Switch } from '../ui/switch';
+import { supabase } from '~/lib/core/supabase';
+
+interface PushSubscription {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  keys: string;
+  device_type: string;
+  browser: string;
+  os: string;
+  platform: string;
+  device_id: string;
+  app_version: string;
+  notifications_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 interface NotificationPreferenceProps {
   showDescription?: boolean;
@@ -28,36 +45,150 @@ export function NotificationPreference({
     providerType,
     isLoading: contextLoading,
     browserType,
-    isPrivateBrowsing
+    isPrivateBrowsing,
+    requestPermission
   } = useNotification();
   
   const { 
-    userInfo
+    userInfo,
+    user
   } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
+  const [pushSubscriptions, setPushSubscriptions] = useState<PushSubscription[]>([]);
+  const [subscriptionsLoading, setSubscriptionsLoading] = useState(true);
+  const [localNotificationState, setLocalNotificationState] = useState(notificationsEnabled);
 
-  // Get push subscription information from userInfo
-  const pushSubscriptions = userInfo?.notifications?.subscriptions || [];
-  
-  // Count subscriptions by type
-  const webSubscriptionsCount = pushSubscriptions.filter((sub: any) => sub.device_type === 'web').length;
-  const mobileSubscriptionsCount = pushSubscriptions.filter((sub: any) => sub.device_type === 'expo').length;
-  const pushSubscriptionsCount = pushSubscriptions.length;
-  const hasPushSubscriptions = pushSubscriptionsCount > 0;
-  
-  // Handle notification toggle
+  // Sync local state with context
+  useEffect(() => {
+    setLocalNotificationState(notificationsEnabled);
+  }, [notificationsEnabled]);
+
+  // Refresh subscriptions periodically and on state changes
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    async function refreshSubscriptions() {
+      if (!user) {
+        setPushSubscriptions([]);
+        setSubscriptionsLoading(false);
+        return;
+      }
+
+      try {
+        setSubscriptionsLoading(true);
+        const { data, error } = await supabase
+          .from('push_subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('notifications_enabled', true);
+
+        if (error) {
+          console.error('Error fetching push subscriptions:', error);
+          return;
+        }
+
+        setPushSubscriptions(data || []);
+      } catch (error) {
+        console.error('Error in refreshSubscriptions:', error);
+      } finally {
+        setSubscriptionsLoading(false);
+      }
+    }
+
+    // Initial fetch
+    refreshSubscriptions();
+
+    // Set up periodic refresh
+    if (user) {
+      intervalId = setInterval(refreshSubscriptions, 10000); // Refresh every 10 seconds
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [user, notificationsEnabled, accountPreference]);
+
+  // Handle notification toggle with retry logic
   const handleToggle = async (checked: boolean) => {
     setIsLoading(true);
     try {
+      // If enabling notifications and permission is not granted, request it first
+      if (checked && permissionStatus !== 'granted') {
+        const newPermission = await requestPermission();
+        if (newPermission !== 'granted') {
+          setLocalNotificationState(false);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Try to toggle notifications
       await toggleNotifications(checked);
+      
+      // Verify the change was successful
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      const verifyChange = async () => {
+        const { data } = await supabase
+          .from('push_subscriptions')
+          .select('*')
+          .eq('user_id', user?.id)
+          .eq('notifications_enabled', checked);
+
+        return data && data.length > 0;
+      };
+
+      while (retryCount < maxRetries) {
+        const isSuccess = await verifyChange();
+        if (isSuccess) {
+          // Update local state and subscriptions
+          setLocalNotificationState(checked);
+          const { data } = await supabase
+            .from('push_subscriptions')
+            .select('*')
+            .eq('user_id', user?.id)
+            .eq('notifications_enabled', true);
+
+          setPushSubscriptions(data || []);
+          break;
+        }
+
+        retryCount++;
+        if (retryCount < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        }
+      }
+
+      if (retryCount === maxRetries) {
+        console.error('Failed to verify notification toggle after multiple attempts');
+        // Revert local state if verification failed
+        setLocalNotificationState(!checked);
+      }
+    } catch (error) {
+      console.error('Error in handleToggle:', error);
+      // Revert local state on error
+      setLocalNotificationState(!checked);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Count subscriptions by type
+  const webSubscriptionsCount = pushSubscriptions.filter(sub => sub.device_type === 'web').length;
+  const mobileSubscriptionsCount = pushSubscriptions.filter(sub => sub.device_type === 'expo').length;
+  const pushSubscriptionsCount = pushSubscriptions.length;
+  const hasPushSubscriptions = pushSubscriptionsCount > 0;
+  
   // Get status message based on current state
   const getStatusMessage = () => {
+    if (subscriptionsLoading) {
+      return 'Loading notification status...';
+    }
+
     if (permissionStatus === 'denied') {
       return 'Notifications are blocked in your browser settings';
     }
@@ -156,7 +287,7 @@ export function NotificationPreference({
     <div className={cn("flex flex-col space-y-3", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          {areNotificationsEnabled ? (
+          {localNotificationState ? (
             <Bell className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
           ) : (
             <BellOff className="h-5 w-5 text-gray-500 dark:text-gray-400" />
@@ -178,7 +309,7 @@ export function NotificationPreference({
           </div>
         ) : (
           <Switch
-            checked={accountPreference !== null ? accountPreference : notificationsEnabled}
+            checked={localNotificationState}
             onCheckedChange={handleToggle}
             disabled={isLoading || contextLoading || isPermissionDenied}
           />
@@ -252,7 +383,14 @@ export function NotificationPreference({
         </div>
       )}
 
-      {/* Show debug info if enabled */}
+      {/* Show loading state */}
+      {subscriptionsLoading && (
+        <div className="flex items-center justify-center py-2 text-sm text-gray-500">
+          Loading subscriptions...
+        </div>
+      )}
+      
+      {/* Debug information updated with subscription details */}
       {showDebug && (
         <div className="rounded-md bg-gray-100 dark:bg-gray-800/70 p-3 text-xs border border-gray-200 dark:border-gray-700 mt-2">
           <div className="flex items-center space-x-1.5 mb-2">
@@ -277,7 +415,20 @@ export function NotificationPreference({
             
             <span className="text-gray-500">Private Mode:</span>
             <span>{isPrivateBrowsing ? 'Yes' : 'No'}</span>
+            
+            <span className="text-gray-500">Web Subs:</span>
+            <span>{webSubscriptionsCount}</span>
+            
+            <span className="text-gray-500">Mobile Subs:</span>
+            <span>{mobileSubscriptionsCount}</span>
           </div>
+        </div>
+      )}
+
+      {/* Add loading indicator */}
+      {(isLoading || contextLoading) && (
+        <div className="absolute inset-0 bg-white/50 dark:bg-black/50 flex items-center justify-center rounded-md">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500"></div>
         </div>
       )}
     </div>
