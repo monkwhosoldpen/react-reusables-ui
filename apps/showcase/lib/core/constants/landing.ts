@@ -1,3 +1,5 @@
+import { useColorScheme } from 'react-native';
+
 export const LANDING_CONTENT = {
   tagline: "YOUR PERSONAL COMMUNITY SPACE",
   headline: "Connect with Your Fans & Followers!",
@@ -5,36 +7,48 @@ export const LANDING_CONTENT = {
   features: [
     {
       title: "Community Groups",
-      description: "Create and manage both public, private groups for your community members"
+      description: "Create and manage both public, private groups for your community members",
+      icon: "group"
     },
     {
       title: "Secure Messaging",
-      description: "End-to-end encrypted conversations to keep your community safe and private"
+      description: "End-to-end encrypted conversations to keep your community safe and private",
+      icon: "lock"
     },
     {
       title: "Offline Access",
-      description: "Stay connected with your community even without internet access"
+      description: "Stay connected with your community even without internet access",
+      icon: "offline_pin"
     }
   ],
   stats: [
     {
-      text: "50K+ Active Users"
+      value: "50K+",
+      label: "Active Users",
+      icon: "people"
     },
     {
-      text: "5K+ Communities"
+      value: "5K+",
+      label: "Communities",
+      icon: "groups"
     }
   ],
   ctas: [
     {
       text: 'Get Started',
       href: '/login',
-      className: 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600'
+      variant: 'primary',
+      className: 'bg-blue-500 dark:bg-blue-400'
     },
     {
       text: 'Explore',
       href: '/explore',
-      className: 'bg-white hover:bg-gray-100 text-gray-900 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100 dark:border-gray-600'
+      variant: 'secondary',
+      className: 'bg-gray-100 dark:bg-gray-800'
     }
   ],
-  heroImage: "https://placehold.co/600x400"
+  heroImage: {
+    light: "/assets/images/hero-light.png",
+    dark: "/assets/images/hero-dark.png"
+  }
 }; 

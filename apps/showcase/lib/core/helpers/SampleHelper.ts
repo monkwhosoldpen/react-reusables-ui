@@ -435,7 +435,9 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
     try {
       console.log('[SampleHelper] Starting channel activity fetch', {
         userId: user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        isGuest: isGuest,
+        userEmail: user.email
       });
 
       // Get current notification state from IndexedDB for comparison
@@ -450,7 +452,13 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
       console.log('[SampleHelper] Fetching myinfo data', {
         userId: user.id,
         endpoint: `${config.api.endpoints.myinfo}?userId=${user.id}`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: {
+          isGuest: isGuest
+        }
       });
 
       const response = await fetch(`${config.api.endpoints.myinfo}?userId=${user.id}`, {
@@ -459,7 +467,7 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          isGuest: false
+          isGuest: isGuest
         })
       });
       
@@ -471,7 +479,10 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
         hasUserPreferences: !!data.userPreferences,
         notificationState: data.userPreferences?.notifications_enabled,
         pushSubscriptionCount: data.userPreferences?.push_subscriptions?.length || 0,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        responseStatus: response.status,
+        responseStatusText: response.statusText,
+        dataKeys: Object.keys(data)
       });
 
       if (data.success) {
@@ -492,11 +503,16 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
             preferencesKeys: Object.keys(data.userPreferences || {}),
             pushSubscriptionsCount: data.userPreferences?.push_subscriptions?.length || 0,
             channelsActivityCount: data.userPreferences?.channels_activity?.length || 0,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            rawDataSize: JSON.stringify(data).length
           });
 
           // Save all raw API data to IndexedDB
           await indexedDB.saveRawApiData(user.id, data);
+          console.log('[SampleHelper] Saved raw API data to IndexedDB', {
+            userId: user.id,
+            timestamp: new Date().toISOString()
+          });
           
           // Extract relevant data for returning
           const preferences = data.userPreferences;
@@ -511,7 +527,8 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
             tenantRequestsCount: tenantRequests.length,
             channelsActivityCount: (preferences.channels_activity || []).length,
             notificationState: preferences.notifications_enabled,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            channelsActivitySample: preferences.channels_activity?.slice(0, 2)
           });
 
           return {
@@ -532,10 +549,18 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
       // Fallback to IndexedDB
       console.log('[SampleHelper] API request failed, falling back to IndexedDB', {
         userId: user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        reason: data.success ? 'Unknown error' : 'API request unsuccessful'
       });
 
       const rawData = await indexedDB.getAllRawData(user.id);
+      console.log('[SampleHelper] Retrieved fallback data from IndexedDB', {
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+        hasChannelsActivity: !!rawData.channels_activity,
+        channelsActivityCount: rawData.channels_activity?.length || 0
+      });
+
       return {
         channelActivityRecords: rawData.channels_activity || [],
         userLanguage: rawData.user_language?.[0]?.language || 'english',
@@ -552,6 +577,13 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
 
       // Return local data as fallback
       const rawData = await indexedDB.getAllRawData(user.id);
+      console.log('[SampleHelper] Retrieved error fallback data from IndexedDB', {
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+        hasChannelsActivity: !!rawData.channels_activity,
+        channelsActivityCount: rawData.channels_activity?.length || 0
+      });
+
       return {
         channelActivityRecords: [],
         userLanguage: rawData.user_language?.[0]?.language || 'english',

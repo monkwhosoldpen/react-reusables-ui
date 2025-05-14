@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Animated, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from 'expo-router';
@@ -22,6 +22,7 @@ import { Button } from '~/components/ui/button';
 import { ChevronDown } from '~/lib/icons/ChevronDown';
 import { Muted } from '~/components/ui/typography';
 import LanguageChanger from '~/components/common/LanguageChanger';
+import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 
 const contentInsets = {
   left: 12,
@@ -32,8 +33,7 @@ export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const insets = useSafeAreaInsets();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
+  const { isDarkMode, toggleDarkMode } = useColorScheme();
 
   React.useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -155,7 +155,7 @@ export default function SettingsScreen() {
                     Use dark theme
                   </Text>
                 </View>
-                <Switch checked={isDarkMode} onCheckedChange={() => {}} />
+                <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
               </View>
             </View>
           </View>

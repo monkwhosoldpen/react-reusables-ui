@@ -1,14 +1,17 @@
+'use client';
+
 import { Tabs, useRouter } from 'expo-router';
 import { Menu, Settings } from 'lucide-react-native';
 import { LayoutPanelLeft } from '~/lib/icons/LayoutPanelLeft';
 import { CommonHeader } from '~/components/common/CommonHeader';
 import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
-import { StyleSheet, View, useWindowDimensions, Pressable } from 'react-native';
+import { View, useWindowDimensions, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
 import { Text } from '~/components/ui/text';
 import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import type { NavigationProp } from '@react-navigation/native';
 import type { LucideIcon } from 'lucide-react-native';
+import { cn } from '~/lib/utils';
 
 interface NavigationItem {
   name: string;
@@ -22,6 +25,19 @@ export default function TabsLayout() {
   const { width } = useWindowDimensions();
   const isMdAndAbove = width >= 768;
   const router = useRouter();
+
+  const navigationItems: NavigationItem[] = [
+    {
+      name: 'Chats',
+      icon: LayoutPanelLeft,
+      route: 'index',
+    },
+    {
+      name: 'Settings',
+      icon: Settings,
+      route: 'settings',
+    },
+  ];
 
   const tabBarOptions: BottomTabNavigationOptions = {
     header: ({ navigation, route, options }: { 
@@ -40,11 +56,11 @@ export default function TabsLayout() {
     tabBarStyle: {
       backgroundColor: colorScheme.colors.card,
       borderTopColor: colorScheme.colors.border,
-      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopWidth: 1,
       height: 60,
       paddingBottom: 4,
       elevation: 3,
-      shadowColor: '#000',
+      shadowColor: colorScheme.colors.muted,
       shadowOffset: { width: 0, height: -2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -62,67 +78,54 @@ export default function TabsLayout() {
     },
   };
 
-  const navigationItems: NavigationItem[] = [
-    {
-      name: 'Chats',
-      icon: LayoutPanelLeft,
-      route: 'index',
-    },
-    {
-      name: 'Settings',
-      icon: Settings,
-      route: 'settings',
-    },
-  ];
+  const renderSidebarItem = (item: NavigationItem) => {
+    const Icon = item.icon;
+    return (
+      <TouchableOpacity
+        key={item.name}
+        onPress={() => router.push(item.route === 'index' ? '/' : `/(tabs)/${item.route}`)}
+        className={cn(
+          "flex-row items-center py-3 px-4 gap-3 rounded-lg mx-2",
+          "active:bg-gray-100 dark:active:bg-gray-800"
+        )}
+      >
+        <Icon 
+          color={colorScheme.colors.text} 
+          size={24} 
+        />
+        <Text 
+          className="text-base font-medium text-gray-900 dark:text-white"
+        >
+          {item.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   if (isMdAndAbove) {
     return (
-      <View style={{ flex: 1, flexDirection: 'row' }}>
+      <View className="flex-1 flex-row">
         {/* Sidebar */}
-        <View style={[
-          styles.sidebar,
-          {
-            backgroundColor: colorScheme.colors.card,
-            borderRightColor: colorScheme.colors.border,
-          }
-        ]}>
-          <View style={styles.sidebarContent}>
-            <View style={styles.sidebarHeader}>
-              <Text style={[styles.sidebarTitle, { color: colorScheme.colors.text }]}>
+        <View className={cn(
+          "w-60 border-r",
+          "bg-white dark:bg-gray-900",
+          "border-gray-200 dark:border-gray-800"
+        )}>
+          <SafeAreaView className="flex-1 pt-8">
+            <View className="px-4 pb-6">
+              <Text className="text-2xl font-bold text-gray-900 dark:text-white">
                 nchat
               </Text>
             </View>
 
-            <View style={styles.sidebarItems}>
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Pressable
-                    key={item.name}
-                    onPress={() => router.push(item.route === 'index' ? '/' : `/(tabs)/${item.route}`)}
-                    style={({ pressed }) => [
-                      styles.sidebarItem,
-                      {
-                        backgroundColor: pressed ? colorScheme.colors.muted : 'transparent',
-                      }
-                    ]}
-                  >
-                    <Icon color={colorScheme.colors.text} size={24} />
-                    <Text style={[
-                      styles.sidebarText,
-                      { color: colorScheme.colors.text }
-                    ]}>
-                      {item.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+            <View className="gap-1">
+              {navigationItems.map(renderSidebarItem)}
             </View>
-          </View>
+          </SafeAreaView>
         </View>
 
         {/* Main Content */}
-        <View style={{ flex: 1 }}>
+        <View className="flex-1">
           <Tabs screenOptions={tabBarOptions}>
             {navigationItems.map((item) => (
               <Tabs.Screen
@@ -160,38 +163,3 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  sidebar: {
-    width: 240,
-    borderRightWidth: StyleSheet.hairlineWidth,
-  },
-  sidebarContent: {
-    flex: 1,
-    paddingTop: 32,
-  },
-  sidebarHeader: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
-  sidebarTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  sidebarItems: {
-    gap: 4,
-  },
-  sidebarItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 12,
-    borderRadius: 8,
-    marginHorizontal: 8,
-  },
-  sidebarText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-});
