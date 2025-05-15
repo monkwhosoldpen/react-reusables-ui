@@ -47,8 +47,4 @@ export const LANDING_CONTENT = {
       className: 'bg-gray-100 dark:bg-gray-800'
     }
   ],
-  heroImage: {
-    light: "/assets/images/hero-light.png",
-    dark: "/assets/images/hero-dark.png"
-  }
-}; 
+};

@@ -12,8 +12,6 @@ export function Landing() {
   const { isDarkMode } = useColorScheme();
   const isSmallScreen = width < 768;
 
-  const heroImage = isDarkMode ? LANDING_CONTENT.heroImage.dark : LANDING_CONTENT.heroImage.light;
-
   const MobileLayout = () => (
     <View className="flex-1">
       <ScrollView className="flex-1">
@@ -47,11 +45,6 @@ export function Landing() {
           </View>
 
           <View className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-            <Image
-              source={{ uri: heroImage }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
             <View className="absolute bottom-4 left-4 flex flex-row gap-2 flex-wrap">
               {LANDING_CONTENT.stats.map((stat, index) => (
                 <View key={index} className="flex-row items-center gap-2 px-3 py-1.5 bg-white/90 dark:bg-black/70 backdrop-blur-sm rounded-full">
@@ -143,11 +136,6 @@ export function Landing() {
           </View>
 
           <View className="flex-1 relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-            <Image
-              source={{ uri: heroImage }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
             <View className="absolute bottom-6 left-6 flex flex-row gap-3 flex-wrap">
               {LANDING_CONTENT.stats.map((stat, index) => (
                 <View key={index} className="flex-row items-center gap-2 px-4 py-2 bg-white/90 dark:bg-black/70 backdrop-blur-sm rounded-full shadow-sm">
