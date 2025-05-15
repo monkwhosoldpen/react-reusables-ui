@@ -43,7 +43,6 @@ export default function RootLayout() {
   const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
 
   useEffect(() => {
-    console.log('[App] useEffect triggered - registering SW...');
     registerServiceWorker();
   }, []);
   

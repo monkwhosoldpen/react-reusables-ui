@@ -84,13 +84,11 @@ export function NotificationPreference({
           .eq('notifications_enabled', true);
 
         if (error) {
-          console.error('Error fetching push subscriptions:', error);
           return;
         }
 
         setPushSubscriptions(data || []);
       } catch (error) {
-        console.error('Error in refreshSubscriptions:', error);
       } finally {
         setSubscriptionsLoading(false);
       }
@@ -164,12 +162,10 @@ export function NotificationPreference({
       }
 
       if (retryCount === maxRetries) {
-        console.error('Failed to verify notification toggle after multiple attempts');
         // Revert local state if verification failed
         setLocalNotificationState(!checked);
       }
     } catch (error) {
-      console.error('Error in handleToggle:', error);
       // Revert local state on error
       setLocalNotificationState(!checked);
     } finally {
@@ -224,62 +220,12 @@ export function NotificationPreference({
       : 'Notifications are disabled';
   };
 
-  // Provider-specific instructions for enabling notifications
-  const getProviderInstructions = () => {
-    if (providerType === 'web') {
-      if (browserType === 'firefox') {
-        return (
-          <ol className="list-decimal pl-5 space-y-1 text-gray-600 dark:text-gray-400">
-            <li>Click the lock/shield icon in your browser address bar</li>
-            <li>Select &quot;Connection Secure&quot; → &quot;More Information&quot;</li>
-            <li>Go to &quot;Permissions&quot; tab</li>
-            <li>Find &quot;Receive Notifications&quot; and change to &quot;Allow&quot;</li>
-            <li>Refresh this page</li>
-          </ol>
-        );
-      } else if (browserType === 'safari') {
-        return (
-          <ol className="list-decimal pl-5 space-y-1 text-gray-600 dark:text-gray-400">
-            <li>Click Safari in the menu bar</li>
-            <li>Select &quot;Preferences&quot; → &quot;Websites&quot;</li>
-            <li>Click on &quot;Notifications&quot; in the sidebar</li>
-            <li>Find this website and select &quot;Allow&quot;</li>
-            <li>Refresh this page</li>
-          </ol>
-        );
-      } else {
-        // Default Chrome/Edge instructions
-        return (
-          <ol className="list-decimal pl-5 space-y-1 text-gray-600 dark:text-gray-400">
-            <li>Click the lock/info icon in your browser address bar</li>
-            <li>Find &quot;Notifications&quot; permissions</li>
-            <li>Change the setting from &quot;Block&quot; to &quot;Allow&quot;</li>
-            <li>Refresh this page</li>
-          </ol>
-        );
-      }
-    } else {
-      // Expo/Mobile instructions
-      return (
-        <ol className="list-decimal pl-5 space-y-1 text-gray-600 dark:text-gray-400">
-          <li>Open your device Settings</li>
-          <li>Go to Notifications</li>
-          <li>Find this app and enable notifications</li>
-          <li>Return to the app and try again</li>
-        </ol>
-      );
-    }
-  };
-
   // Check if permission is denied
   const isPermissionDenied = permissionStatus === 'denied';
   
   // Check if preference is saved in backend
   const isPreferenceSaved = accountPreference !== null;
   
-  // Determine if notifications are actually enabled (permission granted + preference enabled)
-  const areNotificationsEnabled = notificationsEnabled && permissionStatus === 'granted';
-
   // Device icon based on provider type
   const DeviceIcon = providerType === 'web' ? Globe : TabletSmartphone;
 
@@ -374,15 +320,6 @@ export function NotificationPreference({
         </div>
       )}
       
-      {isPermissionDenied && !compact && (
-        <div className="rounded-md bg-gray-100 dark:bg-gray-800/70 p-3 text-sm border border-gray-200 dark:border-gray-700">
-          <p className="mb-2 text-gray-700 dark:text-gray-300">
-            Notifications are blocked. To enable notifications, you need to:
-          </p>
-          {getProviderInstructions()}
-        </div>
-      )}
-
       {/* Show loading state */}
       {subscriptionsLoading && (
         <div className="flex items-center justify-center py-2 text-sm text-gray-500">
@@ -390,41 +327,6 @@ export function NotificationPreference({
         </div>
       )}
       
-      {/* Debug information updated with subscription details */}
-      {showDebug && (
-        <div className="rounded-md bg-gray-100 dark:bg-gray-800/70 p-3 text-xs border border-gray-200 dark:border-gray-700 mt-2">
-          <div className="flex items-center space-x-1.5 mb-2">
-            <Code className="h-3.5 w-3.5 text-gray-500" />
-            <span className="font-medium">Debug Information</span>
-          </div>
-          <div className="grid grid-cols-2 gap-1">
-            <span className="text-gray-500">Provider Type:</span>
-            <span>{providerType}</span>
-            
-            <span className="text-gray-500">Browser:</span>
-            <span>{browserType}</span>
-            
-            <span className="text-gray-500">Permission:</span>
-            <span>{permissionStatus}</span>
-            
-            <span className="text-gray-500">Active Sub:</span>
-            <span>{hasActiveSubscription ? 'Yes' : 'No'}</span>
-            
-            <span className="text-gray-500">Account Pref:</span>
-            <span>{accountPreference === null ? 'Not set' : accountPreference ? 'Enabled' : 'Disabled'}</span>
-            
-            <span className="text-gray-500">Private Mode:</span>
-            <span>{isPrivateBrowsing ? 'Yes' : 'No'}</span>
-            
-            <span className="text-gray-500">Web Subs:</span>
-            <span>{webSubscriptionsCount}</span>
-            
-            <span className="text-gray-500">Mobile Subs:</span>
-            <span>{mobileSubscriptionsCount}</span>
-          </div>
-        </div>
-      )}
-
       {/* Add loading indicator */}
       {(isLoading || contextLoading) && (
         <div className="absolute inset-0 bg-white/50 dark:bg-black/50 flex items-center justify-center rounded-md">

@@ -21,15 +21,4 @@ export const calculateMaxHeight = (formData: FormDataType): number => {
 
 export const logHeightCalculation = (formData: FormDataType): void => {
   const maxHeight = calculateMaxHeight(formData);
-  console.log('Height Calculation:', {
-    isCollapsible: formData.metadata?.isCollapsible,
-    maxHeight,
-    hasHeader: formData.metadata?.visibility?.header,
-    hasFooter: formData.metadata?.visibility?.footer,
-    hasMedia: !!formData.media?.length,
-    whatsappStyleHeight: WHATSAPP_STYLE_HEIGHT,
-    headerHeight: formData.metadata?.visibility?.header ? HEADER_HEIGHT : 0,
-    footerHeight: formData.metadata?.visibility?.footer ? FOOTER_HEIGHT : 0,
-    contentPadding: CONTENT_PADDING,
-  });
 }; 

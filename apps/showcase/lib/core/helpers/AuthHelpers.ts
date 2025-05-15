@@ -73,7 +73,6 @@ export class AuthInitializer {
 
       this.currentSubscription = subscription;
     } catch (error) {
-      console.error("Error initializing auth:", error);
     } finally {
       callbacks.setLoading(false);
     }
@@ -142,7 +141,6 @@ export function AuthHelper(): AuthHelperReturn {
   // Define signOut first
   const signOut = async () => {
     try {
-      console.log('[AuthHelpers] Starting sign out process');
       
       // Clear any existing timeouts
       if (signInTimeoutRef.current) {
@@ -177,9 +175,7 @@ export function AuthHelper(): AuthHelperReturn {
       setUserInfo(null);
       setIsGuest(false);
       
-      console.log('[AuthHelpers] Sign out completed successfully');
     } catch (error) {
-      console.error('[AuthHelpers] Error during sign out:', error);
       throw error;
     }
   };
@@ -255,7 +251,6 @@ export function AuthHelper(): AuthHelperReturn {
             try {
               await fetchUserInfo(existingUser.id);
             } catch (error) {
-              console.error("Error fetching user info:", error);
             }
           }
         } else if (mounted) {
@@ -291,7 +286,6 @@ export function AuthHelper(): AuthHelperReturn {
           await authInitializer.current.initialize(callbacks);
         }
       } catch (error) {
-        console.error("Error during auth initialization:", error);
         if (mounted) setLoading(false);
       }
     };
@@ -447,14 +441,11 @@ export function AuthHelper(): AuthHelperReturn {
               lastFetchTime.current = Date.now();
 
             } catch (dbError) {
-              console.error("[Auth] IndexedDB sync error:", dbError);
               // Even if sync fails, we should still update the state with API data
             }
           } else {
-            console.error("[Auth] API call failed:", data);
           }
         } catch (error) {
-          console.error("[Auth] API fetch error:", error);
         } finally {
           fetchingUserInfo.current = false;
           pendingFetchPromise.current = null;
@@ -464,7 +455,6 @@ export function AuthHelper(): AuthHelperReturn {
       return pendingFetchPromise.current;
 
     } catch (error) {
-      console.error("[Auth] Error accessing IndexedDB:", error);
       // Now savedUser is accessible here
       if (savedUser) {
         setUserInfo({
@@ -523,18 +513,14 @@ export function AuthHelper(): AuthHelperReturn {
 
   // Rest of the functions
   async function signIn(email: string, password: string) {
-    console.log('[AuthHelpers] Starting sign in with:', { email });
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      console.error('[AuthHelpers] Sign in error:', error);
       throw error;
     }
     
     if (data.user) {
-      console.log('[AuthHelpers] Sign in successful, user:', data.user);
       try {
         // First save basic user data to IndexedDB
-        console.log('[AuthHelpers] Saving user to IndexedDB');
         await indexedDB.createUser({
           id: data.user.id,
           email: data.user.email ?? '',
@@ -545,11 +531,9 @@ export function AuthHelper(): AuthHelperReturn {
         });
 
         // Set user state first
-        console.log('[AuthHelpers] Setting user state');
         setUser(data.user);
 
         // Then fetch user info from API and save to IndexedDB
-        console.log('[AuthHelpers] Fetching user info from API');
         const response = await fetch(`${config.api.endpoints.myinfo}?userId=${data.user.id}`, {
           method: 'POST',
           headers: {
@@ -560,7 +544,6 @@ export function AuthHelper(): AuthHelperReturn {
           })
         });
         const apiData = await response.json();
-        console.log('[AuthHelpers] API response:', apiData);
 
         if (apiData.success) {
           // Transform the API response into the expected format
@@ -579,7 +562,6 @@ export function AuthHelper(): AuthHelperReturn {
             }
           };
 
-          console.log('[AuthHelpers] Transformed API data:', transformedData);
 
           // Save all raw API data to IndexedDB in one call
           await indexedDB.saveRawApiData(data.user.id, transformedData);
@@ -614,7 +596,6 @@ export function AuthHelper(): AuthHelperReturn {
             userLocation: userLocation
           };
 
-          console.log('[AuthHelpers] Updating userInfo state with:', updatedUserInfo);
 
           // Update cache
           userInfoCache.current[data.user.id] = {
@@ -624,18 +605,13 @@ export function AuthHelper(): AuthHelperReturn {
 
           // Update state with API data
           setUserInfo(updatedUserInfo);
-          console.log('[AuthHelpers] userInfo state updated');
         } else {
-          console.error('[AuthHelpers] API call failed:', apiData);
         }
       } catch (error) {
-        console.error('[AuthHelpers] Error during sign in process:', error);
         // Even if API call fails, try to get data from IndexedDB
         try {
-          console.log('[AuthHelpers] Falling back to IndexedDB data');
           await fetchUserInfo(data.user.id);
         } catch (infoError) {
-          console.error('[AuthHelpers] Error fetching from IndexedDB:', infoError);
         }
       }
     }
@@ -644,7 +620,6 @@ export function AuthHelper(): AuthHelperReturn {
   async function signInAnonymously() {
     const { data, error } = await supabase.auth.signInAnonymously();
     if (error) {
-      console.error("[Auth] Anonymous sign in error:", error);
       throw error;
     }
     
@@ -690,7 +665,6 @@ export function AuthHelper(): AuthHelperReturn {
         // Save language preference
         await indexedDB.setUserLanguage(data.user.id, 'english');
       } catch (error) {
-        console.error("[Auth] Error during anonymous sign in:", error);
       }
     }
   }
@@ -749,7 +723,6 @@ export function AuthHelper(): AuthHelperReturn {
       setUserInfo(guestUserInfo);
       setIsGuest(true);
     } catch (error) {
-      console.error("Guest sign in error:", error);
       throw error;
     }
   }

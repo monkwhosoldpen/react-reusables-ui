@@ -50,18 +50,14 @@ export default function ChannelPage() {
 
       if (eventType === 'UPDATE') {
         if (newRecord?.last_message?.id !== oldRecord?.last_message?.id) {
-          console.log(`[ChannelPage] New message in channel ${username}:`, newRecord?.last_message);
           pendingUpdatesRef.current = true;
         }
         if (newRecord?.message_count !== oldRecord?.message_count) {
-          console.log(`[ChannelPage] Channel ${username} message count changed: ${oldRecord?.message_count} → ${newRecord?.message_count}`);
           pendingUpdatesRef.current = true;
         }
       } else if (eventType === 'INSERT') {
-        console.log(`[ChannelPage] New channel added: ${username} (${newRecord?.message_count} messages)`);
         pendingUpdatesRef.current = true;
       } else if (eventType === 'DELETE') {
-        console.log(`[ChannelPage] Channel deleted: ${username}`);
         pendingUpdatesRef.current = true;
       }
 

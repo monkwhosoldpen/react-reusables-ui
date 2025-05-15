@@ -27,7 +27,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const { user, loading: authLoading, userInfo } = useAuth();
   const router = useRouter();
 
-  // Use a single data state to prevent multiple re-renders
   const [channelData, setChannelData] = useState<{
     follows: any[];
     requests: TenantRequest[];
@@ -35,7 +34,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
     follows: initialData?.follows || [],
     requests: initialData?.requests || []
   });
-  
+
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [loadingState, setLoadingState] = useState({
     dbInit: !initialData,
@@ -44,39 +43,18 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const dataLoadedRef = useRef(false);
 
-  // Function to load channel data that can be reused
   const loadChannelData = useCallback(async () => {
-    // Skip if there's no user
     if (!user?.id) {
-      console.log('[MainScreen] Cannot load channel data - no user', {
-        timestamp: new Date().toISOString()
-      });
       return;
     }
 
     setLoadingState(prev => ({ ...prev, dataLoading: true }));
-    console.log('[MainScreen] Starting channel data load', {
-      userId: user.id,
-      dbInitRequired: loadingState.dbInit,
-      timestamp: new Date().toISOString()
-    });
 
     try {
-      // Initialize DB if needed
       if (loadingState.dbInit) {
-        console.log('[MainScreen] Initializing IndexedDB', {
-          userId: user.id,
-          timestamp: new Date().toISOString()
-        });
         await indexedDB.initialize();
         setLoadingState(prev => ({ ...prev, dbInit: false }));
       }
-
-      // Load all data in parallel
-      console.log('[MainScreen] Loading data from IndexedDB', {
-        userId: user.id,
-        timestamp: new Date().toISOString()
-      });
 
       const [follows, requests, allChannelActivity] = await Promise.all([
         indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id),
@@ -84,15 +62,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
         indexedDB.getAll('channels_activity')
       ]);
 
-      console.log('[MainScreen] Data loaded from IndexedDB', {
-        userId: user.id,
-        followsCount: follows?.length || 0,
-        requestsCount: requests?.length || 0,
-        activityCount: allChannelActivity?.length || 0,
-        timestamp: new Date().toISOString()
-      });
-
-      // Process follows and requests with activity data
       const followsWithActivity = (follows || []).map(follow => ({
         ...follow,
         channelActivity: allChannelActivity.filter(activity => activity.username === follow.username),
@@ -108,65 +77,28 @@ export function MainScreen({ initialData }: MainScreenProps) {
         username: request.username || request.tenant_name
       }));
 
-      console.log('[MainScreen] Processed channel data', {
-        userId: user.id,
-        followsWithActivityCount: followsWithActivity.length,
-        requestsWithActivityCount: requestsWithActivity.length,
-        timestamp: new Date().toISOString()
-      });
-
       setChannelData({
         follows: followsWithActivity,
         requests: requestsWithActivity
       });
-      
+
       dataLoadedRef.current = true;
-      console.log('[MainScreen] Channel data updated successfully', {
-        userId: user.id,
-        timestamp: new Date().toISOString()
-      });
+
     } catch (err) {
-      console.error('[MainScreen] Error loading channel data', {
-        error: err instanceof Error ? err.message : err,
-        stack: err instanceof Error ? err.stack : undefined,
-        userId: user.id,
-        timestamp: new Date().toISOString()
-      });
       setError('Failed to load data');
     } finally {
       setLoadingState(prev => ({ ...prev, dataLoading: false }));
     }
   }, [user?.id, loadingState.dbInit]);
 
-  // Initial data loading
   useEffect(() => {
     let mounted = true;
 
     const initializeAndLoadData = async () => {
-      // Skip if we've already loaded data or if there's no user
-      if (dataLoadedRef.current || !user?.id) {
-        console.log('[MainScreen] Skipping initial data load', {
-          dataAlreadyLoaded: dataLoadedRef.current,
-          hasUser: !!user?.id,
-          timestamp: new Date().toISOString()
-        });
+      if (dataLoadedRef.current || !user?.id || !mounted) {
         return;
       }
-      
-      // Only proceed if component is still mounted
-      if (!mounted) {
-        console.log('[MainScreen] Component unmounted before data load', {
-          userId: user?.id,
-          timestamp: new Date().toISOString()
-        });
-        return;
-      }
-      
-      console.log('[MainScreen] Starting initial data load', {
-        userId: user?.id,
-        timestamp: new Date().toISOString()
-      });
-      
+
       loadChannelData();
     };
 
@@ -177,26 +109,16 @@ export function MainScreen({ initialData }: MainScreenProps) {
     };
   }, [user?.id, loadChannelData]);
 
-  // Use useFocusEffect to reload data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      // Only reload data if we already have a user and have loaded data before
       if (user?.id) {
-        console.log('[MainScreen] Screen focused, reloading data', {
-          userId: user.id,
-          timestamp: new Date().toISOString()
-        });
         loadChannelData();
       }
     }, [user?.id, loadChannelData])
   );
 
-  // Reset data loaded ref when user changes
   useEffect(() => {
     if (!user?.id) {
-      console.log('[MainScreen] User changed/logged out, resetting data loaded state', {
-        timestamp: new Date().toISOString()
-      });
       dataLoadedRef.current = false;
     }
   }, [user?.id]);
@@ -206,7 +128,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
     const lastMessage = channelActivity?.last_message;
     const messageCount = channelActivity?.message_count || 0;
     const lastUpdated = channelActivity?.last_updated_at || item.updated_at || item.created_at;
-
     const formattedDate = lastUpdated ? new Date(lastUpdated).toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
@@ -252,25 +173,16 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   const sortedData = useMemo(() => {
     const allData = [...channelData.requests, ...channelData.follows];
-
-    // Sort all channels by last_updated_at
     const sorted = allData.sort((a, b) => {
       const aDate = a.channelActivity?.[0]?.last_updated_at;
       const bDate = b.channelActivity?.[0]?.last_updated_at;
-      
-      // If both have dates, compare them
       if (aDate && bDate) {
         return new Date(bDate).getTime() - new Date(aDate).getTime();
       }
-      
-      // If only one has a date, prioritize the one with a date
       if (aDate) return -1;
       if (bDate) return 1;
-      
-      // If neither has a date, keep original order
       return 0;
     });
-
     return sorted;
   }, [channelData]);
 
@@ -357,7 +269,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
           </ScrollView>
         )}
       </View>
-
       <TouchableOpacity
         className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 justify-center items-center shadow-lg"
         onPress={() => router.push('/explore')}

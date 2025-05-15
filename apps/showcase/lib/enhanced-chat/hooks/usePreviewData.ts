@@ -22,22 +22,6 @@ export const usePreviewData = ({
   includeContent
 }: UsePreviewDataProps) => {
   return useMemo(() => {
-    console.log('🔄 Preview Data Update:', {
-      formData: {
-        type: formData.type,
-        mediaLayout: formData.metadata?.mediaLayout,
-        isInteractive,
-        selectedInteractiveType,
-        includeMedia,
-        includeContent
-      },
-      currentState: {
-        mediaLayout,
-        isInteractive,
-        selectedInteractiveType,
-        includeMedia
-      }
-    });
 
     // Calculate fixed height based on collapsible state
     const fixedHeight = formData.metadata?.isCollapsible ? 400 : undefined;
@@ -55,7 +39,8 @@ export const usePreviewData = ({
         visibility: formData.metadata?.visibility ?? {
           stats: true,
           shareButtons: true,
-          header: true
+          header: true,
+          footer: true
         },
         requireAuth: formData.metadata?.requireAuth ?? false,
         timestamp: formData.metadata?.timestamp ?? new Date().toISOString(),
@@ -125,20 +110,6 @@ export const usePreviewData = ({
       data.interactive_content = undefined;
       data.type = 'all';
     }
-
-    // Log the final state for debugging
-    console.log('📊 Preview Data Generated:', {
-      type: data.type,
-      mediaLayout: data.metadata.mediaLayout,
-      isInteractive: !!data.interactive_content,
-      mediaCount: data.media?.length || 0,
-      hasContent: !!data.content,
-      includeMedia,
-      isCollapsible: data.metadata.isCollapsible,
-      maxHeight: data.metadata.maxHeight,
-      interactiveType: selectedInteractiveType,
-      interactiveContent: data.interactive_content
-    });
 
     return data;
   }, [formData, mediaLayout, isInteractive, selectedInteractiveType, username, includeMedia, includeContent]);

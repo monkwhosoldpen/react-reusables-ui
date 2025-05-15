@@ -7,7 +7,6 @@ import { supabase } from '~/lib/core/supabase';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { ChannelActivity } from '~/lib/core/types/notifications';
 import { setupPushSubscription, registerServiceWorker, cleanupPushSubscription } from '~/utils/register-sw';
-import { Image } from 'react-native-svg';
 
 // Types
 type NotificationPermissionStatus = 'default' | 'granted' | 'denied';
@@ -36,8 +35,6 @@ interface NotificationProviderInterface {
   cleanup?(): void;
   getSubscription(): Promise<PushSubscription | null>;
 }
-
-// Add at top with other constants
 
 // Native Web Push implementation
 class NativeWebPushProvider implements NotificationProviderInterface {
@@ -177,7 +174,7 @@ export const useNotification = () => {
 };
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
-  
+
   const { user, userInfo, updatePushSubscription } = useAuth();
 
   // States for notification management
@@ -294,7 +291,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       // Check if user has notifications enabled from userInfo
       const notificationsData = userInfo.notifications;
       const hasSubscriptions = notificationsData?.subscriptions?.length > 0;
-      const isEnabled = notificationsData?.enabled === true;
 
       // Get notification preference from user preferences
       const notificationPreference = userInfo.notifications_enabled;
@@ -358,7 +354,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         // Get current browser subscription
         const registration = await navigator.serviceWorker.getRegistration();
         if (!registration) {
-          console.log('No service worker registration found during subscription check');
           setHasActiveSubscription(false);
           setNotificationsEnabled(false);
           return;
@@ -367,13 +362,11 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         const browserSubscription = await registration.pushManager.getSubscription();
 
         if (!browserSubscription) {
-          console.log('No push subscription found in browser');
           setHasActiveSubscription(false);
           setNotificationsEnabled(false);
 
           // If user has preference enabled but no subscription, we should create one
           if (userInfo?.notifications_enabled === true) {
-            console.log('User preferences indicate notifications should be enabled, but no subscription exists');
             // We'll attempt to create a subscription when they interact with notifications next
           }
           return;
@@ -381,7 +374,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
         // Use userInfo from AuthContext instead of fetching it again
         if (!userInfo || !userInfo.notifications) {
-          console.log('No user info or notification data available');
           setHasActiveSubscription(false);
           setNotificationsEnabled(false);
           return;
@@ -394,14 +386,12 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         );
 
         if (matchingSubscription) {
-          console.log('Found matching subscription for current user');
           setHasActiveSubscription(true);
           setNotificationsEnabled(matchingSubscription.notifications_enabled);
           setAccountPreference(userInfo.notifications.enabled);
         } else {
           // We have a browser subscription, but it doesn't match any in our database
           // This likely means we have a subscription from a different user account
-          console.log('Found browser subscription but it does not match current user');
 
           // Keep the UI accurate - we don't have a subscription for this user
           setHasActiveSubscription(false);
@@ -409,12 +399,10 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
           // If user's preference is to have notifications enabled, we'll need to set up a new subscription
           if (userInfo.notifications_enabled === true) {
-            console.log('User preference indicates notifications should be enabled');
             // We could auto-enable here, but it's better to let the user explicitly enable again
           }
         }
       } catch (error) {
-        console.error('Error checking subscription status:', error);
         // Default to disabled state on error
         setHasActiveSubscription(false);
         setNotificationsEnabled(false);
@@ -456,9 +444,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   // Request permission
   const requestPermission = async (): Promise<NotificationPermissionStatus> => {
     try {
-      console.log('[App] Requesting notification permission...');
       const permission = await Notification.requestPermission();
-      console.log('[App] Notification permission status:', permission);
 
       setPermissionStatus(permission);
 
@@ -498,7 +484,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
       return permission;
     } catch (error) {
-      console.error('[App] Error requesting notification permission:', error);
       toast.error('Failed to request notification permission');
       return 'denied';
     }
@@ -545,7 +530,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     // Clear badge when all notifications are read
     if ('clearAppBadge' in navigator) {
       navigator.clearAppBadge().catch(error => {
-        console.error('Failed to clear app badge:', error);
       });
     }
   };
@@ -568,11 +552,9 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   useEffect(() => {
     if ('setAppBadge' in navigator && unreadCount > 0) {
       navigator.setAppBadge(unreadCount).catch(error => {
-        console.error('Failed to set app badge:', error);
       });
     } else if ('clearAppBadge' in navigator && unreadCount === 0) {
       navigator.clearAppBadge().catch(error => {
-        console.error('Failed to clear app badge:', error);
       });
     }
   }, [unreadCount]);
@@ -639,7 +621,8 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     };
   }, [isProviderInitialized, notificationsEnabled, permissionStatus, provider, user]);
 
-  // Add permission change monitoring 
+  // Add permission 
+  // change monitoring 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -647,7 +630,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     const checkPermissionStatus = async () => {
       const currentPermission = Notification.permission as NotificationPermissionStatus;
       if (currentPermission !== permissionStatus) {
-        console.log(`Permission status changed from ${permissionStatus} to ${currentPermission}`);
         setPermissionStatus(currentPermission);
 
         // If permission was revoked, we need to update state
@@ -656,7 +638,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
           setHasActiveSubscription(false);
 
           // We'll keep accountPreference as is, since that represents user intent
-          console.log('Notification permission was revoked, disabling notifications');
         }
       }
     };
@@ -676,15 +657,12 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
             registration.pushManager.getSubscription().then(subscription => {
               if (!subscription && notificationsEnabled) {
                 // We thought notifications were enabled, but subscription is gone
-                console.log('Subscription disappeared, disabling notifications UI');
                 setNotificationsEnabled(false);
                 setHasActiveSubscription(false);
               }
             }).catch(error => {
-              console.error('Error checking subscription on visibility change:', error);
             });
           }).catch(error => {
-            console.error('Error getting service worker registration:', error);
           });
         }
       }
@@ -713,7 +691,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       setIsUserInfoLoading(true);
       setInitializationStatus('idle');
       lastUserInfo.current = null;
-      console.log('[App] No user, resetting notification states');
       return;
     }
 
@@ -728,10 +705,8 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     // Set a timeout to wait for userInfo to stabilize
     userInfoCheckTimeout.current = setTimeout(() => {
       if (userInfo) {
-        console.log('[App] User info available, proceeding with initialization');
         setIsUserInfoLoading(false);
       } else {
-        console.log('[App] User info not yet available');
         setIsUserInfoLoading(true);
       }
     }, 1000); // Wait 1 second for userInfo to stabilize
@@ -748,9 +723,8 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     if (!user || isUserInfoLoading) {
       // Reset states when user/userInfo is not available
       if (!user) {
-        console.log('[App] No user, resetting notification states');
-      } else if (isUserInfoLoading) {
-        console.log('[App] User info still loading');
+      }
+      else if (isUserInfoLoading) {
       }
       setInitializationStatus('idle');
       setHasActiveSubscription(false);
@@ -765,7 +739,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
     // Update notification states based on user preferences
     if (userInfo?.notifications_enabled !== undefined) {
-      console.log('[App] Updating notification preferences from user info');
       setAccountPreference(userInfo.notifications_enabled);
     }
   }, [user, userInfo, isUserInfoLoading, initializationStatus]);
@@ -780,7 +753,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       // Skip if conditions aren't met
       if (!user || isUserInfoLoading || initializationStatus === 'pending' || initializationStatus === 'complete') {
         if (!user || isUserInfoLoading) {
-          console.log('[App] Waiting for user info to be available...');
         }
         return;
       }
@@ -791,23 +763,19 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       }
 
       if (!userInfo) {
-        console.log('[App] User info not available, will retry');
         if (retryCount < MAX_RETRIES) {
           retryCount++;
           retryTimeout = setTimeout(initializeServiceWorker, 1000);
           return;
         }
-        console.error('[App] Max retries reached waiting for user info');
         setInitializationStatus('error');
         return;
       }
 
       try {
-        console.log('[App] useEffect triggered - registering SW...');
 
         // Check if we've already attempted initialization for this user
         if (initializationAttempted.current && user.id === lastInitializedUserId.current) {
-          console.log('[App] Service worker already initialized for current user');
           return;
         }
 
@@ -816,7 +784,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         // Check for existing subscription first
         const registration = await registerServiceWorker();
         if (!registration) {
-          console.error('[App] Failed to register service worker');
           setInitializationStatus('error');
           return;
         }
@@ -832,14 +799,12 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
             .single();
 
           if (subscriptionError) {
-            console.error('[App] Error checking subscription:', subscriptionError);
             setInitializationStatus('error');
             return;
           }
 
           if (data?.user_id === user.id) {
             // Subscription belongs to current user, update state
-            console.log('[App] Found matching subscription for current user');
             setHasActiveSubscription(true);
             setNotificationsEnabled(data.notifications_enabled);
             initializationAttempted.current = true;
@@ -848,14 +813,12 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
             return;
           } else {
             // Subscription belongs to different user, clean up
-            console.log('[App] Found subscription from different user, cleaning up');
             await cleanupPushSubscription();
           }
         }
 
         // Only proceed with new subscription if user preferences indicate it should be enabled
         if (!userInfo?.notifications_enabled) {
-          console.log('[App] User preferences indicate notifications should be disabled');
           initializationAttempted.current = true;
           lastInitializedUserId.current = user.id;
           setInitializationStatus('complete');
@@ -865,7 +828,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         // Create new subscription
         const subscription = await setupPushSubscription();
         if (!subscription) {
-          console.warn('[App] Failed to set up push subscription');
           setInitializationStatus('error');
           return;
         }
@@ -889,7 +851,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
           });
 
         if (error) {
-          console.error('[App] Failed to store push subscription:', error);
           setInitializationStatus('error');
           return;
         }
@@ -900,7 +861,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         setNotificationsEnabled(true);
         setInitializationStatus('complete');
       } catch (error) {
-        console.error('[App] Error in service worker initialization:', error);
         setInitializationStatus('error');
       }
     };
@@ -985,7 +945,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
           });
 
         if (upsertError) {
-          console.error('[App] Failed to store push subscription:', upsertError);
           toast.error('Failed to save notification preferences');
           return;
         }
@@ -1009,7 +968,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
             .eq('user_id', user.id);
 
           if (updateError) {
-            console.error('[App] Failed to update push subscription:', updateError);
             toast.error('Failed to save notification preferences');
             return;
           }
@@ -1020,7 +978,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         toast.success('Notifications disabled successfully');
       }
     } catch (error) {
-      console.error('[App] Error toggling notifications:', error);
       toast.error('Failed to update notification preferences');
     } finally {
       setIsLoading(false);

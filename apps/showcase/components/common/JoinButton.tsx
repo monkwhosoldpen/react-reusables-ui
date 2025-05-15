@@ -86,56 +86,39 @@ export function JoinButton({
 
   // Function to handle button click
   const handleClick = () => {
-    console.log('[JoinButton] Button clicked for channel:', username);
-    console.log('[JoinButton] User auth state:', user ? 'Logged in' : 'Not logged in');
-    console.log('[JoinButton] Channel access status:', accessStatus);
-
     setShowDialog(true);
     setShowLogin(!user);
     if (user) {
       setCurrentStep(0); // Reset to first step when opening dialog
-      console.log('[JoinButton] Dialog opened with user authenticated, starting onboarding at step 0');
     } else {
-      console.log('[JoinButton] Dialog opened with login view, user not authenticated');
     }
   }
 
   // Handle successful login
   const handleLoginSuccess = async () => {
-    console.log('[JoinButton] Login successful, refreshing user info');
     await refreshUserInfo();
-    console.log('[JoinButton] User info refreshed, transitioning to onboarding flow');
     setShowLogin(false);
   }
 
   const handleNextStep = async () => {
-    console.log('[JoinButton] Current step:', currentStep, 'of', onboardingSteps.length - 1);
     
     if (currentStep < onboardingSteps.length - 1) {
-      console.log('[JoinButton] Advancing to next step:', currentStep + 1);
       setCurrentStep(currentStep + 1);
     } else {
-      console.log('[JoinButton] Final step reached, completing channel onboarding');
-      console.log('[JoinButton] Onboarding payload:', { username, channelDetails });
       
       try {
-        console.log('[JoinButton] Calling completeChannelOnboarding API');
         const result = await completeChannelOnboarding(username, channelDetails as Channel);
 
         if (result && typeof result === 'object') {
-          console.log('[JoinButton] Channel onboarding completed successfully with result:', result);
           
           // Check if there's a new access status in the response
           if (result && 'access_status' in result) {
             const typedResult = result as { access_status: string };
-            console.log('[JoinButton] New access status received:', typedResult.access_status);
           }
           
           setShowDialog(false);
           setHasJoined(true);
-          console.log('[JoinButton] Dialog closed, hasJoined state updated to true');
           onJoin?.(result);
-          console.log('[JoinButton] onJoin callback executed with response');
           
           // Check for status in the response to customize the toast message
           if (result && 'status' in result) {
@@ -151,19 +134,14 @@ export function JoinButton({
             toast.success(`You've requested access to @${username}`);
           }
         } else if (result === true) {
-          console.log('[JoinButton] Channel onboarding completed successfully');
           setShowDialog(false);
           setHasJoined(true);
-          console.log('[JoinButton] Dialog closed, hasJoined state updated to true');
           onJoin?.({});
-          console.log('[JoinButton] onJoin callback executed');
           toast.success(`You've requested access to @${username}`);
         } else {
-          console.error('[JoinButton] Failed to complete channel onboarding - API returned false');
           toast.error('Failed to complete channel onboarding');
         }
       } catch (error) {
-        console.error('[JoinButton] Exception during channel onboarding:', error);
         toast.error('Failed to complete channel onboarding');
       }
     }
@@ -176,16 +154,13 @@ export function JoinButton({
       return
     }
 
-    console.log('[JoinButton] Attempting to sign in with email');
     setIsLoginLoading(true)
     setError('')
 
     try {
       await signIn(email, password)
-      console.log('[JoinButton] Email sign-in successful');
       handleLoginSuccess()
     } catch (err) {
-      console.error('[JoinButton] Email sign-in failed:', err);
       setError('Invalid email or password')
     } finally {
       setIsLoginLoading(false)
@@ -193,16 +168,13 @@ export function JoinButton({
   }
 
   const handleAnonymousSignIn = async () => {
-    console.log('[JoinButton] Attempting anonymous sign-in');
     setIsLoginLoading(true)
     setError('')
 
     try {
       await signInAnonymously()
-      console.log('[JoinButton] Anonymous sign-in successful');
       handleLoginSuccess()
     } catch (err) {
-      console.error('[JoinButton] Anonymous sign-in failed:', err);
       setError('Failed to sign in anonymously')
     } finally {
       setIsLoginLoading(false)
@@ -210,16 +182,13 @@ export function JoinButton({
   }
 
   const handleGuestSignIn = async () => {
-    console.log('[JoinButton] Attempting guest sign-in');
     setIsLoginLoading(true)
     setError('')
 
     try {
       await signInAsGuest()
-      console.log('[JoinButton] Guest sign-in successful');
       handleLoginSuccess()
     } catch (err) {
-      console.error('[JoinButton] Guest sign-in failed:', err);
       setError('Failed to sign in as guest')
     } finally {
       setIsLoginLoading(false)
@@ -227,21 +196,14 @@ export function JoinButton({
   }
 
   const handleComplete = async () => {
-    console.log('[JoinButton] handleComplete called with channel details:', channelDetails);
-    console.log('[JoinButton] Is tenant channel:', channelDetails?.is_owner_db);
     
-    console.log('[JoinButton] Calling completeChannelOnboarding API');
     const result = await completeChannelOnboarding(username, channelDetails);
     
     if (result) {
-      console.log('[JoinButton] Channel onboarding completed successfully via handleComplete');
       setHasJoined(true);
       setShowDialog(false);
-      console.log('[JoinButton] Dialog closed, hasJoined state updated to true');
       onJoin?.(result);
-      console.log('[JoinButton] onJoin callback executed with response');
     } else {
-      console.error('[JoinButton] Channel onboarding failed in handleComplete');
     }
   };
 

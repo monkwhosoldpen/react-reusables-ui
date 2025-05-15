@@ -14,13 +14,11 @@ export const fetchMessageCount = async (username: string) => {
       .eq('channel_username', username);
 
     if (error) {
-      console.error('Error fetching message count:', error);
       return 0;
     }
 
     return data?.length || 0;
   } catch (error) {
-    console.error('Error in fetchMessageCount:', error);
     return 0;
   }
 };
@@ -34,13 +32,11 @@ export const fetchMessages = async (username: string) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching messages:', error);
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('Error in fetchMessages:', error);
     return [];
   }
 };
@@ -69,26 +65,17 @@ export const createMessage = async (formData: FormDataType, username: string) =>
       interactive_content: formData.interactive_content || {}
     };
 
-    console.log('Creating message with data:', {
-      type: createData.type,
-      content: createData.content,
-      interactive_content: createData.interactive_content,
-      media: createData.media
-    });
-
     const { data, error } = await supabase
       .from('superfeed')
       .insert([createData])
       .select();
 
     if (error) {
-      console.error('Error creating message:', error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error in createMessage:', error);
     return null;
   }
 }; 

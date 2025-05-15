@@ -50,7 +50,6 @@ export default function LanguageChanger({ variant = "default", className = "" }:
   const handleLanguageChange = async (newLanguage: string) => {
     if (newLanguage === currentLanguage) return;
     
-    console.log(`Changing language from ${currentLanguage} to ${newLanguage}`);
     setIsChanging(true);
     setLocalLanguage(newLanguage);
     
@@ -58,10 +57,8 @@ export default function LanguageChanger({ variant = "default", className = "" }:
       if (updateLanguagePreference && userInfo) {
         // Only update language in backend and IndexedDB if user is logged in
         await updateLanguagePreference(newLanguage);
-        console.log(`Language successfully changed to ${newLanguage}`);
       }
     } catch (error) {
-      console.error("Failed to update language preference:", error);
       // Revert to previous language on error
       setLocalLanguage(userInfo?.language || "english");
     } finally {

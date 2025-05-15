@@ -36,14 +36,6 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
 
       const messageData = messageToCreate || formData;
 
-      // Log the form data before submission
-      console.log('Creating message with data:', {
-        type: messageData.type,
-        content: messageData.content,
-        interactive_content: messageData.interactive_content,
-        media: messageData.media
-      });
-
       const data = await createMessage(messageData, username);
       if (data) {
         // Fetch updated message count
@@ -71,7 +63,6 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to create message');
       setError(error);
-      console.error('Error in handleCreateItem:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -92,7 +83,6 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Failed to fetch message count');
         setError(error);
-        console.error('Error fetching message count:', error);
       }
     };
 
@@ -111,7 +101,6 @@ export const useMessageHandling = ({ username, formData, handleFormDataChange }:
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Failed to fetch messages');
         setError(error);
-        console.error('Error fetching messages:', error);
       }
     };
 

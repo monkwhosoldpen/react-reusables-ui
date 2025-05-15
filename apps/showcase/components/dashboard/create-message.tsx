@@ -116,7 +116,6 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to calculate height');
       setError(error);
-      console.error('Error in height calculation:', error);
     }
   }, [formData.metadata?.isCollapsible, formData.metadata?.maxHeight, formData.metadata?.mediaLayout, formData.media]);
 
@@ -132,7 +131,6 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to bulk create short messages');
       setError(error);
-      console.error('Error in handleBulkCreateShort:', error);
     }
   }, [handleCreateItem]);
 
@@ -148,7 +146,6 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to bulk create long messages');
       setError(error);
-      console.error('Error in handleBulkCreateLong:', error);
     }
   }, [handleCreateItem]);
 
@@ -164,7 +161,6 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to bulk create poll messages');
       setError(error);
-      console.error('Error in handleBulkCreatePolls:', error);
     }
   }, [handleCreateItem]);
 
@@ -180,7 +176,6 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to bulk create quiz messages');
       setError(error);
-      console.error('Error in handleBulkCreateQuizzes:', error);
     }
   }, [handleCreateItem]);
 
@@ -196,7 +191,6 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to bulk create survey messages');
       setError(error);
-      console.error('Error in handleBulkCreateSurveys:', error);
     }
   }, [handleCreateItem]);
 

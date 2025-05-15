@@ -218,35 +218,7 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
   const relatedChannelsCount = premiumConfig?.related_channels?.length || 0;
   const isPublic = !premiumConfig || Object.keys(premiumConfig).length === 0 || premiumConfig.is_public;
 
-  // Determine auth type
-  const getAuthType = () => {
-    if (!user) return 'guest';
-    if (user.email) return 'email';
-    if (user.id) return 'anonymous';
-    return 'unknown';
-  };
-
   React.useEffect(() => {
-    console.log('[DashboardScreen]', { 
-      username, 
-      clientType,
-      relatedChannelsCount,
-      hasAccess,
-      isPublic,
-      userRoles,
-      currentUser: {
-        id: user?.id,
-        email: user?.email,
-        authType: getAuthType(),
-        role: userRole
-      },
-      channelInfo: channelInfo ? {
-        ownerUsername: channelInfo.ownerUsername,
-        isOwnerChannel: channelInfo.channel.is_owner_db,
-        isPublic: channelInfo.channel.is_public,
-        isPremium: channelInfo.channel.is_premium
-      } : null
-    });
   }, [username, clientType, relatedChannelsCount, hasAccess, userRoles, user, channelInfo, userRole, isPublic]);
   
   useScrollToTop(ref);
