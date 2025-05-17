@@ -5,6 +5,7 @@ import { supabase } from '~/lib/core/supabase';
 import { ChannelActivity, Channel, ChannelMessage, TenantRequest, UserInfo } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';
 import { User } from '@supabase/supabase-js';
+import { useInAppDB } from '../providers/InAppDBProvider';
 
 interface PushSubscriptionData {
   user_id: string;
@@ -54,6 +55,8 @@ export interface SampleHelperReturn {
 
 export function SampleHelper(user: User | null, isGuest: boolean, userInfo: UserInfo | null): SampleHelperReturn {
 
+  const inappDb = useInAppDB();
+
   const testFn = async (username: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -87,6 +90,7 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
 
       // Update IndexedDB
       await indexedDB.setUserLanguage(user.id, language);
+      await inappDb.setUserLanguage(user.id, language);
       
     } catch (error) {
       throw error;
@@ -102,20 +106,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
     }
 
     try {
-      console.log('[SampleHelper] Starting notification preference update', {
-        userId: user.id,
-        enabled,
-        currentState: await indexedDB.getUserNotifications(user.id),
-        timestamp: new Date().toISOString()
-      });
-
-      // Update backend
-      console.log('[SampleHelper] Sending preference update to API', {
-        endpoint: config.api.endpoints.user.notification,
-        userId: user.id,
-        enabled,
-        timestamp: new Date().toISOString()
-      });
 
       const response = await fetch(config.api.endpoints.user.notification, {
         method: 'POST',
@@ -128,75 +118,11 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         }),
       });
 
-      const responseData = await response.text();
-      console.log('[SampleHelper] Received API response', {
-        status: response.status,
-        ok: response.ok,
-        responseData: responseData,
-        timestamp: new Date().toISOString()
-      });
-
       if (!response.ok) {
-        console.error('[SampleHelper] API preference update failed', {
-          status: response.status,
-          statusText: response.statusText,
-          error: responseData,
-          userId: user.id,
-          timestamp: new Date().toISOString()
-        });
         throw new Error('Failed to save notification preference');
       }
-
-      // Verify the update was successful by fetching current state
-      const verifyResponse = await fetch(`${config.api.endpoints.user.notification}?userId=${user.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      const verifyData = await verifyResponse.json();
-      console.log('[SampleHelper] Verified API state', {
-        userId: user.id,
-        apiEnabled: verifyData?.notifications_enabled,
-        requestedEnabled: enabled,
-        timestamp: new Date().toISOString()
-      });
-
-      // Update IndexedDB
-      console.log('[SampleHelper] Updating IndexedDB preference', {
-        userId: user.id,
-        enabled,
-        timestamp: new Date().toISOString()
-      });
-
       await indexedDB.setUserNotifications(user.id, enabled);
-
-      // Verify IndexedDB update
-      const verifiedDbState = await indexedDB.getUserNotifications(user.id);
-      console.log('[SampleHelper] Verified IndexedDB state', {
-        userId: user.id,
-        dbEnabled: verifiedDbState,
-        requestedEnabled: enabled,
-        timestamp: new Date().toISOString()
-      });
-
-      if (verifiedDbState !== enabled) {
-        console.warn('[SampleHelper] IndexedDB state mismatch', {
-          userId: user.id,
-          dbState: verifiedDbState,
-          requestedState: enabled,
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      console.log('[SampleHelper] Notification preference update complete', {
-        userId: user.id,
-        enabled,
-        apiState: verifyData?.notifications_enabled,
-        dbState: verifiedDbState,
-        timestamp: new Date().toISOString()
-      });
+      await inappDb.setUserNotifications(user.id, enabled);   
       
     } catch (error) {
       console.error('[SampleHelper] Failed to update notification preference', {

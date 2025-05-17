@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useAuth } from "~/lib/core/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { useInAppDB } from "~/lib/core/providers/InAppDBProvider";
 import { View } from "react-native";
 import { Text } from "~/components/ui/text";
 import { Button } from "~/components/ui/button";
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { cn } from "~/lib/utils";
+import { useAuth } from "~/lib/core/contexts/AuthContext";
 
 interface LanguageChangerProps {
   variant?: "default" | "settings";
@@ -39,9 +40,10 @@ export default function LanguageChanger({ variant = "default", className = "" }:
   const { userInfo, updateLanguagePreference } = useAuth();
   const [isChanging, setIsChanging] = useState(false);
   const [localLanguage, setLocalLanguage] = useState<string | null>(null);
+  const inAppDB = useInAppDB();
   
-  // Use either the local state or the user's language preference from userInfo, or default to english
-  const currentLanguage = localLanguage || userInfo?.language || "english";
+  // Get current language from the store or fallback to English
+  const currentLanguage = userInfo?.id ? inAppDB.getUserLanguage(userInfo.id) || "english" : "english";
   
   // Get the current language option
   const currentLanguageData = languageOptions.find(lang => lang.id === currentLanguage);
