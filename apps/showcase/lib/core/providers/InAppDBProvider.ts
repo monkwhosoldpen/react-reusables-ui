@@ -245,6 +245,10 @@ interface InAppDBState {
   saveUserChannelFollow: (userId: string, follow: NchatDB['user_channel_follow']['value']) => void;
   getUserChannelFollow: (userId: string) => NchatDB['user_channel_follow']['value'][];
 
+  saveUserChannelUnFollow: (userId: string, follow: NchatDB['user_channel_follow']['value']) => void;
+  getUserChannelUnFollow: (userId: string) => NchatDB['user_channel_follow']['value'][];
+
+
   saveUserChannelLastViewed: (userId: string, lastViewed: NchatDB['user_channel_last_viewed']['value']) => void;
   getUserChannelLastViewed: (userId: string) => NchatDB['user_channel_last_viewed']['value'][];
 
@@ -563,6 +567,18 @@ export const useInAppDB = create<InAppDBState>()(
             return { user_channel_follow: next };
           });
         },
+        saveUserChannelUnFollow(userId, follow) {
+          const follows = Array.isArray(follow) ? follow : [follow];
+          set(state => {
+            const next = new Map(state.user_channel_follow);
+            follows.forEach(f => f?.user_id && next.delete(`${f.user_id}:${f.username}`));
+            return { user_channel_follow: next };
+          });
+        },
+        getUserChannelUnFollow(userId) {
+          return filterMap(get().user_channel_follow, f => f.user_id === userId);
+        },
+        
         saveRawApiData(userId, apiData) {
           if (!apiData || !apiData.userPreferences) return;
           const prefs = apiData.userPreferences;

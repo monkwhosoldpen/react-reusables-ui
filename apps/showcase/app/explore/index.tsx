@@ -8,21 +8,28 @@ import { FollowButton } from '~/components/common/FollowButton';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Channel } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';
-import { FlashList } from '@shopify/flash-list';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommonHeader } from '~/components/common/CommonHeader';
-import { MaterialIcons } from "@expo/vector-icons";
+import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
+
+// Add URL constants for profile images
+const SUPABASE_URL = 'https://ilzjdtlikhhavnfzfnvj.supabase.co';
+const STORAGE_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/channels/assets/media/images`;
+const IMAGE_SUFFIX = '_dp.png';
 
 export default function ExplorePage() {
   const { user, isFollowingChannel } = useAuth();
   const [channels, setChannels] = React.useState<Channel[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [followingStatus, setFollowingStatus] = React.useState<Record<string, boolean>>({});
   const router = useRouter();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();
-  const cardWidth = (width - 32) / 2 - 8; // Calculate card width (screen width minus padding, divided by 2, minus gap)
+  const cardWidth = (width - 32) / 2 - 8;
+  const inAppDB = useInAppDB();
+
+  // Get following data from inAppDB
+  const followingData = inAppDB.getUserChannelFollow(user?.id || '') || [];
+  const followingUsernames = new Set(followingData.map(follow => follow.username));
 
   React.useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -48,14 +55,8 @@ export default function ExplorePage() {
         
         if (Array.isArray(data)) {
           setChannels(data);
-          if (user) {
-            checkFollowStatus(data);
-          }
         } else if (data.success) {
           setChannels(data.channels);
-          if (user) {
-            checkFollowStatus(data.channels);
-          }
         } else {
           throw new Error(data.error || 'Failed to fetch channels');
         }
@@ -68,27 +69,7 @@ export default function ExplorePage() {
     };
     
     fetchChannels();
-  }, [user]);
-
-  // Check if user is following each channel
-  const checkFollowStatus = async (channelList: Channel[]) => {
-    if (!user) return;
-    
-    const statusMap: Record<string, boolean> = {};
-    
-    // Check following status for each channel
-    for (const channel of channelList) {
-      try {
-        const isFollowed = await isFollowingChannel(channel.username);
-        statusMap[channel.username] = isFollowed;
-      } catch (err) {
-        console.error(`Error checking follow status for ${channel.username}:`, err);
-        statusMap[channel.username] = false;
-      }
-    }
-    
-    setFollowingStatus(statusMap);
-  };
+  }, []);
 
   const renderChannelGrid = () => {
     return (
@@ -118,10 +99,20 @@ export default function ExplorePage() {
             >
               <View className="p-4">
                 <View className="flex-row items-center mb-3">
-                  <View className="w-10 h-10 rounded-full justify-center items-center mr-3 bg-gray-100 dark:bg-gray-700 shadow-sm">
-                    <Text className="text-base font-semibold text-blue-500">
-                      {item.username?.[0]?.toUpperCase() || '#'}
-                    </Text>
+                  <View className="w-10 h-10 rounded-full justify-center items-center mr-3 bg-gray-100 dark:bg-gray-700 shadow-sm overflow-hidden">
+                    {item.username ? (
+                      <img
+                        src={`${STORAGE_PREFIX}/${item.username}${IMAGE_SUFFIX}`}
+                        alt={`${item.username}'s profile`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement.innerHTML = `<Text className="text-base font-semibold text-blue-500">${item.username[0].toUpperCase()}</Text>`;
+                        }}
+                      />
+                    ) : (
+                      <Text className="text-base font-semibold text-blue-500">#</Text>
+                    )}
                   </View>
                   <View className="flex-1">
                     <Text 
@@ -142,7 +133,7 @@ export default function ExplorePage() {
                 
                 <FollowButton
                   username={item.username}
-                  initialFollowing={followingStatus[item.username] || false}
+                  initialFollowing={followingUsernames.has(item.username)}
                 />
               </View>
             </TouchableOpacity>

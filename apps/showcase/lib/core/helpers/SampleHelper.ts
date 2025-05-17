@@ -5,7 +5,7 @@ import { supabase } from '~/lib/core/supabase';
 import { ChannelActivity, Channel, ChannelMessage, TenantRequest, UserInfo } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';
 import { User } from '@supabase/supabase-js';
-import { useInAppDB } from '../providers/InAppDBProvider';
+import { useInAppDB, UserChannelFollow } from '../providers/InAppDBProvider';
 
 interface PushSubscriptionData {
   user_id: string;
@@ -99,9 +99,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
 
   const updateNotificationPreference = async (enabled: boolean): Promise<void> => {
     if (!user) {
-      console.log('[SampleHelper] Cannot update notification preference - no user', {
-        timestamp: new Date().toISOString()
-      });
       return;
     }
 
@@ -138,21 +135,10 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
 
   const updatePushSubscription = async (subscription: PushSubscription, enabled: boolean): Promise<void> => {
     if (!user) {
-      console.log('[SampleHelper] Cannot update push subscription - no user', {
-        timestamp: new Date().toISOString()
-      });
       return;
     }
 
     try {
-      console.log('[SampleHelper] Starting push subscription update', {
-        userId: user.id,
-        endpoint: subscription.endpoint,
-        enabled,
-        subscriptionKeys: Object.keys(subscription.toJSON().keys || {}),
-        timestamp: new Date().toISOString()
-      });
-
       // First update IndexedDB
       const subscriptionData: PushSubscriptionData = {
         user_id: user.id,
@@ -169,29 +155,7 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         updated_at: new Date().toISOString()
       };
 
-      console.log('[SampleHelper] Saving subscription to IndexedDB', {
-        userId: user.id,
-        endpoint: subscription.endpoint,
-        deviceInfo: {
-          browser: subscriptionData.browser,
-          os: subscriptionData.os,
-          platform: subscriptionData.platform
-        },
-        timestamp: new Date().toISOString()
-      });
-
       await indexedDB.savePushSubscription(subscriptionData);
-      console.log('[SampleHelper] Successfully saved to IndexedDB', {
-        timestamp: new Date().toISOString()
-      });
-
-      // Then update backend
-      console.log('[SampleHelper] Preparing Supabase upsert', {
-        userId: user.id,
-        endpoint: subscription.endpoint,
-        hasKeys: !!subscription.toJSON().keys,
-        timestamp: new Date().toISOString()
-      });
 
       const supabaseData = {
         user_id: user.id,
@@ -210,15 +174,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         updated_at: new Date().toISOString()
       };
 
-      console.log('[SampleHelper] Upserting to Supabase', {
-        table: 'push_subscriptions',
-        data: {
-          ...supabaseData,
-          keys: '(encrypted)'
-        },
-        timestamp: new Date().toISOString()
-      });
-
       const { data, error } = await supabase
         .from('push_subscriptions')
         .upsert(supabaseData, {
@@ -226,35 +181,10 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         });
 
       if (error) {
-        console.error('[SampleHelper] Supabase upsert error', {
-          error: {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint
-          },
-          userId: user.id,
-          endpoint: subscription.endpoint,
-          timestamp: new Date().toISOString()
-        });
         throw error;
       }
 
-      console.log('[SampleHelper] Successfully updated Supabase subscription', {
-        userId: user.id,
-        endpoint: subscription.endpoint,
-        response: data,
-        timestamp: new Date().toISOString()
-      });
-
     } catch (error) {
-      console.error('[SampleHelper] Failed to update push subscription', {
-        error: error instanceof Error ? error.message : error,
-        stack: error instanceof Error ? error.stack : undefined,
-        userId: user.id,
-        endpoint: subscription.endpoint,
-        timestamp: new Date().toISOString()
-      });
       throw error;
     }
   };
@@ -264,11 +194,9 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
     if (!user?.id) return false;
     
     try {
-      // Check if the follow record exists in IndexedDB using composite key
-      const followRecord = await indexedDB.get('user_channel_follow', [user.id, username]);
+      const followRecord = await inappDb.getUserChannelFollow(user.id);
       return !!followRecord;
     } catch (err) {
-      console.error('Error checking follow status:', err);
       return false;
     }
   };
@@ -277,12 +205,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
     if (!user?.id) throw new Error('User not authenticated');
     
     try {
-      // Create follow record in IndexedDB
-      await indexedDB.put('user_channel_follow', {
-        user_id: user.id,
-        username: username,
-        followed_at: new Date().toISOString()
-      });
       
       // Make API call if not a guest user
       if (!isGuest) {
@@ -296,15 +218,19 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         });
         
         if (!response.ok) {
-          // If API call fails, remove from IndexedDB to maintain consistency
-          await indexedDB.delete('user_channel_follow', [user.id, username]);
           throw new Error(`Failed to follow channel: ${response.status}`);
         }
+
+        const followData: UserChannelFollow = {
+          user_id: user.id,
+          username: username,
+          followed_at: new Date().toISOString()
+        };
+        inappDb.saveUserChannelFollow(user.id, followData);
       }
       
       // No need to refresh user info since we're using the passed user state
     } catch (error) {
-      console.error('Error following channel:', error);
       throw error; // Re-throw to allow callers to handle the error
     }
   };
@@ -314,10 +240,7 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
     
     try {
       // Get the current record before deletion (to restore if needed)
-      const existingRecord = await indexedDB.get('user_channel_follow', [user.id, username]);
-      
-      // Delete follow record from IndexedDB
-      await indexedDB.delete('user_channel_follow', [user.id, username]);
+      const existingRecord = await inappDb.getUserChannelFollow(user.id);
       
       // Make API call if not a guest user
       if (!isGuest) {
@@ -333,7 +256,12 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         if (!response.ok) {
           // If API call fails, restore the record in IndexedDB
           if (existingRecord) {
-            await indexedDB.put('user_channel_follow', existingRecord);
+            const unfollowData: UserChannelFollow = {
+              user_id: user.id,
+              username: username,
+              followed_at: new Date().toISOString()
+            };
+            inappDb.saveUserChannelUnFollow(user.id, unfollowData);
           }
           throw new Error(`Failed to unfollow channel: ${response.status}`);
         }
@@ -341,16 +269,12 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
       
       // No need to refresh user info since we're using the passed user state
     } catch (error) {
-      console.error('Error unfollowing channel:', error);
       throw error; // Re-throw to allow callers to handle the error
     }
   };
 
   const getChannelActivity = async () => {
     if (!user) {
-      console.log('[SampleHelper] Cannot fetch channel activity - no user', {
-        timestamp: new Date().toISOString()
-      });
       return {
         channelActivityRecords: [],
         userLanguage: 'english',
@@ -359,33 +283,12 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
     }
 
     try {
-      console.log('[SampleHelper] Starting channel activity fetch', {
-        userId: user.id,
-        timestamp: new Date().toISOString(),
-        isGuest: isGuest,
-        userEmail: user.email
-      });
 
       // Use userInfo from AuthHelper instead of making API call
       if (userInfo) {
-        // Get current notification state from IndexedDB for comparison
-        const currentDbState = await indexedDB.getUserNotifications(user.id);
-        console.log('[SampleHelper] Current IndexedDB notification state', {
-          userId: user.id,
-          enabled: currentDbState,
-          timestamp: new Date().toISOString()
-        });
 
-        // Extract relevant data from userInfo
         const channelActivityRecords = await indexedDB.getAllRawData(user.id);
         
-        console.log('[SampleHelper] Processing user data', {
-          userId: user.id,
-          hasChannelsActivity: !!channelActivityRecords.channels_activity,
-          channelsActivityCount: channelActivityRecords.channels_activity?.length || 0,
-          timestamp: new Date().toISOString()
-        });
-
         return {
           channelActivityRecords: channelActivityRecords.channels_activity || [],
           userLanguage: userInfo.language || 'english',
@@ -393,19 +296,7 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         };
       }
 
-      // Fallback to IndexedDB if no userInfo
-      console.log('[SampleHelper] No userInfo available, falling back to IndexedDB', {
-        userId: user.id,
-        timestamp: new Date().toISOString()
-      });
-
       const rawData = await indexedDB.getAllRawData(user.id);
-      console.log('[SampleHelper] Retrieved fallback data from IndexedDB', {
-        userId: user.id,
-        timestamp: new Date().toISOString(),
-        hasChannelsActivity: !!rawData.channels_activity,
-        channelsActivityCount: rawData.channels_activity?.length || 0
-      });
 
       return {
         channelActivityRecords: rawData.channels_activity || [],
@@ -414,21 +305,9 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
       };
 
     } catch (error) {
-      console.error('[SampleHelper] Failed to fetch user data', {
-        error: error instanceof Error ? error.message : error,
-        stack: error instanceof Error ? error.stack : undefined,
-        userId: user.id,
-        timestamp: new Date().toISOString()
-      });
 
       // Return local data as fallback
       const rawData = await indexedDB.getAllRawData(user.id);
-      console.log('[SampleHelper] Retrieved error fallback data from IndexedDB', {
-        userId: user.id,
-        timestamp: new Date().toISOString(),
-        hasChannelsActivity: !!rawData.channels_activity,
-        channelsActivityCount: rawData.channels_activity?.length || 0
-      });
 
       return {
         channelActivityRecords: [],
@@ -468,7 +347,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
       return { channelData, error: null };
       
     } catch (err) {
-      console.error('Error fetching channel details:', err);
       error = 'An error occurred while loading the channel';
       return { channelData: null, error };
     }
@@ -556,7 +434,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Error fetching messages:', errorData);
         return {
           messages: [],
           accessStatus: {},
@@ -582,7 +459,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         error: null
       };
     } catch (error) {
-      console.error('Error fetching messages:', error);
       return {
         messages: [],
         accessStatus: {},
@@ -611,13 +487,11 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
       });
 
       if (!response.ok) {
-        console.error('Failed to update last viewed timestamp');
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error updating last viewed timestamp:', error);
       return false;
     }
   };

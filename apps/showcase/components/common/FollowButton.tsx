@@ -28,8 +28,6 @@ interface FollowButtonProps {
 export function FollowButton({ 
   username, 
   size = 'default', 
-  className = '',
-  showIcon = false,
   initialFollowing
 }: FollowButtonProps) {
   const { user, refreshUserInfo, isFollowingChannel, followChannel, unfollowChannel, signInAnonymously, signInAsGuest, signIn } = useAuth();
@@ -262,13 +260,6 @@ export function FollowButton({
           </Text>
         ) : (
           <View className="flex-row items-center gap-2">
-            {showIcon && (
-              <Heart 
-                size={16}
-                color={following ? 'white' : colorScheme === 'dark' ? '#60A5FA' : '#3B82F6'}
-                fill={following ? 'white' : 'none'}
-              />
-            )}
             <Text className={`text-sm font-medium ${following ? 'text-white' : 'text-blue-500 dark:text-blue-400'}`}>
               {following ? 'Following' : 'Follow'}
             </Text>

@@ -12,16 +12,6 @@ import {
 } from '~/utils/register-sw';
 import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
 
-// --------------------------------------------------------
-// 🩺  LOGGING UTIL -----------------------------------------------------------
-// A tiny helper so we can toggle all diagnostic logs with one flag.
-// ---------------------------------------------------------------------------
-const DEBUG = true; // <-- flip to false in prod
-const log = (...args: any[]) => DEBUG && console.log('[Notify]', ...args);
-const error = (...args: any[]) => DEBUG && console.error('[Notify]', ...args);
-const warn = (...args: any[]) => DEBUG && console.warn('[Notify]', ...args);
-// ---------------------------------------------------------------------------
-
 // Types --------------------------------------------------------------------
 type NotificationPermissionStatus = 'default' | 'granted' | 'denied';
 
@@ -95,10 +85,8 @@ class NativeWebPushProvider implements NotificationProviderInterface {
       const reg = await navigator.serviceWorker.getRegistration();
       this.serviceWorkerRegistration = reg || null;
       this.initialized = !!reg;
-      log('Provider init', { reg });
       return !!reg;
     } catch (e) {
-      error('Provider init failed', e);
       this.serviceWorkerRegistration = null;
       this.initialized = false;
       return false;
@@ -170,11 +158,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   useEffect(() => {
     const verify = async () => {
       if (!user?.id || !providerReady || permissionStatus !== 'granted') {
-        log('Skipping verification - prerequisites not met', { 
-          userId: user?.id, 
-          providerReady, 
-          permissionStatus 
-        });
         setHasActiveSubscription(false);
         return;
       }
@@ -182,24 +165,14 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       try {
         const reg = await navigator.serviceWorker.getRegistration();
         if (!reg) {
-          error('No service worker registration found');
           return setHasActiveSubscription(false);
         }
         
         let browserSub = await reg.pushManager.getSubscription();
         const stored = inAppDB.getPushSubscriptions(user.id);
-        log('Verify subs', { 
-          browserSub: browserSub ? {
-            endpoint: browserSub.endpoint,
-            keys: Object.keys(browserSub.toJSON().keys || {})
-          } : null,
-          storedCount: stored.length,
-          storedEndpoints: stored.map(s => s.endpoint)
-        });
 
         // If we have stored subscriptions but no browser subscription, try to resubscribe ONCE
         if (!browserSub && stored.length > 0) {
-          log('No browser subscription but have stored ones - attempting to resubscribe');
           
           // Get the most recent enabled subscription first
           const lastEnabledSub = [...stored]
@@ -207,22 +180,14 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
             .find(s => s.notifications_enabled);
 
           if (!lastEnabledSub) {
-            log('No enabled subscription found in stored subscriptions');
             return setHasActiveSubscription(false);
           }
 
           // Try to create a new subscription
           browserSub = await setupPushSubscription();
           if (!browserSub) {
-            error('Failed to create new subscription during recovery');
             return setHasActiveSubscription(false);
           }
-
-          log('Resubscribing with last enabled state', {
-            endpoint: browserSub.endpoint,
-            lastEnabled: lastEnabledSub.notifications_enabled,
-            lastUpdated: lastEnabledSub.updated_at
-          });
 
           await updatePushSubscription(browserSub, lastEnabledSub.notifications_enabled);
           return setHasActiveSubscription(lastEnabledSub.notifications_enabled);
@@ -236,29 +201,15 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
           );
           
           if (match) {
-            log('Match found, subscription is active', {
-              endpoint: match.endpoint,
-              enabled: match.notifications_enabled,
-              updated: match.updated_at
-            });
             setHasActiveSubscription(true);
           } else {
-            warn('No matching active subscription found', {
-              browserEndpoint: browserSub.endpoint,
-              storedEndpoints: stored.map(s => ({
-                endpoint: s.endpoint,
-                enabled: s.notifications_enabled
-              }))
-            });
             await browserSub.unsubscribe();
             setHasActiveSubscription(false);
           }
         } else {
-          warn('No browser subscription exists');
           setHasActiveSubscription(false);
         }
       } catch (e) {
-        error('Verify subscriptions error', e);
         setHasActiveSubscription(false);
       }
     };
@@ -276,7 +227,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       setProviderReady(ok);
       const status = await provider.getPermissionStatus();
       setPermissionStatus(status);
-      log('Provider ready?', ok, 'perm', status);
     })();
     return () => provider.cleanup?.();
   }, [provider]);
@@ -288,37 +238,26 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     try {
       const perm = await Notification.requestPermission();
       setPermissionStatus(perm);
-      log('Permission response', perm);
 
       if (perm === 'granted' && user?.id) {
         const reg = await registerServiceWorker();
         if (!reg) {
-          error('Failed to register service worker');
           return perm;
         }
 
         // Always try to get a fresh subscription
         let sub = await reg.pushManager.getSubscription();
         if (sub) {
-          log('Existing subscription found, unsubscribing first', {
-            endpoint: sub.endpoint
-          });
           await sub.unsubscribe();
         }
 
-        log('Setting up new push subscription');
         sub = await setupPushSubscription();
         
         if (sub) {
-          log('New subscription created', { 
-            endpoint: sub.endpoint,
-            keys: Object.keys(sub.toJSON().keys || {})
-          });
           await updatePushSubscription(sub, true);
           setHasActiveSubscription(true);
           toast.success('Notifications enabled');
         } else {
-          error('Failed to create push subscription');
           toast.error('Failed to enable notifications');
         }
       } else if (perm === 'denied') {
@@ -327,7 +266,6 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
       return perm as NotificationPermissionStatus;
     } catch (e) {
-      error('requestPermission error', e);
       toast.error('Failed to request notification permission');
       return 'denied';
     }

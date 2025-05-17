@@ -28,17 +28,6 @@ export function OnboardingChannel({
   // Get auth context for user info and completeChannelOnboarding function
   const { completeChannelOnboarding } = useAuth()
 
-  // Log component initialization
-  useEffect(() => {
-    console.log('[OnboardingChannel] Component initialized for channel:', username);
-    console.log('[OnboardingChannel] Channel details:', channelDetails);
-    console.log('[OnboardingChannel] Starting in step:', step);
-    
-    return () => {
-      console.log('[OnboardingChannel] Component unmounting for channel:', username);
-    };
-  }, [username, channelDetails, step]);
-
   // Create default onboarding config if none is provided
   const config = onboardingConfig || {
     welcomescreen: {
@@ -72,26 +61,20 @@ export function OnboardingChannel({
 
   // Log when dialog opens/closes
   const handleOpenChange = (open: boolean) => {
-    console.log('[OnboardingChannel] Dialog open state changed to:', open);
     
     if (!open && currentScreenIndex === -1) {
-      console.log('[OnboardingChannel] Dialog closed at welcome screen, calling onComplete');
       onComplete?.();
     }
   }
 
   // Log screen transitions
   const handleStartClick = () => {
-    console.log('[OnboardingChannel] Start button clicked, transitioning from welcome to screens');
     setCurrentScreenIndex(0);
     setStep('screens');
-    console.log('[OnboardingChannel] Current screen index set to 0, step set to "screens"');
   }
 
   const handleNextClick = () => {
-    console.log('[OnboardingChannel] Next button clicked, advancing from screen', currentScreenIndex);
     setCurrentScreenIndex(prev => {
-      console.log('[OnboardingChannel] Updating screen index from', prev, 'to', prev + 1);
       return prev + 1;
     });
   }
@@ -99,29 +82,16 @@ export function OnboardingChannel({
   const handleFinishClick = async () => {
     try {
       if (channelDetails) {
-        console.log('[OnboardingChannel] Finish button clicked - Request data:', {
-          username,
-          channelDetails
-        });
         
         setStep('finish');
-        console.log('[OnboardingChannel] UI state updated to "finish"');
         
         // Make the API call and log response
-        console.log('[OnboardingChannel] Calling completeChannelOnboarding API');
         const response = await completeChannelOnboarding(username, channelDetails);
-        console.log('[OnboardingChannel] Onboarding completion response:', response);
         
-        // Log before completing
-        console.log('[OnboardingChannel] Calling onComplete callback');
         onComplete?.();
-        console.log('[OnboardingChannel] Onboarding flow completed');
       } else {
-        console.error('[OnboardingChannel] Finish clicked but channelDetails is missing', { username });
       }
     } catch (error) {
-      // Log the error
-      console.error('[OnboardingChannel] Error completing onboarding:', error);
     }
   }
 
@@ -170,7 +140,6 @@ export function OnboardingChannel({
                   <Button 
                     variant="outline" 
                     onPress={() => {
-                      console.log('[OnboardingChannel] Back button clicked, going from screen', currentScreenIndex, 'to', currentScreenIndex - 1);
                       setCurrentScreenIndex(currentScreenIndex - 1);
                     }}
                     className="border-gray-200 dark:border-gray-700"
@@ -184,9 +153,7 @@ export function OnboardingChannel({
                 )}
                 <Button 
                   onPress={() => {
-                    console.log('[OnboardingChannel] Button clicked on screen', currentScreenIndex);
                     if (currentScreenIndex === config.screens.length - 1) {
-                      console.log('[OnboardingChannel] Last screen reached, initiating finish process');
                       handleFinishClick();
                     } else {
                       handleNextClick();
@@ -227,7 +194,6 @@ export function OnboardingChannel({
           <Button 
             variant="outline" 
             onPress={() => {
-              console.log('[OnboardingChannel] Cancel button clicked, closing dialog');
               onComplete?.();
             }}
             className="border-gray-200 dark:border-gray-700"

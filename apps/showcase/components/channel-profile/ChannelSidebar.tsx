@@ -27,7 +27,6 @@ export function ChannelSidebar({
   }
 
   const handleSettingsPress = () => {
-    console.log('Settings pressed')
   }
 
   return (

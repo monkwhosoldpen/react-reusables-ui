@@ -50,25 +50,15 @@ export async function fetchTenantUsers(): Promise<TenantUser[]> {
 // Fetch tenant requests from the API
 export async function fetchTenantRequests(): Promise<TenantRequest[]> {
   try {
-    console.log('API client: Fetching tenant requests from', config.api.endpoints.dashboard.tenantRequests);
     const response = await fetch(config.api.endpoints.dashboard.tenantRequests);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('API client: Error fetching tenant requests:', {
-        status: response.status,
-        error: errorData.error || `HTTP error! status: ${response.status}`
-      });
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('API client: Successfully fetched tenant requests:', {
-      count: data.requests?.length || 0,
-      requests: data.requests
-    });
     return data.requests || [];
   } catch (err) {
-    console.error('API client: Error in fetchTenantRequests:', err);
     throw err;
   }
 }
@@ -90,13 +80,6 @@ export async function updateTenantRequestStatus(requestId: string, status: Tenan
         action = 'reset';
         break;
     }
-
-    console.log('API client: Updating tenant request:', {
-      requestId,
-      action,
-      status,
-      endpoint: config.api.endpoints.dashboard.tenantRequests
-    });
 
     const response = await fetch(config.api.endpoints.dashboard.tenantRequests, {
       method: 'PATCH',
@@ -120,10 +103,6 @@ export async function updateTenantRequestStatus(requestId: string, status: Tenan
     }
 
     const result = await response.json();
-    console.log('API client: Successfully updated tenant request:', {
-      requestId,
-      result
-    });
   } catch (err) {
     console.error('API client: Error in updateTenantRequestStatus:', {
       requestId,
@@ -153,7 +132,6 @@ export async function approveTenantRequest(requestId: string): Promise<void> {
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
   } catch (err) {
-    console.error('Error approving tenant request:', err);
     throw err;
   }
 }
@@ -177,7 +155,6 @@ export async function rejectTenantRequest(requestId: string): Promise<void> {
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
   } catch (err) {
-    console.error('Error rejecting tenant request:', err);
     throw err;
   }
 }
@@ -201,7 +178,6 @@ export async function resetTenantRequest(requestId: string): Promise<void> {
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
   } catch (err) {
-    console.error('Error resetting tenant request:', err);
     throw err;
   }
 }
@@ -222,7 +198,6 @@ export async function createTestTenantRequest(username: string): Promise<void> {
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
   } catch (err) {
-    console.error('Error creating test tenant request:', err);
     throw err;
   }
 }
@@ -236,7 +211,6 @@ export async function testApiConnection(): Promise<void> {
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
   } catch (err) {
-    console.error('Error testing API connection:', err);
     throw err;
   }
 }
@@ -253,7 +227,6 @@ export async function createTenantTables(): Promise<void> {
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
   } catch (err) {
-    console.error('Error creating tenant tables:', err);
     throw err;
   }
 }
@@ -272,7 +245,6 @@ export async function getConnectionStatus(): Promise<{ connected: boolean, url: 
       url: data.url || null 
     };
   } catch (err) {
-    console.error('Error getting connection status:', err);
     return { connected: false, url: null };
   }
 } 

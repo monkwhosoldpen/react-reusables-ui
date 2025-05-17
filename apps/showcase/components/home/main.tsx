@@ -55,7 +55,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
         (newState, prevState) => {
           if (newState.hasData && !prevState.hasData) {
             setLoadingState(prev => ({ ...prev, storeInitialized: true }));
-            console.log('[MainScreen] Store initialized with data');
           }
         }
       );
@@ -68,7 +67,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
       
       if (hasInitialData) {
         setLoadingState(prev => ({ ...prev, storeInitialized: true }));
-        console.log('[MainScreen] Store already initialized with data');
       }
 
       return () => unsubscribe();
@@ -149,25 +147,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
       dataLoadedRef.current = false;
     }
   }, [user?.id]);
-
-  // Log Zustand store state when user is logged in
-  useEffect(() => {
-    if (user?.id) {
-      const store = useInAppDB.getState();
-      console.log('[MainScreen] Current Zustand Store State:', {
-        users: Array.from(store.users.entries()),
-        channels_messages: Array.from(store.channels_messages.entries()),
-        channels_activity: Array.from(store.channels_activity.entries()),
-        user_language: Array.from(store.user_language.entries()),
-        user_notifications: Array.from(store.user_notifications.entries()),
-        tenant_requests: Array.from(store.tenant_requests.entries()),
-        user_location: Array.from(store.user_location.entries()),
-        push_subscriptions: Array.from(store.push_subscriptions.entries()),
-        user_channel_follow: Array.from(store.user_channel_follow.entries()),
-        user_channel_last_viewed: Array.from(store.user_channel_last_viewed.entries())
-      });
-    }
-  }, [user?.id, channelData]);
 
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
     const channelActivity = item.channelActivity?.[0];

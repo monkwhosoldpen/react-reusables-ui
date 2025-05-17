@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { supabase } from '../../supabase';
-import { Channel } from '../../models/Channel';
+import { Channel } from '../../types/database.types';
 
 export type ChannelData = Channel;
 
