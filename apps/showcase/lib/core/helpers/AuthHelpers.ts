@@ -4,9 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '~/lib/core/supabase';
 import { UserInfo } from '../types/channel.types';
-import { router } from 'expo-router';
 import { config } from '~/lib/core/config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useInAppDB } from '../providers/InAppDBProvider';
 
 // Singleton for auth initialization
@@ -139,47 +137,45 @@ export function AuthHelper(): AuthHelperReturn {
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
 
-  // Define signOut first
+  // place inside AuthHelper
   const signOut = async () => {
     try {
-      
-      // Clear any existing timeouts
-      if (signInTimeoutRef.current) {
-        clearTimeout(signInTimeoutRef.current);
-      }
-      
-      // Clear any existing intervals
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
-      
-      // Clear any existing cleanup functions
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
-      
-      // Reset all refs
+      setLoading(true);            // 1. keep UI responsive
+
+      // 2. Stop local timers / listeners ------------------------------------
+      if (signInTimeoutRef.current) clearTimeout(signInTimeoutRef.current);
+      if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current);
       signInTimeoutRef.current = null;
       refreshIntervalRef.current = null;
-      cleanupRef.current = null;
-      
-      // Sign out from Supabase
+
+      // Abort any in-flight fetch for userInfo
+      pendingFetchPromise.current = null;
+      fetchingUserInfo.current = false;
+
+      // Remove Supabase onAuthStateChange listener
+      authInitializer.current.cleanup();
+
+      // 3. Supabase sign-out (server session & RT listeners)
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      // Clear local storage
-      await AsyncStorage.removeItem('user');
-      await AsyncStorage.removeItem('session');
-      
-      // Reset state
+
+      await inappDb.clearAll();   // <-- create helper that deletes by userId
+
+      // 5. Reset in-memory caches & React state ------------------------------
+      userInfoCache.current = {};
+      lastFetchTime.current = 0;
       setUser(null);
       setUserInfo(null);
       setIsGuest(false);
-      
-    } catch (error) {
-      throw error;
+
+    } catch (err) {
+      console.error('Error during sign-out:', err);
+      throw err;                  // let UI layer show toast / alert
+    } finally {
+      setLoading(false);
     }
   };
+
 
   useEffect(() => {
     let mounted = true;
@@ -187,17 +183,17 @@ export function AuthHelper(): AuthHelperReturn {
     const initializeAuth = async () => {
       try {
         setLoading(true);
-        
+
         // First check InAppDB for any existing user
         const users = await inappDb.getAllUsers();
-        
+
         const existingUser = users[0]; // Get the first user if exists
 
         if (existingUser && mounted) {
           // Set user from InAppDB - IMMEDIATELY set basic data
           const isGuestUser = existingUser.email.includes('@guest.com');
           setIsGuest(isGuestUser);
-          
+
           const mockUser: User = {
             id: existingUser.id,
             email: existingUser.email,
@@ -218,7 +214,7 @@ export function AuthHelper(): AuthHelperReturn {
 
           // Set user immediately and stop loading
           setUser(mockUser);
-          
+
           // Get additional data from InAppDB
           const [userLanguage, notificationPreference, tenantRequests, userLocation] = await Promise.all([
             inappDb.getUserLanguage(existingUser.id),
@@ -244,7 +240,7 @@ export function AuthHelper(): AuthHelperReturn {
           };
 
           setUserInfo(initialUserInfo);
-          
+
           setLoading(false);
 
           // For non-guest users, fetch from backend and update
@@ -301,7 +297,7 @@ export function AuthHelper(): AuthHelperReturn {
   // Function to fetch user info
   const fetchUserInfo = async (userId: string) => {
     let savedUser; // Declare savedUser outside try block
-    
+
     try {
       // Get all data from InAppDB in parallel
       const [
@@ -349,12 +345,12 @@ export function AuthHelper(): AuthHelperReturn {
       // Check cache for all users
       const cachedData = userInfoCache.current[userId];
       const now = Date.now();
-      
+
       if (cachedData && (now - cachedData.timestamp < CACHE_TTL)) {
         setUserInfo(cachedData.data);
         return;
       }
-      
+
       // If there's already a pending fetch, return that promise
       if (pendingFetchPromise.current) {
         return pendingFetchPromise.current;
@@ -366,12 +362,12 @@ export function AuthHelper(): AuthHelperReturn {
       }
 
       fetchingUserInfo.current = true;
-      
+
       // Create a new promise for this fetch
       pendingFetchPromise.current = (async () => {
         try {
           const isGuestUser = savedUser?.role === 'guest' || isGuest;
-          
+
           const response = await fetch(`${config.api.endpoints.myinfo}?userId=${userId}`, {
             method: 'POST',
             headers: {
@@ -382,7 +378,7 @@ export function AuthHelper(): AuthHelperReturn {
             })
           });
           const data = await response.json();
-          
+
           if (data.success) {
             try {
               // Transform the new API response structure into the old format
@@ -402,7 +398,7 @@ export function AuthHelper(): AuthHelperReturn {
               };
 
               const toSave = data.rawRecords;
-              
+
               // Save all raw API data to InAppDB
               await inappDb.saveRawApiData(userId, transformedData);
 
@@ -414,25 +410,25 @@ export function AuthHelper(): AuthHelperReturn {
               inappDb.savePushSubscription(toSave.push_subscriptions);
               inappDb.saveUserChannelFollow(userId, toSave.user_channel_follow);
               inappDb.saveUserChannelLastViewed(userId, toSave.user_channel_last_viewed);
-              
+
               // Extract data for UI state
               const preferences = transformedData.userPreferences;
-              
+
               // Extract language
-              const language = preferences?.user_language?.length > 0 
-                ? preferences.user_language[0].language 
+              const language = preferences?.user_language?.length > 0
+                ? preferences.user_language[0].language
                 : 'english';
-              
+
               // Extract notification settings
-              const notificationsEnabled = preferences?.user_notifications?.length > 0 
-                ? preferences.user_notifications[0].notifications_enabled 
+              const notificationsEnabled = preferences?.user_notifications?.length > 0
+                ? preferences.user_notifications[0].notifications_enabled
                 : false;
-                
+
               // Extract user location
-              const userLocation = preferences?.user_location?.length > 0 
-                ? preferences.user_location[0] 
+              const userLocation = preferences?.user_location?.length > 0
+                ? preferences.user_location[0]
                 : null;
-                
+
               // Extract tenant requests
               const tenantRequests = preferences?.tenant_requests || preferences?.tena || [];
 
@@ -464,7 +460,7 @@ export function AuthHelper(): AuthHelperReturn {
           pendingFetchPromise.current = null;
         }
       })();
-      
+
       return pendingFetchPromise.current;
 
     } catch (error) {
@@ -531,7 +527,7 @@ export function AuthHelper(): AuthHelperReturn {
     if (error) {
       throw error;
     }
-    
+
     if (data.user) {
       try {
         // First save basic user data to InAppDB
@@ -578,25 +574,25 @@ export function AuthHelper(): AuthHelperReturn {
 
           // Save all raw API data to InAppDB
           await inappDb.saveRawApiData(data.user.id, transformedData);
-          
+
           // Extract data for UI state
           const preferences = transformedData.userPreferences;
-          
+
           // Extract language
-          const language = preferences?.user_language?.length > 0 
-            ? preferences.user_language[0].language 
+          const language = preferences?.user_language?.length > 0
+            ? preferences.user_language[0].language
             : 'english';
-          
+
           // Extract notification settings
-          const notificationsEnabled = preferences?.user_notifications?.length > 0 
-            ? preferences.user_notifications[0].notifications_enabled 
+          const notificationsEnabled = preferences?.user_notifications?.length > 0
+            ? preferences.user_notifications[0].notifications_enabled
             : false;
-            
+
           // Extract user location
-          const userLocation = preferences?.user_location?.length > 0 
-            ? preferences.user_location[0] 
+          const userLocation = preferences?.user_location?.length > 0
+            ? preferences.user_location[0]
             : null;
-          
+
           // Extract tenant requests
           const tenantRequests = preferences?.tenant_requests || preferences?.tena || [];
 
@@ -633,7 +629,7 @@ export function AuthHelper(): AuthHelperReturn {
     if (error) {
       throw error;
     }
-    
+
     if (data.user) {
       try {
         // Save basic user data to InAppDB first
@@ -648,7 +644,7 @@ export function AuthHelper(): AuthHelperReturn {
 
         // Set user state
         setUser(data.user);
-        
+
         // Initialize with empty data
         const initialUserInfo: UserInfo = {
           id: data.user.id,
@@ -666,7 +662,7 @@ export function AuthHelper(): AuthHelperReturn {
 
         // Set initial state
         setUserInfo(initialUserInfo);
-        
+
         // Cache the initial state
         userInfoCache.current[data.user.id] = {
           data: initialUserInfo,
@@ -716,7 +712,7 @@ export function AuthHelper(): AuthHelperReturn {
       };
 
       setUser(mockUser);
-      
+
       const guestUserInfo: UserInfo = {
         id: guestUser.id,
         email: guestUser.email,
@@ -730,7 +726,7 @@ export function AuthHelper(): AuthHelperReturn {
         tenantRequests: [],
         userLocation: null
       };
-      
+
       setUserInfo(guestUserInfo);
       setIsGuest(true);
     } catch (error) {

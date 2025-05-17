@@ -16,10 +16,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Log auth state changes
-  useEffect(() => {
-  }, [user, userInfo, loading]);
-
   // Check if user is already logged in
   useEffect(() => {
     if (user) {
@@ -32,7 +28,6 @@ export default function LoginPage() {
     setError('');
     try {
       await signIn(email, password);
-      router.replace('/(tabs)');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in');
     } finally {
@@ -45,7 +40,6 @@ export default function LoginPage() {
     setError('');
     try {
       await signInAnonymously();
-      router.replace('/(tabs)');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in anonymously');
     } finally {
@@ -58,7 +52,6 @@ export default function LoginPage() {
     setError('');
     try {
       await signInAsGuest();
-      router.replace('/(tabs)');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in as guest');
     } finally {

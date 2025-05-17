@@ -63,7 +63,7 @@ export function Landing() {
           <View className="space-y-4">
             {LANDING_CONTENT.ctas.map((cta, index) => (
               <Link key={index} href={cta.href} asChild>
-                <Button>
+                <Button className="mt-4 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700">
                   <View className="flex-row items-center gap-2">
                     <Text className={cta.className}>
                       {cta.text}
