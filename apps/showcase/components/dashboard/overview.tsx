@@ -51,11 +51,6 @@ export default function OverviewTab({
 
   // Color scheme based styles
   const iconColor = colorScheme === 'dark' ? '#fff' : '#111827';
-  const avatarBg = colorScheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200';
-  const subtitleColor = colorScheme === 'dark' ? 'text-gray-300' : 'text-gray-600';
-  const borderColor = colorScheme === 'dark' ? 'border-gray-700' : 'border-gray-200';
-  const bgColor = colorScheme === 'dark' ? 'bg-gray-900' : 'bg-white';
-  const cardBg = colorScheme === 'dark' ? 'bg-gray-800' : 'bg-white';
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">

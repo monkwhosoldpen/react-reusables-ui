@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, TextInput, FlatList, useWindowDimensions, SafeAreaView, ActivityIndicator, useColorScheme } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { Card } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { 
   CheckCircle,
@@ -19,7 +18,6 @@ import { createClient } from '@supabase/supabase-js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
-import { useAuth } from '~/lib/core/contexts/AuthContext';
 
 const supabaseUrl = 'https://risbemjewosmlvzntjkd.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM';
@@ -48,7 +46,6 @@ export default function RequestsTab() {
   const [tenantRequests, setTenantRequests] = useState<TenantRequest[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRequests, setFilteredRequests] = useState<TenantRequest[]>([]);
-  const { user } = useAuth();
 
   const iconColor = colorScheme === 'dark' ? '#fff' : '#111827'; // Tailwind gray-900
 
@@ -68,21 +65,7 @@ export default function RequestsTab() {
   };
 
   const channelInfo = findChannelOwner();
-  const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username as string];
-  const clientType = premiumConfig?.client_type || 'public';
-  const isPublic = !premiumConfig || Object.keys(premiumConfig).length === 0 || premiumConfig.is_public;
-  
-  // Get user role and access
-  const userRole = premiumConfig?.roles ? 
-    Object.entries(premiumConfig.roles).find(([_, emails]) => 
-      Array.isArray(emails) && emails.includes(user?.email || '')
-    )?.[0] : null;
 
-  const hasAccess = !premiumConfig || Object.keys(premiumConfig).length === 0 
-    ? (user?.email ? user.email === global_superadmin : false) 
-    : userRole !== null;
-
-  // Load tenant requests
   useEffect(() => {
     const loadTenantRequests = async () => {
       setLoading(true);

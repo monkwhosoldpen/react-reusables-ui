@@ -7,13 +7,13 @@ import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { Platform, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ThemeToggle } from '~/components/settings/ThemeToggle';
 import { Text } from '~/components/ui/text';
 import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
 import { NAV_THEME } from '~/lib/core/constants/constants';
 import { Providers } from '~/lib/providers/Providers';
 import { registerServiceWorker } from '../utils/register-sw';
 import { useEffect } from 'react';
+import { ThemeToggle } from '~/components/ThemeToggle';
 
 const { ToastProvider } = DeprecatedUi;
 
