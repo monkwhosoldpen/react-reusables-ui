@@ -1,17 +1,30 @@
-'use client';
+// 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '~/lib/core/supabase';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { ChannelActivity } from '~/lib/core/types/notifications';
-import { setupPushSubscription, registerServiceWorker, cleanupPushSubscription } from '~/utils/register-sw';
+import {
+  setupPushSubscription,
+  registerServiceWorker,
+  cleanupPushSubscription,
+} from '~/utils/register-sw';
+import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
 
-// Types
+// --------------------------------------------------------
+// 🩺  LOGGING UTIL -----------------------------------------------------------
+// A tiny helper so we can toggle all diagnostic logs with one flag.
+// ---------------------------------------------------------------------------
+const DEBUG = true; // <-- flip to false in prod
+const log = (...args: any[]) => DEBUG && console.log('[Notify]', ...args);
+const error = (...args: any[]) => DEBUG && console.error('[Notify]', ...args);
+const warn = (...args: any[]) => DEBUG && console.warn('[Notify]', ...args);
+// ---------------------------------------------------------------------------
+
+// Types --------------------------------------------------------------------
 type NotificationPermissionStatus = 'default' | 'granted' | 'denied';
 
-// Toast notification type
 interface ToastNotification {
   title: string;
   message: string;
@@ -25,7 +38,6 @@ interface ToastNotification {
   }>;
 }
 
-// Provider interface for abstraction
 interface NotificationProviderInterface {
   init(): Promise<boolean>;
   requestPermission(): Promise<NotificationPermissionStatus>;
@@ -36,115 +48,89 @@ interface NotificationProviderInterface {
   getSubscription(): Promise<PushSubscription | null>;
 }
 
-// Native Web Push implementation
+// ---------------------------------------------------------------------------
+// NativeWebPushProvider ------------------------------------------------------
+// ---------------------------------------------------------------------------
 class NativeWebPushProvider implements NotificationProviderInterface {
   private initialized = false;
   private serviceWorkerRegistration: ServiceWorkerRegistration | null = null;
 
-  // Detect browser type
+  /* Detect browser type */
   static detectBrowserType(): string {
     if (typeof window === 'undefined') return 'unknown';
-
-    const userAgent = window.navigator.userAgent.toLowerCase();
-
-    if (userAgent.indexOf('firefox') !== -1) {
-      return 'firefox';
-    } else if (userAgent.indexOf('edg') !== -1) {
-      return 'edge';
-    } else if (userAgent.indexOf('chrome') !== -1) {
-      return 'chrome';
-    } else if (userAgent.indexOf('safari') !== -1) {
-      return 'safari';
-    } else {
-      return 'other';
-    }
+    const ua = window.navigator.userAgent.toLowerCase();
+    return ua.includes('firefox')
+      ? 'firefox'
+      : ua.includes('edg')
+      ? 'edge'
+      : ua.includes('chrome')
+      ? 'chrome'
+      : ua.includes('safari')
+      ? 'safari'
+      : 'other';
   }
 
-  // Detect private browsing mode
+  /* Detect private browsing */
   static async detectPrivateBrowsing(): Promise<boolean> {
     if (typeof window === 'undefined') return false;
-
     try {
-      // Try to use localStorage as a test
-      const testKey = 'test';
-      localStorage.setItem(testKey, testKey);
-      localStorage.removeItem(testKey);
-
-      // Try to use IndexedDB as a more reliable test
-      const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        const request = indexedDB.open('test');
-        request.onerror = () => reject(new Error('Private browsing detected'));
-        request.onsuccess = () => {
-          const db = request.result;
-          resolve(db);
-        };
+      localStorage.setItem('pb-test', '1');
+      localStorage.removeItem('pb-test');
+      const req = indexedDB.open('pb-test');
+      await new Promise((res, rej) => {
+        req.onerror = () => rej(new Error('IndexedDB blocked'));
+        req.onsuccess = () => res(null);
       });
-
-      // Close and delete the test database
-      db.close();
-      indexedDB.deleteDatabase('test');
-
-      return false; // Not in private browsing
-    } catch (error) {
-      return true; // Likely in private browsing
+      req.result.close();
+      indexedDB.deleteDatabase('pb-test');
+      return false;
+    } catch (_) {
+      return true;
     }
   }
 
   async init(): Promise<boolean> {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
-      return false;
-    }
-
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return false;
     try {
-      // Handle the case where getRegistration returns undefined
-      const registration = await navigator.serviceWorker.getRegistration();
-      this.serviceWorkerRegistration = registration || null;
-      this.initialized = !!registration;
-      return !!registration;
-    } catch (error) {
-      console.error('Failed to initialize push provider:', error);
+      const reg = await navigator.serviceWorker.getRegistration();
+      this.serviceWorkerRegistration = reg || null;
+      this.initialized = !!reg;
+      log('Provider init', { reg });
+      return !!reg;
+    } catch (e) {
+      error('Provider init failed', e);
       this.serviceWorkerRegistration = null;
       this.initialized = false;
       return false;
     }
   }
 
-  async requestPermission(): Promise<NotificationPermissionStatus> {
-    return await Notification.requestPermission() as NotificationPermissionStatus;
+  async requestPermission() {
+    return (await Notification.requestPermission()) as NotificationPermissionStatus;
   }
-
-  async getPermissionStatus(): Promise<NotificationPermissionStatus> {
+  async getPermissionStatus() {
     return Notification.permission as NotificationPermissionStatus;
   }
-
-  async isEnabled(): Promise<boolean> {
+  async isEnabled() {
     if (!this.serviceWorkerRegistration) return false;
-    const subscription = await this.serviceWorkerRegistration.pushManager.getSubscription();
-    return !!subscription && Notification.permission === 'granted';
+    const sub = await this.serviceWorkerRegistration.pushManager.getSubscription();
+    return !!sub && Notification.permission === 'granted';
   }
-
-  async getSubscription(): Promise<PushSubscription | null> {
+  async getSubscription() {
     if (!this.serviceWorkerRegistration) return null;
-    return await this.serviceWorkerRegistration.pushManager.getSubscription();
+    return this.serviceWorkerRegistration.pushManager.getSubscription();
   }
-
-  sendNotification(title: string, message: string, options: any = {}): void {
-    new Notification(title, {
-      body: message,
-      icon: '/icons/icon-192x192.png',
-      ...options
-    });
+  sendNotification(title: string, message: string, options: any = {}) {
+    new Notification(title, { body: message, icon: '/icons/icon-192x192.png', ...options });
   }
-
-  cleanup(): void {
+  cleanup() {
     this.initialized = false;
     this.serviceWorkerRegistration = null;
   }
 }
 
-// Context type
+// Context -------------------------------------------------------------------
 interface NotificationContextType {
-  notificationsEnabled: boolean;
   permissionStatus: NotificationPermissionStatus;
   showNotification: (title: string, message: string) => void;
   unreadCount: number;
@@ -152,861 +138,261 @@ interface NotificationContextType {
   notifications: ChannelActivity[];
   setNotifications: React.Dispatch<React.SetStateAction<ChannelActivity[]>>;
   requestPermission: () => Promise<NotificationPermissionStatus>;
-  toggleNotifications: (enable: boolean) => Promise<void>;
-  accountPreference: boolean | null;
-  hasActiveSubscription: boolean;
-  isLoading: boolean;
-  providerType: string;
   browserType: string;
   isPrivateBrowsing: boolean;
-  updatePushSubscription: (subscription: PushSubscription, enabled: boolean) => Promise<void>;
+  hasActiveSubscription: boolean;
 }
-
-// Context
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
-
 export const useNotification = () => {
-  const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotification must be used within a NotificationProvider');
-  }
-  return context;
+  const ctx = useContext(NotificationContext);
+  if (!ctx) throw new Error('useNotification must be used within NotificationProvider');
+  return ctx;
 };
 
+// ---------------------------------------------------------------------------
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
+  const { user, updatePushSubscription } = useAuth();
+  const inAppDB = useInAppDB();
 
-  const { user, userInfo, updatePushSubscription } = useAuth();
-
-  // States for notification management
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus>('default');
   const [notifications, setNotifications] = useState<ChannelActivity[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
-  const [accountPreference, setAccountPreference] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [browserType, setBrowserType] = useState('unknown');
+  const [isPrivateBrowsing, setIsPrivateBrowsing] = useState(false);
 
-  // Browser detection states
-  const [browserType, setBrowserType] = useState<string>('unknown');
-  const [isPrivateBrowsing, setIsPrivateBrowsing] = useState<boolean>(false);
-
-  // Provider instance
   const [provider] = useState<NotificationProviderInterface>(new NativeWebPushProvider());
-  const [isProviderInitialized, setIsProviderInitialized] = useState(false);
+  const [providerReady, setProviderReady] = useState(false);
 
-  // Add state to track initialization attempts
-  const [isUserInfoLoading, setIsUserInfoLoading] = useState(true);
-  const [initializationStatus, setInitializationStatus] = useState<'idle' | 'pending' | 'complete' | 'error'>('idle');
-  const initializationAttempted = useRef(false);
-  const lastInitializedUserId = useRef<string | null>(null);
-  const userInfoCheckTimeout = useRef<NodeJS.Timeout | null>(null);
-  const lastUserInfo = useRef(userInfo);
-
-  // Detect browser and private browsing mode on mount
+  // -------------------------------------------------------------------------
+  // Verify existing subscription -------------------------------------------
+  // -------------------------------------------------------------------------
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // Detect browser type
-    const detectedBrowserType = NativeWebPushProvider.detectBrowserType();
-    setBrowserType(detectedBrowserType);
-
-    // Detect private browsing mode
-    NativeWebPushProvider.detectPrivateBrowsing()
-      .then(isPrivate => {
-        setIsPrivateBrowsing(isPrivate);
-        if (isPrivate) {
-          console.warn('Private browsing mode detected. Push notifications may not work correctly.');
-        }
-      })
-      .catch(() => {
-        // Silently fail if detection fails
-      });
-  }, []);
-
-  // Listen for toast notifications from service worker
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleServiceWorkerMessage = (event: MessageEvent) => {
-      const data = event.data;
-
-      if (data && data.type === 'TOAST_NOTIFICATION') {
-        const notification = data.notification as ToastNotification;
-
-        // Show toast notification
-        toast(notification.title, {
-          description: notification.message,
-          icon: notification.icon ? <img src={notification.icon} alt="" width={20} height={20} /> : undefined,
-          duration: 5000,
-          action: notification.actions && notification.actions.length > 0 ? {
-            label: notification.actions[0].title,
-            onClick: () => {
-              // Log for end-to-end testing
-              // Handle action click (e.g., navigate to a page)
-              if (notification.data?.url) {
-                window.location.href = notification.data.url;
-              }
-            }
-          } : undefined,
-          onDismiss: () => {
-          }
+    const verify = async () => {
+      if (!user?.id || !providerReady || permissionStatus !== 'granted') {
+        log('Skipping verification - prerequisites not met', { 
+          userId: user?.id, 
+          providerReady, 
+          permissionStatus 
         });
-
-        // Update badge count
-        setUnreadCount(prev => prev + 1);
-
-        // Add to notifications list if it contains channel activity data
-        if (notification.data?.channelActivity) {
-          const channelActivity = notification.data.channelActivity as ChannelActivity;
-          setNotifications(prev => [{ ...channelActivity, read: false }, ...prev]);
-        }
-      }
-    };
-
-    // Add event listener for messages from service worker
-    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-
-    // Clean up event listener
-    return () => {
-      navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
-    };
-  }, [user, toast, setNotifications, setUnreadCount]);
-
-  // Log when user changes
-  useEffect(() => {
-    if (user) {
-      // Inform service worker about authentication status
-      updateServiceWorkerAuthStatus(true);
-    } else {
-      setAccountPreference(null);
-
-      // Inform service worker about authentication status
-      updateServiceWorkerAuthStatus(false);
-    }
-  }, [user]);
-
-  // Process notification data from userInfo
-  useEffect(() => {
-    if (userInfo && user) {
-      // Check if user has notifications enabled from userInfo
-      const notificationsData = userInfo.notifications;
-      const hasSubscriptions = notificationsData?.subscriptions?.length > 0;
-
-      // Get notification preference from user preferences
-      const notificationPreference = userInfo.notifications_enabled;
-
-      // Set account preference based on user preferences if available, otherwise use subscription status
-      setAccountPreference(notificationPreference !== undefined ? notificationPreference : hasSubscriptions);
-
-      // Check for existing subscription
-      navigator.serviceWorker.ready.then(registration => {
-        registration.pushManager.getSubscription().then(subscription => {
-          if (subscription) {
-            // If we have a subscription and permission is granted, enable notifications
-            if (permissionStatus === 'granted') {
-              setNotificationsEnabled(true);
-              setHasActiveSubscription(true);
-            }
-          } else {
-            // If no subscription, notifications should be disabled
-            setNotificationsEnabled(false);
-            setHasActiveSubscription(false);
-          }
-        });
-      });
-
-    } else if (!user) {
-      // Reset state when user is logged out
-      setAccountPreference(null);
-      setNotificationsEnabled(false);
-      setHasActiveSubscription(false);
-    }
-  }, [userInfo, user, permissionStatus]);
-
-  // Update service worker about authentication status
-  const updateServiceWorkerAuthStatus = async (isAuthenticated: boolean) => {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      try {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'AUTH_STATUS',
-          isAuthenticated
-        });
-      } catch (error) {
-      }
-    }
-  };
-
-  // Check if current user has an active subscription
-  useEffect(() => {
-    const checkUserSubscription = async () => {
-      if (!user || !isProviderInitialized) {
+        setHasActiveSubscription(false);
         return;
       }
 
       try {
-        // Check permission status first - if not granted, can't have active subscription
-        if (permissionStatus !== 'granted') {
-          setHasActiveSubscription(false);
-          setNotificationsEnabled(false);
-          return;
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (!reg) {
+          error('No service worker registration found');
+          return setHasActiveSubscription(false);
         }
+        
+        let browserSub = await reg.pushManager.getSubscription();
+        const stored = inAppDB.getPushSubscriptions(user.id);
+        log('Verify subs', { 
+          browserSub: browserSub ? {
+            endpoint: browserSub.endpoint,
+            keys: Object.keys(browserSub.toJSON().keys || {})
+          } : null,
+          storedCount: stored.length,
+          storedEndpoints: stored.map(s => s.endpoint)
+        });
 
-        // Get current browser subscription
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (!registration) {
-          setHasActiveSubscription(false);
-          setNotificationsEnabled(false);
-          return;
-        }
+        // If we have stored subscriptions but no browser subscription, try to resubscribe ONCE
+        if (!browserSub && stored.length > 0) {
+          log('No browser subscription but have stored ones - attempting to resubscribe');
+          
+          // Get the most recent enabled subscription first
+          const lastEnabledSub = [...stored]
+            .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+            .find(s => s.notifications_enabled);
 
-        const browserSubscription = await registration.pushManager.getSubscription();
-
-        if (!browserSubscription) {
-          setHasActiveSubscription(false);
-          setNotificationsEnabled(false);
-
-          // If user has preference enabled but no subscription, we should create one
-          if (userInfo?.notifications_enabled === true) {
-            // We'll attempt to create a subscription when they interact with notifications next
+          if (!lastEnabledSub) {
+            log('No enabled subscription found in stored subscriptions');
+            return setHasActiveSubscription(false);
           }
-          return;
+
+          // Try to create a new subscription
+          browserSub = await setupPushSubscription();
+          if (!browserSub) {
+            error('Failed to create new subscription during recovery');
+            return setHasActiveSubscription(false);
+          }
+
+          log('Resubscribing with last enabled state', {
+            endpoint: browserSub.endpoint,
+            lastEnabled: lastEnabledSub.notifications_enabled,
+            lastUpdated: lastEnabledSub.updated_at
+          });
+
+          await updatePushSubscription(browserSub, lastEnabledSub.notifications_enabled);
+          return setHasActiveSubscription(lastEnabledSub.notifications_enabled);
         }
 
-        // Use userInfo from AuthContext instead of fetching it again
-        if (!userInfo || !userInfo.notifications) {
-          setHasActiveSubscription(false);
-          setNotificationsEnabled(false);
-          return;
-        }
-
-        // Check if this subscription exists in the user's subscriptions
-        const subscriptions = userInfo.notifications.subscriptions || [];
-        const matchingSubscription = subscriptions.find(
-          (sub: any) => sub.endpoint === browserSubscription.endpoint
-        );
-
-        if (matchingSubscription) {
-          setHasActiveSubscription(true);
-          setNotificationsEnabled(matchingSubscription.notifications_enabled);
-          setAccountPreference(userInfo.notifications.enabled);
+        // Normal subscription verification for existing browser subscription
+        if (browserSub) {
+          const match = stored.find(s => 
+            s.endpoint === browserSub.endpoint && 
+            s.notifications_enabled
+          );
+          
+          if (match) {
+            log('Match found, subscription is active', {
+              endpoint: match.endpoint,
+              enabled: match.notifications_enabled,
+              updated: match.updated_at
+            });
+            setHasActiveSubscription(true);
+          } else {
+            warn('No matching active subscription found', {
+              browserEndpoint: browserSub.endpoint,
+              storedEndpoints: stored.map(s => ({
+                endpoint: s.endpoint,
+                enabled: s.notifications_enabled
+              }))
+            });
+            await browserSub.unsubscribe();
+            setHasActiveSubscription(false);
+          }
         } else {
-          // We have a browser subscription, but it doesn't match any in our database
-          // This likely means we have a subscription from a different user account
-
-          // Keep the UI accurate - we don't have a subscription for this user
+          warn('No browser subscription exists');
           setHasActiveSubscription(false);
-          setNotificationsEnabled(false);
-
-          // If user's preference is to have notifications enabled, we'll need to set up a new subscription
-          if (userInfo.notifications_enabled === true) {
-            // We could auto-enable here, but it's better to let the user explicitly enable again
-          }
         }
-      } catch (error) {
-        // Default to disabled state on error
+      } catch (e) {
+        error('Verify subscriptions error', e);
         setHasActiveSubscription(false);
-        setNotificationsEnabled(false);
       }
     };
 
-    checkUserSubscription();
-  }, [user, isProviderInitialized, userInfo, permissionStatus]);
+    verify();
+  }, [user, providerReady, permissionStatus]);
 
-  // Initialize provider
+  // -------------------------------------------------------------------------
+  // Init provider -----------------------------------------------------------
+  // -------------------------------------------------------------------------
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    const initProvider = async () => {
-      const initialized = await provider.init();
-      if (initialized) {
-        setIsProviderInitialized(true);
-
-        // Check initial status
-        const status = await provider.getPermissionStatus();
-        setPermissionStatus(status);
-
-        const enabled = await provider.isEnabled();
-        setNotificationsEnabled(enabled);
-      } else {
-      }
-    };
-
-    initProvider();
-
-    // Cleanup when component unmounts
-    return () => {
-      if (provider.cleanup) {
-        provider.cleanup();
-      }
-    };
+    (async () => {
+      const ok = await provider.init();
+      setProviderReady(ok);
+      const status = await provider.getPermissionStatus();
+      setPermissionStatus(status);
+      log('Provider ready?', ok, 'perm', status);
+    })();
+    return () => provider.cleanup?.();
   }, [provider]);
 
-  // Request permission
-  const requestPermission = async (): Promise<NotificationPermissionStatus> => {
+  // -------------------------------------------------------------------------
+  // Request permission + (re)subscribe --------------------------------------
+  // -------------------------------------------------------------------------
+  const requestPermission = async () => {
     try {
-      const permission = await Notification.requestPermission();
+      const perm = await Notification.requestPermission();
+      setPermissionStatus(perm);
+      log('Permission response', perm);
 
-      setPermissionStatus(permission);
-
-      if (permission === 'granted') {
-        // Initialize service worker and subscription after permission is granted
-        const registration = await registerServiceWorker();
-        if (registration) {
-          const subscription = await setupPushSubscription();
-          if (subscription) {
-            setHasActiveSubscription(true);
-            setNotificationsEnabled(true);
-
-            // Update subscription in Supabase
-            const subscriptionJson = subscription.toJSON();
-            await supabase
-              .from('push_subscriptions')
-              .upsert({
-                user_id: user?.id,
-                endpoint: subscription.endpoint,
-                keys: JSON.stringify(subscriptionJson.keys),
-                device_type: 'web',
-                browser: navigator.userAgent,
-                os: navigator.platform,
-                platform: 'web',
-                device_id: window.navigator.userAgent,
-                app_version: '1.0.0',
-                notifications_enabled: true
-              }, {
-                onConflict: 'endpoint'
-              });
-          }
+      if (perm === 'granted' && user?.id) {
+        const reg = await registerServiceWorker();
+        if (!reg) {
+          error('Failed to register service worker');
+          return perm;
         }
-        toast.success('Notifications enabled');
-      } else if (permission === 'denied') {
+
+        // Always try to get a fresh subscription
+        let sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          log('Existing subscription found, unsubscribing first', {
+            endpoint: sub.endpoint
+          });
+          await sub.unsubscribe();
+        }
+
+        log('Setting up new push subscription');
+        sub = await setupPushSubscription();
+        
+        if (sub) {
+          log('New subscription created', { 
+            endpoint: sub.endpoint,
+            keys: Object.keys(sub.toJSON().keys || {})
+          });
+          await updatePushSubscription(sub, true);
+          setHasActiveSubscription(true);
+          toast.success('Notifications enabled');
+        } else {
+          error('Failed to create push subscription');
+          toast.error('Failed to enable notifications');
+        }
+      } else if (perm === 'denied') {
         toast.error('Notifications blocked');
       }
 
-      return permission;
-    } catch (error) {
+      return perm as NotificationPermissionStatus;
+    } catch (e) {
+      error('requestPermission error', e);
       toast.error('Failed to request notification permission');
       return 'denied';
     }
   };
 
-  // Replace fetchNotifications effect with userInfo sync
+  // -------------------------------------------------------------------------
+  // SW message listener -----------------------------------------------------
+  // -------------------------------------------------------------------------
   useEffect(() => {
-    if (userInfo?.notifications) {
-      setNotificationsEnabled(userInfo.notifications.enabled);
-      setHasActiveSubscription(userInfo.notifications.subscriptions.length > 0);
-    }
-  }, [userInfo]);
-
-  // Update effect to sync with userInfo - make it more robust
-  useEffect(() => {
-    if (userInfo) {
-      // Only update if permission is granted to avoid UI inconsistency
-      if (permissionStatus === 'granted') {
-        setNotificationsEnabled(!!userInfo.notifications_enabled);
-        setAccountPreference(userInfo.notifications_enabled ?? null);
-        // Check both subscription existence and enabled state
-        setHasActiveSubscription(
-          userInfo.notifications?.subscriptions?.some((sub: any) => sub.notifications_enabled) ?? false
-        );
-      } else {
-        // If permission not granted, notifications should be disabled
-        setNotificationsEnabled(false);
-        setHasActiveSubscription(false);
-        // Keep account preference as is for when permission is granted
+    const handler = (ev: MessageEvent) => {
+      const { data } = ev;
+      if (data?.type !== 'TOAST_NOTIFICATION') return;
+      const n: ToastNotification = data.notification;
+      toast(n.title, {
+        description: n.message,
+        icon: n.icon ? <img src={n.icon} alt="" width={20} height={20} /> : undefined,
+      });
+      setUnreadCount(c => c + 1);
+      if (n.data?.channelActivity) {
+        setNotifications(p => [{ ...n.data.channelActivity, read: false }, ...p]);
       }
-    } else {
-      // Reset all states when no userInfo
-      setNotificationsEnabled(false);
-      setAccountPreference(null);
-      setHasActiveSubscription(false);
-    }
-  }, [userInfo, permissionStatus]);
+    };
+    navigator.serviceWorker.addEventListener('message', handler);
+    return () => navigator.serviceWorker.removeEventListener('message', handler);
+  }, []);
 
-  // Mark all as read
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-    setUnreadCount(0);
-
-    // Clear badge when all notifications are read
-    if ('clearAppBadge' in navigator) {
-      navigator.clearAppBadge().catch(error => {
-      });
-    }
-  };
-
-  // Show notification
-  const showNotification = (title: string, message: string) => {
-    // Show in-app toast notification
-    toast(title, {
-      description: message,
-      duration: 5000,
-    });
-
-    // Show push notification if enabled and permission is granted, regardless of focus state
-    if (notificationsEnabled && permissionStatus === 'granted') {
-      provider.sendNotification(title, message);
-    }
-  };
-
-  // Update badge count when unread count changes
+  // Detect browser + private mode -------------------------------------------
   useEffect(() => {
-    if ('setAppBadge' in navigator && unreadCount > 0) {
-      navigator.setAppBadge(unreadCount).catch(error => {
-      });
-    } else if ('clearAppBadge' in navigator && unreadCount === 0) {
-      navigator.clearAppBadge().catch(error => {
-      });
-    }
+    setBrowserType(NativeWebPushProvider.detectBrowserType());
+    NativeWebPushProvider.detectPrivateBrowsing().then(setIsPrivateBrowsing);
+  }, []);
+
+  // Badge updates -----------------------------------------------------------
+  useEffect(() => {
+    if ('setAppBadge' in navigator && unreadCount) navigator.setAppBadge(unreadCount).catch(() => {});
+    if ('clearAppBadge' in navigator && !unreadCount) navigator.clearAppBadge().catch(() => {});
   }, [unreadCount]);
 
-  // Subscribe to real-time updates
-  useEffect(() => {
-    if (!isProviderInitialized) {
-      return;
-    }
-
-    const subscription = supabase
-      .channel('channels_activity')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'channels_activity'
-      }, (payload: RealtimePostgresChangesPayload<ChannelActivity>) => {
-        const newActivity = payload.new as ChannelActivity;
-        if (!newActivity) return;
-
-        const title = `New message from @${newActivity.username}`;
-        const message = newActivity.last_message?.message_text || 'New message';
-
-        setNotifications(prev => [{ ...newActivity, read: false }, ...prev]);
-        setUnreadCount(prev => prev + 1);
-
-        // Show notification based on app visibility
-        if (document.visibilityState === 'visible') {
-          // Show toast for visible app
-          toast(title, {
-            description: message,
-            action: {
-              label: 'View',
-              onClick: () => {
-                window.location.href = `/${newActivity.username}`;
-              }
-            },
-            onDismiss: () => {
-            }
-          });
-        } else {
-          // Show push notification for background app
-          provider.sendNotification(title, message, {
-            data: {
-              url: `/${newActivity.username}`,
-              channelActivity: newActivity,
-              sentTimestamp: new Date().toISOString(),
-              deliveryMethod: 'push',
-              testInfo: {
-                source: 'client-notification-context',
-                endpoint: 'realtime-push',
-                component: 'NotificationContext',
-                status: 'sent'
-              }
-            },
-            requireInteraction: true
-          });
-        }
-      })
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [isProviderInitialized, notificationsEnabled, permissionStatus, provider, user]);
-
-  // Add permission 
-  // change monitoring 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // Function to check if permission has changed
-    const checkPermissionStatus = async () => {
-      const currentPermission = Notification.permission as NotificationPermissionStatus;
-      if (currentPermission !== permissionStatus) {
-        setPermissionStatus(currentPermission);
-
-        // If permission was revoked, we need to update state
-        if (currentPermission !== 'granted' && notificationsEnabled) {
-          setNotificationsEnabled(false);
-          setHasActiveSubscription(false);
-
-          // We'll keep accountPreference as is, since that represents user intent
-        }
-      }
-    };
-
-    // Listen for visibility changes to refresh subscription status when tab becomes visible
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // Check if permission has changed
-        checkPermissionStatus();
-
-        // If user is authenticated and permission is granted, verify subscription state
-        if (user && permissionStatus === 'granted') {
-          // Check subscription again
-          navigator.serviceWorker.getRegistration().then(registration => {
-            if (!registration) return;
-
-            registration.pushManager.getSubscription().then(subscription => {
-              if (!subscription && notificationsEnabled) {
-                // We thought notifications were enabled, but subscription is gone
-                setNotificationsEnabled(false);
-                setHasActiveSubscription(false);
-              }
-            }).catch(error => {
-            });
-          }).catch(error => {
-          });
-        }
-      }
-    };
-
-    // Check once on mount
-    checkPermissionStatus();
-
-    // Add visibility change listener
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [user, permissionStatus, notificationsEnabled]);
-
-  // Handle user info loading state with debounce
-  useEffect(() => {
-    // Clear any existing timeout
-    if (userInfoCheckTimeout.current) {
-      clearTimeout(userInfoCheckTimeout.current);
-    }
-
-    // Reset state when user changes
-    if (!user) {
-      setIsUserInfoLoading(true);
-      setInitializationStatus('idle');
-      lastUserInfo.current = null;
-      return;
-    }
-
-    // Skip if userInfo hasn't actually changed
-    if (userInfo && userInfo === lastUserInfo.current) {
-      return;
-    }
-
-    // Update last known userInfo
-    lastUserInfo.current = userInfo;
-
-    // Set a timeout to wait for userInfo to stabilize
-    userInfoCheckTimeout.current = setTimeout(() => {
-      if (userInfo) {
-        setIsUserInfoLoading(false);
-      } else {
-        setIsUserInfoLoading(true);
-      }
-    }, 1000); // Wait 1 second for userInfo to stabilize
-
-    return () => {
-      if (userInfoCheckTimeout.current) {
-        clearTimeout(userInfoCheckTimeout.current);
-      }
-    };
-  }, [user, userInfo]);
-
-  // Separate effect for handling user info changes
-  useEffect(() => {
-    if (!user || isUserInfoLoading) {
-      // Reset states when user/userInfo is not available
-      if (!user) {
-      }
-      else if (isUserInfoLoading) {
-      }
-      setInitializationStatus('idle');
-      setHasActiveSubscription(false);
-      setNotificationsEnabled(false);
-      return;
-    }
-
-    // Skip if userInfo hasn't changed
-    if (userInfo === lastUserInfo.current && initializationStatus !== 'idle') {
-      return;
-    }
-
-    // Update notification states based on user preferences
-    if (userInfo?.notifications_enabled !== undefined) {
-      setAccountPreference(userInfo.notifications_enabled);
-    }
-  }, [user, userInfo, isUserInfoLoading, initializationStatus]);
-
-  // Main initialization effect with retry mechanism
-  useEffect(() => {
-    let retryTimeout: NodeJS.Timeout | null = null;
-    let retryCount = 0;
-    const MAX_RETRIES = 3;
-
-    const initializeServiceWorker = async () => {
-      // Skip if conditions aren't met
-      if (!user || isUserInfoLoading || initializationStatus === 'pending' || initializationStatus === 'complete') {
-        if (!user || isUserInfoLoading) {
-        }
-        return;
-      }
-
-      // Skip if userInfo hasn't changed and we've already attempted initialization
-      if (userInfo === lastUserInfo.current && initializationAttempted.current && user.id === lastInitializedUserId.current) {
-        return;
-      }
-
-      if (!userInfo) {
-        if (retryCount < MAX_RETRIES) {
-          retryCount++;
-          retryTimeout = setTimeout(initializeServiceWorker, 1000);
-          return;
-        }
-        setInitializationStatus('error');
-        return;
-      }
-
-      try {
-
-        // Check if we've already attempted initialization for this user
-        if (initializationAttempted.current && user.id === lastInitializedUserId.current) {
-          return;
-        }
-
-        setInitializationStatus('pending');
-
-        // Check for existing subscription first
-        const registration = await registerServiceWorker();
-        if (!registration) {
-          setInitializationStatus('error');
-          return;
-        }
-
-        const existingSubscription = await registration.pushManager.getSubscription();
-
-        // If we have an existing subscription, verify it belongs to current user
-        if (existingSubscription) {
-          const { data, error: subscriptionError } = await supabase
-            .from('push_subscriptions')
-            .select('user_id, notifications_enabled')
-            .eq('endpoint', existingSubscription.endpoint)
-            .single();
-
-          if (subscriptionError) {
-            setInitializationStatus('error');
-            return;
-          }
-
-          if (data?.user_id === user.id) {
-            // Subscription belongs to current user, update state
-            setHasActiveSubscription(true);
-            setNotificationsEnabled(data.notifications_enabled);
-            initializationAttempted.current = true;
-            lastInitializedUserId.current = user.id;
-            setInitializationStatus('complete');
-            return;
-          } else {
-            // Subscription belongs to different user, clean up
-            await cleanupPushSubscription();
-          }
-        }
-
-        // Only proceed with new subscription if user preferences indicate it should be enabled
-        if (!userInfo?.notifications_enabled) {
-          initializationAttempted.current = true;
-          lastInitializedUserId.current = user.id;
-          setInitializationStatus('complete');
-          return;
-        }
-
-        // Create new subscription
-        const subscription = await setupPushSubscription();
-        if (!subscription) {
-          setInitializationStatus('error');
-          return;
-        }
-
-        // Store subscription in Supabase
-        const { error } = await supabase
-          .from('push_subscriptions')
-          .upsert({
-            user_id: user.id,
-            endpoint: subscription.endpoint,
-            keys: JSON.stringify(subscription.toJSON().keys),
-            device_type: 'web',
-            browser: navigator.userAgent,
-            os: navigator.platform,
-            platform: 'web',
-            device_id: window.navigator.userAgent,
-            app_version: '1.0.0',
-            notifications_enabled: true
-          }, {
-            onConflict: 'endpoint'
-          });
-
-        if (error) {
-          setInitializationStatus('error');
-          return;
-        }
-
-        initializationAttempted.current = true;
-        lastInitializedUserId.current = user.id;
-        setHasActiveSubscription(true);
-        setNotificationsEnabled(true);
-        setInitializationStatus('complete');
-      } catch (error) {
-        setInitializationStatus('error');
-      }
-    };
-
-    initializeServiceWorker();
-
-    // Cleanup function
-    return () => {
-      if (retryTimeout) {
-        clearTimeout(retryTimeout);
-      }
-    };
-  }, [user, userInfo, isUserInfoLoading, initializationStatus]);
-
-  // Reset initialization when user changes
-  useEffect(() => {
-    if (!user) {
-      cleanupPushSubscription().catch(console.error);
-      initializationAttempted.current = false;
-      lastInitializedUserId.current = null;
-      lastUserInfo.current = null;
-      setHasActiveSubscription(false);
-      setNotificationsEnabled(false);
-      setInitializationStatus('idle');
-      setIsUserInfoLoading(true);
-    }
-  }, [user]);
-
-  // Toggle notifications
-  const toggleNotifications = async (enable: boolean) => {
-    if (!user) {
-      toast.error('Please sign in to enable notifications');
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-
-      if (enable) {
-        // Check permission first
-        if (permissionStatus !== 'granted') {
-          const newPermission = await requestPermission();
-          if (newPermission !== 'granted') {
-            setNotificationsEnabled(false);
-            setHasActiveSubscription(false);
-            return;
-          }
-        }
-
-        // Get or create push subscription
-        const registration = await registerServiceWorker();
-        if (!registration) {
-          toast.error('Failed to enable push notifications');
-          return;
-        }
-
-        const subscription = await setupPushSubscription();
-        if (!subscription) {
-          toast.error('Failed to enable push notifications');
-          setNotificationsEnabled(false);
-          setHasActiveSubscription(false);
-          return;
-        }
-
-        // Store subscription in Supabase
-        const subscriptionJson = subscription.toJSON();
-        const { error: upsertError } = await supabase
-          .from('push_subscriptions')
-          .upsert({
-            user_id: user.id,
-            endpoint: subscription.endpoint,
-            keys: JSON.stringify(subscriptionJson.keys),
-            device_type: 'web',
-            browser: navigator.userAgent,
-            os: navigator.platform,
-            platform: 'web',
-            device_id: window.navigator.userAgent,
-            app_version: '1.0.0',
-            notifications_enabled: true
-          }, {
-            onConflict: 'endpoint'
-          });
-
-        if (upsertError) {
-          toast.error('Failed to save notification preferences');
-          return;
-        }
-
-        setNotificationsEnabled(true);
-        setHasActiveSubscription(true);
-        toast.success('Notifications enabled successfully');
-      } else {
-        // Disable notifications
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-
-        if (subscription) {
-          await subscription.unsubscribe();
-
-          // Update Supabase
-          const { error: updateError } = await supabase
-            .from('push_subscriptions')
-            .update({ notifications_enabled: false })
-            .eq('endpoint', subscription.endpoint)
-            .eq('user_id', user.id);
-
-          if (updateError) {
-            toast.error('Failed to save notification preferences');
-            return;
-          }
-        }
-
-        setNotificationsEnabled(false);
-        setHasActiveSubscription(false);
-        toast.success('Notifications disabled successfully');
-      }
-    } catch (error) {
-      toast.error('Failed to update notification preferences');
-    } finally {
-      setIsLoading(false);
-    }
+  const markAllAsRead = () => {
+    setNotifications(n => n.map(x => ({ ...x, read: true })));
+    setUnreadCount(0);
+    if ('clearAppBadge' in navigator) navigator.clearAppBadge().catch(() => {});
   };
 
-  // Context value
-  const value = {
-    notificationsEnabled: notificationsEnabled && hasActiveSubscription,
-    permissionStatus,
-    showNotification,
-    unreadCount,
-    markAllAsRead,
-    notifications,
-    setNotifications,
-    requestPermission,
-    toggleNotifications,
-    accountPreference,
-    hasActiveSubscription,
-    isLoading,
-    providerType: 'web',
-    browserType: typeof window !== 'undefined' ? NativeWebPushProvider.detectBrowserType() : 'unknown',
-    isPrivateBrowsing: false,
-    updatePushSubscription
+  const showNotification = (title: string, message: string) => {
+    toast(title, { description: message });
+    if (permissionStatus === 'granted') provider.sendNotification(title, message);
   };
 
   return (
-    <NotificationContext.Provider value={value}>
+    <NotificationContext.Provider
+      value={{
+        permissionStatus,
+        showNotification,
+        unreadCount,
+        markAllAsRead,
+        notifications,
+        setNotifications,
+        requestPermission,
+        browserType,
+        isPrivateBrowsing,
+        hasActiveSubscription,
+      }}
+    >
       {children}
     </NotificationContext.Provider>
   );
-} 
+};

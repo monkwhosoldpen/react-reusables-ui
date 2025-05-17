@@ -6,27 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from 'expo-router';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
-import { Switch } from '~/components/ui/switch';
-import { cn } from '~/lib/utils';
 import { NotificationPreference } from '~/components/common/NotificationPreference';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu';
-import { Button } from '~/components/ui/button';
-import { ChevronDown } from '~/lib/icons/ChevronDown';
-import { Muted } from '~/components/ui/typography';
-import LanguageChanger from '~/components/common/LanguageChanger';
 
-const contentInsets = {
-  left: 12,
-  right: 12,
-};
+import LanguageChanger from '~/components/common/LanguageChanger';
+import { ThemeToggle } from '~/components/ThemeToggle';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -50,10 +33,6 @@ export default function SettingsScreen() {
 
   const handleSignIn = () => {
     router.push('/login');
-  };
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
   };
 
   return (
@@ -134,7 +113,7 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-sm overflow-hidden p-4`}>
-              <NotificationPreference showDescription={true} showDebug={false} />
+              <NotificationPreference />
             </View>
 
             {/* Appearance Section */}
@@ -160,7 +139,7 @@ export default function SettingsScreen() {
                     Use dark theme
                   </Text>
                 </View>
-                <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+                <ThemeToggle />
               </View>
             </View>
           </View>
@@ -222,77 +201,5 @@ export default function SettingsScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function ThemeDropdownSelect({ 
-  defaultValue, 
-  onValueChange 
-}: { 
-  defaultValue: string;
-  onValueChange: (value: string) => void;
-}) {
-  const [value, setValue] = React.useState(defaultValue);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-row items-center gap-2 pr-3"
-        >
-          <Text className={isDark ? 'text-white' : 'text-gray-900'}>{value}</Text>
-          <ChevronDown size={18} className={isDark ? 'text-white' : 'text-gray-900'} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" insets={contentInsets} className="w-64 native:w-72">
-        <DropdownMenuLabel>Select theme</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup className="gap-1">
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('whatsapp');
-              onValueChange('whatsapp');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'whatsapp' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>WhatsApp</Text>
-            <Muted>Modern messaging theme</Muted>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('ghiblistudio');
-              onValueChange('ghiblistudio');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'ghiblistudio' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>Studio Ghibli</Text>
-            <Muted>Animated movie inspired theme</Muted>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onPress={() => {
-              setValue('redblack');
-              onValueChange('redblack');
-            }}
-            className={cn(
-              'flex-col items-start gap-1',
-              value === 'redblack' ? 'bg-secondary/70' : ''
-            )}
-          >
-            <Text>Red-Black</Text>
-            <Muted>High contrast theme</Muted>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }

@@ -6,12 +6,15 @@ import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { cn } from '~/lib/utils';
 import { Switch } from '../ui/switch';
 import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
+import { setupPushSubscription } from '~/utils/register-sw';
+import { toast } from 'sonner';
 
 export function NotificationPreference() {
 
   const {
     user,
-    updateNotificationPreference
+    updateNotificationPreference,
+    updatePushSubscription
   } = useAuth();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -24,8 +27,43 @@ export function NotificationPreference() {
     if (!user?.id) return;
 
     setIsLoading(true);
+    try {
+      // First update notification preference
+      await updateNotificationPreference(checked);
 
-    updateNotificationPreference(checked);
+      if (checked) {
+        // Request notification permission if enabling
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          // Setup push subscription
+          const subscription = await setupPushSubscription();
+          if (subscription) {
+            // Update push subscription in backend
+            await updatePushSubscription(subscription, true);
+            toast.success('Notifications enabled successfully');
+          } else {
+            toast.error('Failed to setup push notifications');
+            // Revert notification preference if push setup fails
+            await updateNotificationPreference(false);
+          }
+        } else {
+          toast.error('Notification permission denied');
+          // Revert notification preference if permission denied
+          await updateNotificationPreference(false);
+        }
+      } else {
+        // If disabling notifications, we don't need to unsubscribe
+        // The backend will handle this through the notifications_enabled flag
+        toast.success('Notifications disabled');
+      }
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+      toast.error('Failed to update notification settings');
+      // Revert to previous state on error
+      await updateNotificationPreference(!checked);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
