@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from "react"
 import { useAuth } from "~/lib/core/contexts/AuthContext"
+import { useInAppDB } from "~/lib/core/providers/InAppDBProvider"
 import { Card, CardContent } from "~/components/ui/card"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { toast } from "sonner"
-import { indexedDB } from "~/lib/core/services/indexedDB"
 import { Edit2, MapPin, Save, Trash2, Wand2, X } from "lucide-react-native"
 import { Text, TextInput, NativeSyntheticEvent, TextInputChangeEventData } from "react-native"
 import { LoginDialog } from "./LoginDialog"
@@ -47,6 +47,7 @@ interface UserLocationProps {
 
 export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
   const { user, userInfo, refreshUserInfo } = useAuth()
+  const inappDb = useInAppDB()
   const [location, setLocation] = useState<string>("")
   const [isEditing, setIsEditing] = useState(true)
   const [showLoginDialog, setShowLoginDialog] = useState(false)
@@ -62,6 +63,7 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
     latitude: "",
     longitude: ""
   })
+  const [loading, setLoading] = useState(false)
 
   // Fetch user location data on component mount
   useEffect(() => {
@@ -69,14 +71,14 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
       if (!user) return;
 
       try {
-        // Try to get location from userInfo first (which should be synced with IndexedDB)
+        // Try to get location from userInfo first (which should be synced with InAppDB)
         if (userInfo?.userLocation) {
           updateFormWithLocation(userInfo.userLocation);
           return;
         }
         
-        // As a fallback, try to get location directly from IndexedDB
-        const userLocation = await indexedDB.getUserLocation(user.id);
+        // As a fallback, try to get location directly from InAppDB
+        const userLocation = await inappDb.getUserLocation(user.id);
         if (userLocation) {
           updateFormWithLocation(userLocation);
         }
@@ -86,7 +88,7 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
     };
 
     fetchUserLocation();
-  }, [user, userInfo]);
+  }, [user, userInfo, inappDb]);
 
   // Helper function to update form with location data
   const updateFormWithLocation = (locationData: UserLocationData | any) => {
@@ -135,11 +137,11 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
   const handleCancel = async () => {
     if (!user) return;
     
-    // Reset form data from userInfo or IndexedDB
+    // Reset form data from userInfo or InAppDB
     if (userInfo?.userLocation) {
       updateFormWithLocation(userInfo.userLocation);
     } else {
-      const userLocation = await indexedDB.getUserLocation(user.id);
+      const userLocation = await inappDb.getUserLocation(user.id);
       if (userLocation) {
         updateFormWithLocation(userLocation);
       } else {
@@ -162,63 +164,71 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
     setIsEditing(false);
   };
 
-  const handleSave = async () => {
+  const handleSubmit = async (values: any) => {
     if (!user) return;
-
+    
+    setLoading(true);
     try {
-      // Create location object for saving
       const locationData = {
         user_id: user.id,
-        state: formData.state,
-        district: formData.district,
-        mp_constituency: formData.mp_constituency,
-        assembly_constituency: formData.assembly_constituency,
-        mandal: formData.mandal,
-        village: formData.village,
-        ward: formData.ward,
-        pincode: formData.pincode,
-        latitude: parseFloat(formData.latitude) || 0,
-        longitude: parseFloat(formData.longitude) || 0,
+        state: values.state,
+        district: values.district,
+        mp_constituency: values.mp_constituency,
+        assembly_constituency: values.assembly_constituency,
+        mandal: values.mandal,
+        village: values.village,
+        ward: values.ward,
+        pincode: values.pincode,
+        latitude: values.latitude,
+        longitude: values.longitude,
         last_updated: new Date().toISOString()
       };
-      
-      // Save to IndexedDB
-      await indexedDB.setUserLocation(user.id, locationData);
-      
-      // Update location display string
-      setLocation(`${formData.village}, ${formData.district}, ${formData.state}`);
-      setIsEditing(false);
-      
-      // For non-guest users, save to backend
-      if (user) {
-        try {
-          const response = await fetch(config.api.endpoints.user.location, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              location: locationData
-            }),
-          });
-          
-          if (!response.ok) {
-            console.warn("Backend update failed but IndexedDB was updated");
-          }
-          
-          // Refresh user info to update the context
-          await refreshUserInfo();
-        } catch (apiError) {
-          console.error("API error:", apiError);
-          // Even if API fails, we've saved to IndexedDB
-        }
+
+      // Save to InAppDB
+      await inappDb.setUserLocation(user.id, locationData);
+
+      // Update backend
+      const response = await fetch(config.api.endpoints.user.location, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          location: locationData
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn("Backend update failed but InAppDB was updated");
+        toast.error("Failed to update location on server");
+      } else {
+        toast.success("Location updated successfully");
+      }
+
+      // Even if API fails, we've saved to InAppDB
+      return true;
+    } catch (error) {
+      toast.error("Failed to update location");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = async () => {
+    if (!user) return;
+    
+    try {
+      // Reset form data from userInfo or InAppDB
+      if (userInfo?.userLocation) {
+        return userInfo.userLocation;
       }
       
-      toast.success("Location saved successfully");
+      const userLocation = await inappDb.getUserLocation(user.id);
+      return userLocation;
     } catch (error) {
-      console.error("Error saving location:", error);
-      toast.error("Failed to save location");
+      return null;
     }
   };
 
@@ -298,7 +308,7 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
                   <Button variant="ghost" size="sm" onPress={handleCancel}>
                     <X className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onPress={handleSave}>
+                  <Button variant="ghost" size="sm" onPress={handleSubmit}>
                     <Save className="h-4 w-4" />
                   </Button>
                 </div>

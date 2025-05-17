@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '~/lib/core/supabase';
-import { indexedDB } from '~/lib/core/services/indexedDB';
 import { UserInfo } from '../types/channel.types';
 import { router } from 'expo-router';
 import { config } from '~/lib/core/config';
@@ -133,6 +132,7 @@ export function AuthHelper(): AuthHelperReturn {
   const MIN_FETCH_INTERVAL = 30000; // 30 seconds
   const userInfoCache = useRef<Record<string, { data: any, timestamp: number }>>({});
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  const inappDb = useInAppDB();
 
   // Add refs inside the function
   const signInTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -188,13 +188,13 @@ export function AuthHelper(): AuthHelperReturn {
       try {
         setLoading(true);
         
-        // First check IndexedDB for any existing user
-        const users = await indexedDB.getAllUsers();
+        // First check InAppDB for any existing user
+        const users = await inappDb.getAllUsers();
         
         const existingUser = users[0]; // Get the first user if exists
 
         if (existingUser && mounted) {
-          // Set user from IndexedDB - IMMEDIATELY set basic data
+          // Set user from InAppDB - IMMEDIATELY set basic data
           const isGuestUser = existingUser.email.includes('@guest.com');
           setIsGuest(isGuestUser);
           
@@ -219,15 +219,15 @@ export function AuthHelper(): AuthHelperReturn {
           // Set user immediately and stop loading
           setUser(mockUser);
           
-          // Get additional data from IndexedDB
+          // Get additional data from InAppDB
           const [userLanguage, notificationPreference, tenantRequests, userLocation] = await Promise.all([
-            indexedDB.getUserLanguage(existingUser.id),
-            indexedDB.getUserNotifications(existingUser.id),
-            indexedDB.getTenantRequests(existingUser.id).catch(() => []),
-            indexedDB.getUserLocation(existingUser.id).catch(() => null)
+            inappDb.getUserLanguage(existingUser.id),
+            inappDb.getUserNotifications(existingUser.id),
+            Promise.resolve(inappDb.getTenantRequests(existingUser.id)).catch(() => []),
+            Promise.resolve(inappDb.getUserLocation(existingUser.id)).catch(() => null)
           ]);
 
-          // Set initial userInfo from IndexedDB
+          // Set initial userInfo from InAppDB
           const initialUserInfo: UserInfo = {
             id: existingUser.id,
             email: existingUser.email,
@@ -255,7 +255,7 @@ export function AuthHelper(): AuthHelperReturn {
             }
           }
         } else if (mounted) {
-          // No user in IndexedDB, initialize Supabase auth
+          // No user in InAppDB, initialize Supabase auth
           const callbacks = {
             setUser: (user: User | null) => {
               if (mounted) {
@@ -298,14 +298,12 @@ export function AuthHelper(): AuthHelperReturn {
     };
   }, []);
 
-  const inappDb = useInAppDB();
-
-  // Fetch user info from the API when user ID is resolved
+  // Function to fetch user info
   const fetchUserInfo = async (userId: string) => {
     let savedUser; // Declare savedUser outside try block
     
     try {
-      // Get all data from IndexedDB in parallel
+      // Get all data from InAppDB in parallel
       const [
         user,
         userLanguage,
@@ -314,18 +312,18 @@ export function AuthHelper(): AuthHelperReturn {
         tenantRequests,
         userLocation
       ] = await Promise.all([
-        indexedDB.getUser(userId),
-        indexedDB.getUserLanguage(userId),
-        indexedDB.getPushSubscriptions(userId),
-        indexedDB.getUserNotifications(userId),
-        indexedDB.getTenantRequests(userId).catch(() => []),
-        indexedDB.getUserLocation(userId).catch(() => null)
+        inappDb.getUser(userId),
+        inappDb.getUserLanguage(userId),
+        inappDb.getPushSubscriptions(userId),
+        inappDb.getUserNotifications(userId),
+        Promise.resolve(inappDb.getTenantRequests(userId)).catch(() => []),
+        Promise.resolve(inappDb.getUserLocation(userId)).catch(() => null)
       ]);
 
       savedUser = user;
 
       if (savedUser) {
-        // Set initial state from IndexedDB
+        // Set initial state from InAppDB
         const localUserInfo = {
           id: savedUser.id,
           email: savedUser.email,
@@ -405,8 +403,8 @@ export function AuthHelper(): AuthHelperReturn {
 
               const toSave = data.rawRecords;
               
-              // Save all raw API data to IndexedDB in one call
-              await indexedDB.saveRawApiData(userId, transformedData);
+              // Save all raw API data to InAppDB
+              await inappDb.saveRawApiData(userId, transformedData);
 
               // Save to Zustand store
               inappDb.setUserLanguage(userId, toSave.user_language);
@@ -459,7 +457,6 @@ export function AuthHelper(): AuthHelperReturn {
 
             } catch (dbError) {
             }
-          } else {
           }
         } catch (error) {
         } finally {
@@ -537,8 +534,8 @@ export function AuthHelper(): AuthHelperReturn {
     
     if (data.user) {
       try {
-        // First save basic user data to IndexedDB
-        await indexedDB.createUser({
+        // First save basic user data to InAppDB
+        await inappDb.createUser({
           id: data.user.id,
           email: data.user.email ?? '',
           role: 'authenticated',
@@ -550,7 +547,7 @@ export function AuthHelper(): AuthHelperReturn {
         // Set user state first
         setUser(data.user);
 
-        // Then fetch user info from API and save to IndexedDB
+        // Then fetch user info from API
         const response = await fetch(`${config.api.endpoints.myinfo}?userId=${data.user.id}`, {
           method: 'POST',
           headers: {
@@ -579,9 +576,8 @@ export function AuthHelper(): AuthHelperReturn {
             }
           };
 
-
-          // Save all raw API data to IndexedDB in one call
-          await indexedDB.saveRawApiData(data.user.id, transformedData);
+          // Save all raw API data to InAppDB
+          await inappDb.saveRawApiData(data.user.id, transformedData);
           
           // Extract data for UI state
           const preferences = transformedData.userPreferences;
@@ -601,10 +597,10 @@ export function AuthHelper(): AuthHelperReturn {
             ? preferences.user_location[0] 
             : null;
           
-          // Extract tenant requests - handle both possible fields
+          // Extract tenant requests
           const tenantRequests = preferences?.tenant_requests || preferences?.tena || [];
 
-          // Create complete user info object from API response
+          // Create complete user info object
           const updatedUserInfo = {
             ...apiData.user,
             language: language,
@@ -612,7 +608,6 @@ export function AuthHelper(): AuthHelperReturn {
             tenantRequests: tenantRequests,
             userLocation: userLocation
           };
-
 
           // Update cache
           userInfoCache.current[data.user.id] = {
@@ -622,10 +617,9 @@ export function AuthHelper(): AuthHelperReturn {
 
           // Update state with API data
           setUserInfo(updatedUserInfo);
-        } else {
         }
       } catch (error) {
-        // Even if API call fails, try to get data from IndexedDB
+        // Even if API call fails, try to get data from InAppDB
         try {
           await fetchUserInfo(data.user.id);
         } catch (infoError) {
@@ -642,8 +636,8 @@ export function AuthHelper(): AuthHelperReturn {
     
     if (data.user) {
       try {
-        // Save basic user data to IndexedDB first
-        await indexedDB.createUser({
+        // Save basic user data to InAppDB first
+        await inappDb.createUser({
           id: data.user.id,
           email: data.user.email ?? '',
           role: 'anonymous',
@@ -680,7 +674,7 @@ export function AuthHelper(): AuthHelperReturn {
         };
 
         // Save language preference
-        await indexedDB.setUserLanguage(data.user.id, 'english');
+        await inappDb.setUserLanguage(data.user.id, 'english');
       } catch (error) {
       }
     }
@@ -698,9 +692,9 @@ export function AuthHelper(): AuthHelperReturn {
         updated_at: new Date().toISOString()
       };
 
-      // Store guest user in IndexedDB
-      await indexedDB.createUser(guestUser);
-      await indexedDB.setUserLanguage(guestUser.id, 'english'); // Set default language
+      // Store guest user in InAppDB
+      await inappDb.createUser(guestUser);
+      await inappDb.setUserLanguage(guestUser.id, 'english'); // Set default language
 
       // Create a mock User object that matches Supabase User interface
       const mockUser: User = {

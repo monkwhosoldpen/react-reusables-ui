@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import LoginCommon from '~/components/common/LoginCommon'
 import { View, Text } from 'react-native'
 import { Channel } from '~/lib/core/types/channel.types'
-import { indexedDB } from '~/lib/core/services/indexedDB'
+import { useRouter } from 'expo-router'
+import { useInAppDB } from '~/lib/core/providers/InAppDBProvider'
 
 interface JoinButtonProps {
   username: string;
@@ -38,7 +39,7 @@ export function JoinButton({
   ...props
 }: JoinButtonProps) {
   const { user, signIn, signInAnonymously, signInAsGuest, refreshUserInfo, completeChannelOnboarding, isFollowingChannel } = useAuth()
-  const [dbInitialized, setDbInitialized] = useState(false);
+  const [initialized, setInitialized] = useState(false)
   
   const [showDialog, setShowDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -68,20 +69,16 @@ export function JoinButton({
   // Combine internal and external loading states
   const isButtonLoading = isLoading || externalLoading;
 
-  // Initialize IndexedDB
   useEffect(() => {
-    const initDB = async () => {
+    (async () => {
       try {
-        await indexedDB.initialize();
-        setDbInitialized(true);
-      } catch (error) {
-        // Handle error silently
+        // No need to initialize IndexedDB anymore
+        setInitialized(true);
+      } catch (e) {
+        // Handle error
       }
-    };
-
-    initDB();
+    })();
   }, []);
-
 
   // Function to handle button click
   const handleClick = () => {

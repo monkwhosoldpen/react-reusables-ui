@@ -1,9 +1,8 @@
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
+import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
 import { MainScreen } from "~/components/home/main";
 import { View, ActivityIndicator, Text } from 'react-native';
-import { useState, useEffect } from 'react';
-import { indexedDB } from '~/lib/core/services/indexedDB';
-import React from 'react';
 import { Landing } from '~/components/home/landing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '~/components/ui/button';
@@ -12,8 +11,8 @@ import { DashboardScreen } from '~/components/dashboard/dashboard-screen';
 
 export default function DashboardRoute({ username }: { username: string }) {
   const { user, loading } = useAuth();
+  const inappDb = useInAppDB();
   const [cachedUser, setCachedUser] = useState<any>(null);
-  const [dbInitialized, setDbInitialized] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -29,35 +28,28 @@ export default function DashboardRoute({ username }: { username: string }) {
     }
   }, [params.username]);
 
-  // Initialize IndexedDB and check cache
+  // Initialize and load data
   useEffect(() => {
-    const initialize = async () => {
+    const loadData = async () => {
       try {
-        await indexedDB.initialize();
-        setDbInitialized(true);
+        if (!user?.id) return;
 
-        const users = await indexedDB.getAllUsers();
-        if (users.length > 0) {
-          setCachedUser(users[0]);
-        }
+        const [follows, requests] = await Promise.all([
+          inappDb.getUserChannelFollow(user.id),
+          inappDb.getTenantRequests(user.id)
+        ]);
 
-        if (user?.id) {
-          const [follows, requests] = await Promise.all([
-            indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id),
-            indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id)
-          ]);
-          setUserData({ follows, requests });
-          setDataLoaded(true);
-        }
+        setUserData({ follows, requests });
+        setDataLoaded(true);
       } catch (error) {
-        // Handle error silently
+        console.error('Error loading dashboard data:', error);
       } finally {
         setInitialized(true);
       }
     };
 
-    initialize();
-  }, [user?.id]);
+    loadData();
+  }, [user?.id, inappDb]);
 
   // Update cached user and load data when auth state changes
   useEffect(() => {
@@ -67,8 +59,8 @@ export default function DashboardRoute({ username }: { username: string }) {
         if (user.id) {
           try {
             const [follows, requests] = await Promise.all([
-              indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id),
-              indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id)
+              inappDb.getUserChannelFollow(user.id),
+              inappDb.getTenantRequests(user.id)
             ]);
             setUserData({ follows, requests });
             setDataLoaded(true);
@@ -104,7 +96,7 @@ export default function DashboardRoute({ username }: { username: string }) {
   }
 
   // Show MainScreen if we have either a cached user or current user, and data is loaded
-  if ((cachedUser || user) && dbInitialized && dataLoaded) {
+  if ((cachedUser || user) && dataLoaded) {
     return <View className="flex-1 flex-row">
       <View className="flex-1 bg-gray-50 dark:bg-gray-900">
         <View className="flex-1">

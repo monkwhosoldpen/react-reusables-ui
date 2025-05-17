@@ -1,6 +1,5 @@
 'use client';
 
-import { indexedDB } from '~/lib/core/services/indexedDB';
 import { supabase } from '~/lib/core/supabase';
 import { ChannelActivity, Channel, ChannelMessage, TenantRequest, UserInfo } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';
@@ -88,8 +87,7 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         }
       }
 
-      // Update IndexedDB
-      await indexedDB.setUserLanguage(user.id, language);
+      // Update InAppDB
       await inappDb.setUserLanguage(user.id, language);
       
     } catch (error) {
@@ -103,7 +101,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
     }
 
     try {
-
       const response = await fetch(config.api.endpoints.user.notification, {
         method: 'POST',
         headers: {
@@ -118,7 +115,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
       if (!response.ok) {
         throw new Error('Failed to save notification preference');
       }
-      await indexedDB.setUserNotifications(user.id, enabled);
       await inappDb.setUserNotifications(user.id, enabled);   
       
     } catch (error) {
@@ -139,7 +135,7 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
     }
 
     try {
-      // First update IndexedDB
+      // First update InAppDB
       const subscriptionData: PushSubscriptionData = {
         user_id: user.id,
         endpoint: subscription.endpoint,
@@ -155,7 +151,7 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         updated_at: new Date().toISOString()
       };
 
-      await indexedDB.savePushSubscription(subscriptionData);
+      await inappDb.savePushSubscription(subscriptionData);
 
       const supabaseData = {
         user_id: user.id,
@@ -254,7 +250,7 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         });
         
         if (!response.ok) {
-          // If API call fails, restore the record in IndexedDB
+          // If API call fails, restore the record in InAppDB
           if (existingRecord) {
             const unfollowData: UserChannelFollow = {
               user_id: user.id,
@@ -283,11 +279,9 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
     }
 
     try {
-
       // Use userInfo from AuthHelper instead of making API call
       if (userInfo) {
-
-        const channelActivityRecords = await indexedDB.getAllRawData(user.id);
+        const channelActivityRecords = await inappDb.getAllRawData(user.id);
         
         return {
           channelActivityRecords: channelActivityRecords.channels_activity || [],
@@ -296,7 +290,7 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         };
       }
 
-      const rawData = await indexedDB.getAllRawData(user.id);
+      const rawData = await inappDb.getAllRawData(user.id);
 
       return {
         channelActivityRecords: rawData.channels_activity || [],
@@ -305,9 +299,8 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
       };
 
     } catch (error) {
-
       // Return local data as fallback
-      const rawData = await indexedDB.getAllRawData(user.id);
+      const rawData = await inappDb.getAllRawData(user.id);
 
       return {
         channelActivityRecords: [],

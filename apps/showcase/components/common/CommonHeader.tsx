@@ -25,6 +25,7 @@ export function CommonHeader({
 }: CommonHeaderProps) {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -34,10 +35,8 @@ export function CommonHeader({
     }
   };
 
-  const iconColor = colorScheme === 'dark' ? '#fff' : '#111827'; // Tailwind gray-900
-
   return (
-    <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+    <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
       <View className="w-full max-w-[1200px] self-center">
         <View className="flex-row items-center">
           {showBackButton && (
@@ -45,7 +44,7 @@ export function CommonHeader({
               onPress={handleBackPress} 
               className="mr-2 p-2"
             >
-              <ChevronLeft size={24} className="text-gray-900 dark:text-white" />
+              <ChevronLeft size={24} color={isDark ? '#fff' : '#111827'} />
             </TouchableOpacity>
           )}
           {!showBackButton ? (
@@ -63,7 +62,7 @@ export function CommonHeader({
             </Link>
           ) : (
             <View className="flex-row items-center flex-1">
-              <View className="w-10 h-10 rounded-full items-center justify-center bg-gray-200 dark:bg-gray-700">
+              <View className="w-10 h-10 rounded-full items-center justify-center bg-gray-100 dark:bg-gray-800">
                 {user?.avatar ? (
                   <Image
                     source={{ uri: user.avatar }}
@@ -79,7 +78,7 @@ export function CommonHeader({
                 <Text className="text-lg font-semibold text-gray-900 dark:text-white">
                   {user?.username || title}
                 </Text>
-                <Text className="text-sm text-gray-600 dark:text-gray-300">
+                <Text className="text-sm text-gray-600 dark:text-gray-400">
                   {user?.username ? 'Welcome back' : ''}
                 </Text>
               </View>

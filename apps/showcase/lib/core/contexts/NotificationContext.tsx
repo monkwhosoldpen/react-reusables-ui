@@ -66,13 +66,6 @@ class NativeWebPushProvider implements NotificationProviderInterface {
     try {
       localStorage.setItem('pb-test', '1');
       localStorage.removeItem('pb-test');
-      const req = indexedDB.open('pb-test');
-      await new Promise((res, rej) => {
-        req.onerror = () => rej(new Error('IndexedDB blocked'));
-        req.onsuccess = () => res(null);
-      });
-      req.result.close();
-      indexedDB.deleteDatabase('pb-test');
       return false;
     } catch (_) {
       return true;
