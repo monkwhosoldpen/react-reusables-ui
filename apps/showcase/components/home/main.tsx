@@ -12,8 +12,7 @@ import {
 import { TenantRequest, useAuth } from '~/lib/core/contexts/AuthContext';
 import { LogIn, LogOut, Plus } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { indexedDB } from '~/lib/core/services/indexedDB';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
 import { FlashList } from '@shopify/flash-list';
 
 interface MainScreenProps {
@@ -26,6 +25,7 @@ interface MainScreenProps {
 export function MainScreen({ initialData }: MainScreenProps) {
   const { user, loading: authLoading, userInfo } = useAuth();
   const router = useRouter();
+  const inAppDB = useInAppDB();
 
   const [channelData, setChannelData] = useState<{
     follows: any[];
@@ -37,44 +37,70 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [loadingState, setLoadingState] = useState({
-    dbInit: !initialData,
-    dataLoading: false
+    dataLoading: false,
+    storeInitialized: false
   });
   const [error, setError] = useState<string | null>(null);
   const dataLoadedRef = useRef(false);
 
+  // Check if store is initialized with data
+  useEffect(() => {
+    if (user?.id) {
+      const unsubscribe = useInAppDB.subscribe(
+        (state) => ({
+          hasData: state.user_language.size > 0 || 
+                   state.user_notifications.size > 0 || 
+                   state.push_subscriptions.size > 0
+        }),
+        (newState, prevState) => {
+          if (newState.hasData && !prevState.hasData) {
+            setLoadingState(prev => ({ ...prev, storeInitialized: true }));
+            console.log('[MainScreen] Store initialized with data');
+          }
+        }
+      );
+
+      // Check initial state
+      const initialState = useInAppDB.getState();
+      const hasInitialData = initialState.user_language.size > 0 || 
+                           initialState.user_notifications.size > 0 || 
+                           initialState.push_subscriptions.size > 0;
+      
+      if (hasInitialData) {
+        setLoadingState(prev => ({ ...prev, storeInitialized: true }));
+        console.log('[MainScreen] Store already initialized with data');
+      }
+
+      return () => unsubscribe();
+    }
+  }, [user?.id]);
+
   const loadChannelData = useCallback(async () => {
-    if (!user?.id) {
+    if (!user?.id || !loadingState.storeInitialized) {
       return;
     }
 
     setLoadingState(prev => ({ ...prev, dataLoading: true }));
 
     try {
-      if (loadingState.dbInit) {
-        await indexedDB.initialize();
-        setLoadingState(prev => ({ ...prev, dbInit: false }));
-      }
+      // Get data from InAppDB
+      const follows = inAppDB.getUserChannelFollow(user.id);
+      const requests = inAppDB.getTenantRequests(user.id);
+      const channelsActivity = Array.from(inAppDB.channels_activity.values());
 
-      const [follows, requests, allChannelActivity] = await Promise.all([
-        indexedDB.getAllFromIndex('user_channel_follow', 'by-user', user.id),
-        indexedDB.getAllFromIndex('tenant_requests', 'by-user', user.id),
-        indexedDB.getAll('channels_activity')
-      ]);
-
-      const followsWithActivity = (follows || []).map(follow => ({
+      const followsWithActivity = follows.map(follow => ({
         ...follow,
-        channelActivity: allChannelActivity.filter(activity => activity.username === follow.username),
+        channelActivity: channelsActivity.filter(activity => activity.username === follow.username),
         isPrivate: false,
-        id: follow.id || follow.username
+        id: follow.username
       }));
 
-      const requestsWithActivity = (requests || []).map(request => ({
+      const requestsWithActivity = requests.map(request => ({
         ...request,
-        channelActivity: allChannelActivity.filter(activity => activity.username === request.username),
+        channelActivity: channelsActivity.filter(activity => activity.username === request.username),
         isPrivate: true,
         id: request.id || request.username,
-        username: request.username || request.tenant_name
+        username: request.username
       }));
 
       setChannelData({
@@ -86,10 +112,11 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
     } catch (err) {
       setError('Failed to load data');
+      console.error('[MainScreen] Error loading data:', err);
     } finally {
       setLoadingState(prev => ({ ...prev, dataLoading: false }));
     }
-  }, [user?.id, loadingState.dbInit]);
+  }, [user?.id, loadingState.storeInitialized, inAppDB]);
 
   useEffect(() => {
     let mounted = true;
@@ -122,6 +149,25 @@ export function MainScreen({ initialData }: MainScreenProps) {
       dataLoadedRef.current = false;
     }
   }, [user?.id]);
+
+  // Log Zustand store state when user is logged in
+  useEffect(() => {
+    if (user?.id) {
+      const store = useInAppDB.getState();
+      console.log('[MainScreen] Current Zustand Store State:', {
+        users: Array.from(store.users.entries()),
+        channels_messages: Array.from(store.channels_messages.entries()),
+        channels_activity: Array.from(store.channels_activity.entries()),
+        user_language: Array.from(store.user_language.entries()),
+        user_notifications: Array.from(store.user_notifications.entries()),
+        tenant_requests: Array.from(store.tenant_requests.entries()),
+        user_location: Array.from(store.user_location.entries()),
+        push_subscriptions: Array.from(store.push_subscriptions.entries()),
+        user_channel_follow: Array.from(store.user_channel_follow.entries()),
+        user_channel_last_viewed: Array.from(store.user_channel_last_viewed.entries())
+      });
+    }
+  }, [user?.id, channelData]);
 
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
     const channelActivity = item.channelActivity?.[0];
@@ -186,15 +232,17 @@ export function MainScreen({ initialData }: MainScreenProps) {
     return sorted;
   }, [channelData]);
 
-  if (authLoading) {
+  if (authLoading || (user && loadingState.dataLoading)) {
     return (
       <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
         <View className="flex-1 justify-center px-6">
           <View className="p-6 rounded-2xl bg-white dark:bg-gray-800 mt-6 shadow-lg">
             <ActivityIndicator size="large" className="text-blue-500" />
-            <Text className="mt-6 text-2xl font-bold text-center text-gray-900 dark:text-white">Loading...</Text>
+            <Text className="mt-6 text-2xl font-bold text-center text-gray-900 dark:text-white">
+              Loading Your Data
+            </Text>
             <Text className="mt-3 text-base text-center text-gray-600 dark:text-gray-300">
-              Please wait while we initialize the app
+              Please wait while we load your channels
             </Text>
           </View>
         </View>
@@ -218,22 +266,6 @@ export function MainScreen({ initialData }: MainScreenProps) {
               <LogIn size={20} color="white" className="mr-2" />
               <Text className="text-base font-semibold text-white">Sign In</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (loadingState.dataLoading || loadingState.dbInit) {
-    return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
-        <View className="flex-1 justify-center px-6">
-          <View className="p-6 rounded-2xl bg-white dark:bg-gray-800 mt-6 shadow-lg">
-            <ActivityIndicator size="large" className="text-blue-500" />
-            <Text className="mt-6 text-2xl font-bold text-center text-gray-900 dark:text-white">Loading Your Data</Text>
-            <Text className="mt-3 text-base text-center text-gray-600 dark:text-gray-300">
-              Please wait while we load your channels
-            </Text>
           </View>
         </View>
       </SafeAreaView>

@@ -62,15 +62,12 @@ const generateRandomMedia = (count: number = Math.floor(Math.random() * 4) + 1):
         url: video.url,
         thumbnail: video.thumbnail,
         caption: 'Sample video content',
-        duration: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
-        dimensions: { width: 1280, height: 720 }
       });
     } else {
       media.push({
         type: 'image' as MediaType,
         url: REALISTIC_IMAGES[Math.floor(Math.random() * REALISTIC_IMAGES.length)],
         caption: 'Sample image content',
-        dimensions: { width: 1200, height: 675 }
       });
     }
   }
@@ -104,7 +101,6 @@ export const generateMockFeedItem = (): FormDataType => {
       },
       mediaLayout: 'grid',
       requireAuth: false,
-      allowResubmit: false,
       timestamp: new Date().toLocaleString(),
     },
     stats: {

@@ -16,7 +16,6 @@ import {
 } from '~/components/ui/dialog';
 import LoginCommon from '~/components/common/LoginCommon';
 import { View, Text, useColorScheme } from 'react-native';
-import { indexedDB } from '~/lib/core/services/indexedDB';
 
 interface FollowButtonProps {
   username: string;

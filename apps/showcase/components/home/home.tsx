@@ -3,131 +3,68 @@
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Button } from '~/components/ui/button';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { Text, View, StyleSheet, ScrollView } from 'react-native';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
+import { useColorScheme } from 'react-native';
+import { Text, View, ScrollView, SafeAreaView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const { colorScheme } = useColorScheme();
-  const { design } = useDesign();
+  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const isDark = colorScheme === 'dark';
   
   // If still loading, show nothing to prevent flash
   if (loading) {
     return null;
   }
 
-  // Apply design system tokens
-  const containerStyle = {
-    ...styles.container,
-    backgroundColor: colorScheme.colors.background,
-    paddingBottom: insets.bottom + Number(design.spacing.padding.card),
-    paddingTop: Number(design.spacing.padding.card)
-  };
-
-  const contentStyle = {
-    ...styles.content,
-    padding: Number(design.spacing.padding.card),
-    borderRadius: Number(design.radius.lg),
-    backgroundColor: colorScheme.colors.card,
-  };
-
-  const titleStyle = {
-    color: colorScheme.colors.primary,
-    fontSize: Number(design.spacing.fontSize.xl),
-    marginBottom: Number(design.spacing.margin.card),
-  };
-
-  const subtitleStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.lg),
-    opacity: 0.8,
-  };
-
-  const descriptionStyle = {
-    color: colorScheme.colors.text,
-    fontSize: Number(design.spacing.fontSize.base),
-    opacity: 0.7,
-  };
-
   return (
-    <ScrollView style={containerStyle}>
-      {user ? (
-        <View style={contentStyle}>
-          <View style={styles.textContainer}>
-            <Text style={titleStyle}>
+    <SafeAreaView className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+      <ScrollView 
+        className="flex-1"
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 16,
+          paddingTop: 16
+        }}
+      >
+        <View className={`mx-4 mb-4 p-6 rounded-2xl ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+          <View className="items-center gap-4">
+            <Text className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               nchat
             </Text>
-            <Text style={subtitleStyle}>
+            <Text className={`text-lg text-center ${isDark ? 'text-gray-300' : 'text-gray-700'} opacity-80`}>
               Your messaging app for everyday communication
             </Text>
-            <Text style={descriptionStyle}>
+            <Text className={`text-base text-center ${isDark ? 'text-gray-400' : 'text-gray-600'} opacity-70`}>
               Connect with friends, family, and colleagues in a simple, secure environment.
               Share messages, media, and more with our intuitive platform.
             </Text>
-            <Button
-              size="lg"
-              onPress={() => router.push('/feed')}
-              style={{
-                marginTop: Number(design.spacing.margin.card),
-                backgroundColor: colorScheme.colors.primary,
-                borderRadius: Number(design.radius.md)
-              }}
-            >
-              <Text style={{ color: 'white', fontSize: Number(design.spacing.fontSize.base) }}>
-                Feed
-              </Text>
-            </Button>
+            {user ? (
+              <Button
+                size="lg"
+                onPress={() => router.push('/feed')}
+                className="mt-4 bg-blue-500 rounded-xl w-full"
+              >
+                <Text className="text-base font-semibold text-white">
+                  Feed
+                </Text>
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                onPress={() => router.push('/login')}
+                className="mt-4 bg-blue-500 rounded-xl w-full"
+              >
+                <Text className="text-base font-semibold text-white">
+                  Get Started
+                </Text>
+              </Button>
+            )}
           </View>
         </View>
-      ) : (
-        <View style={contentStyle}>
-          <View style={styles.textContainer}>
-            <Text style={titleStyle}>
-              nchat
-            </Text>
-            <Text style={subtitleStyle}>
-              Your messaging app for everyday communication
-            </Text>
-            <Text style={descriptionStyle}>
-              Connect with friends, family, and colleagues in a simple, secure environment.
-              Share messages, media, and more with our intuitive platform.
-            </Text>
-            <Button
-              size="lg"
-              onPress={() => router.push('/login')}
-              style={{
-                marginTop: Number(design.spacing.margin.card),
-                backgroundColor: colorScheme.colors.primary,
-                borderRadius: Number(design.radius.md)
-              }}
-            >
-              <Text style={{ color: 'white', fontSize: Number(design.spacing.fontSize.base) }}>
-                Get Started
-              </Text>
-            </Button>
-          </View>
-        </View>
-      )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  textContainer: {
-    alignItems: 'center',
-    gap: 16,
-  },
-});
 

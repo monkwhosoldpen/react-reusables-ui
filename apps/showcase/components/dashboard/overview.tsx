@@ -11,7 +11,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '~/components/ui/accordion';
-import { useTheme } from '~/lib/core/providers/theme/ThemeProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface OverviewTabProps {
@@ -44,7 +43,6 @@ export default function OverviewTab({
   channelInfo,
   relatedChannelsCount 
 }: OverviewTabProps) {
-  const { theme } = useTheme();
   const colorScheme = useColorScheme();
   const router = useRouter();
   const { width } = useWindowDimensions();

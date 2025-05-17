@@ -20,7 +20,6 @@ export function OnboardingChannel({
   onboardingConfig,
   onComplete
 }: OnboardingChannelProps) {
-  const colorScheme = useColorScheme();
   // Track current screen index for the middle screens
   const [currentScreenIndex, setCurrentScreenIndex] = useState<number>(-1)
   // Track overall step (welcome, screens, finish)

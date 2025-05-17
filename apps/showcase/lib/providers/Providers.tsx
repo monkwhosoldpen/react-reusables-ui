@@ -1,43 +1,33 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
+import { Toaster } from 'sonner';
+
 import { AuthProvider } from '../core/contexts/AuthContext';
 import { NotificationProvider } from '../core/contexts/NotificationContext';
 import { FeedInteractionProvider } from '../enhanced-chat/providers/feed/FeedInteractionProvider';
 import { APIProvider } from '../core/providers/api/APIProvider';
 import { RealtimeProvider } from '../core/providers/RealtimeProvider';
-import { ColorSchemeProvider } from '../core/providers/theme/ColorSchemeProvider';
-import { DesignProvider } from '../core/providers/theme/DesignSystemProvider';
-import { ThemeProvider } from '../core/providers/theme/ThemeProvider';
-import { Toaster } from 'sonner';
 
 interface ProvidersProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
+
   return (
-    <>
-      <AuthProvider>
-        <APIProvider>
-          <ColorSchemeProvider>
-            <DesignProvider>
-              <ThemeProvider>
-                <RealtimeProvider>
-                  <>
-                    <FeedInteractionProvider>
-                      <>
-                        <NotificationProvider>
-                            {children}
-                        </NotificationProvider>
-                      </>
-                      <Toaster position="top-right" closeButton richColors />
-                    </FeedInteractionProvider>
-                  </>
-                </RealtimeProvider>
-              </ThemeProvider>
-            </DesignProvider>
-          </ColorSchemeProvider>
-        </APIProvider>
-      </AuthProvider>
-    </>
+    <AuthProvider>
+      <APIProvider>
+        <>
+          <RealtimeProvider>
+            <FeedInteractionProvider>
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
+              {/* Global toast notifications */}
+              <Toaster position="top-right" closeButton richColors />
+            </FeedInteractionProvider>
+          </RealtimeProvider>
+        </>
+      </APIProvider>
+    </AuthProvider>
   );
-} 
+}

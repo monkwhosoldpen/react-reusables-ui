@@ -1,18 +1,9 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, ScrollView, useWindowDimensions, Text } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Loader2 } from 'lucide-react';
-import { Button } from '~/components/ui/button';
-import { ChannelSidebar } from '~/components/channel-profile/ChannelSidebar';
-import { ChannelDebugInfo } from '~/components/channel-profile/ChannelDebugInfo';
-import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 import { Channel, ChannelResponse } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';
-import { useRealtime } from '~/lib/core/providers/RealtimeProvider';
 import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
-import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { AuthHelper } from '../core/helpers/AuthHelpers';
 
 /**

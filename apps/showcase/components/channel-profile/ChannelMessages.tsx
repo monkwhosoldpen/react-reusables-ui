@@ -3,7 +3,6 @@
 import React from 'react'
 import { View, Text, ScrollView } from 'react-native'
 import { ChannelMessage, Channel } from '~/lib/core/types/channel.types'
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem'
 import { DEFAULT_METADATA } from '~/lib/enhanced-chat/utils/feedData'
 import { FeedItemType, MediaItem, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed'
@@ -30,7 +29,6 @@ export function ChannelMessages({
   onRefreshMessages,
   username
 }: ChannelMessagesProps) {
-  const { colorScheme } = useColorScheme();
 
   if (messagesLoading) {
     return (

@@ -1,15 +1,14 @@
-import { View, Text, ScrollView, Image, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, Image, useWindowDimensions, useColorScheme } from 'react-native';
 import { Link } from 'expo-router';
 import { Button } from '~/components/ui/button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronRight } from '~/lib/icons/ChevronRight';
 import { LANDING_CONTENT } from '~/lib/core/constants/landing';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { MaterialIcons } from "@expo/vector-icons";
 
 export function Landing() {
   const { width } = useWindowDimensions();
-  const { isDarkMode } = useColorScheme();
+  const isDarkMode = useColorScheme() === 'dark';
   const isSmallScreen = width < 768;
 
   const MobileLayout = () => (

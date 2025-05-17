@@ -22,19 +22,16 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
   const [password, setPassword] = useState("")
 
   const handleSubmit = async () => {
-    console.log('[LoginDialog] Starting email sign in with:', { email });
     setIsLoading(true)
     setError("")
     try {
       await signIn(email, password)
-      console.log('[LoginDialog] Email sign in successful');
       onOpenChange(false)
       if (onLoginSuccess) {
         setTimeout(() => onLoginSuccess(), 100)
       }
       router.replace('/(tabs)')
     } catch (err) {
-      console.error('[LoginDialog] Email sign in error:', err);
       setError(err instanceof Error ? err.message : "An error occurred during login")
     } finally {
       setIsLoading(false)
@@ -42,16 +39,13 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
   }
 
   const handleAnonymousSignIn = async () => {
-    console.log('[LoginDialog] Starting anonymous sign in');
     setIsLoading(true)
     setError("")
     try {
       await signInAnonymously()
-      console.log('[LoginDialog] Anonymous sign in successful');
       onOpenChange(false)
       router.replace('/(tabs)')
     } catch (err) {
-      console.error('[LoginDialog] Anonymous sign in error:', err);
       setError(err instanceof Error ? err.message : "An error occurred during anonymous login")
     } finally {
       setIsLoading(false)
@@ -59,16 +53,13 @@ export function LoginDialog({ isOpen, onOpenChange, onLoginSuccess }: LoginDialo
   }
 
   const handleGuestSignIn = async () => {
-    console.log('[LoginDialog] Starting guest sign in');
     setIsLoading(true)
     setError("")
     try {
       await signInAsGuest()
-      console.log('[LoginDialog] Guest sign in successful');
       onOpenChange(false)
       router.replace('/(tabs)')
     } catch (err) {
-      console.error('[LoginDialog] Guest sign in error:', err);
       setError(err instanceof Error ? err.message : "An error occurred during guest login")
     } finally {
       setIsLoading(false)

@@ -4,7 +4,6 @@ import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
 import { FormDataType, InteractiveContent, PollData, QuizData, SurveyData } from '~/lib/enhanced-chat/types/superfeed';
 import { useInteractiveContent } from '~/lib/enhanced-chat/hooks/useInteractiveContent';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { calculateMaxHeight } from '~/lib/enhanced-chat/utils/heightCalculations';
 
 interface FeedItemProps {
@@ -14,7 +13,6 @@ interface FeedItemProps {
 }
 
 export function FeedItem({ data, showHeader = true, showFooter = true }: FeedItemProps) {
-  const { colorScheme } = useColorScheme();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const [isCollapsed, setIsCollapsed] = useState(data.metadata?.isCollapsible ?? true);

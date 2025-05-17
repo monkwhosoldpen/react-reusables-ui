@@ -1,10 +1,9 @@
 "use client"
 
 import React from 'react'
-import { View, ScrollView, Pressable } from 'react-native'
+import { View, ScrollView, Pressable, useColorScheme } from 'react-native'
 import { Channel } from "~/lib/core/types/channel.types"
 import { Text } from '~/components/ui/text'
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
 import { Users, Settings } from 'lucide-react'
 import { useRouter } from 'expo-router'
 
@@ -21,7 +20,6 @@ export function ChannelSidebar({
   selectedChannel,
   sidebarWidth,
 }: ChannelSidebarProps) {
-  const { colorScheme } = useColorScheme()
   const router = useRouter()
 
   const handleChannelPress = (channelUsername: string) => {
@@ -45,7 +43,7 @@ export function ChannelSidebar({
                   : 'bg-white dark:bg-gray-800'
               }`}>
                 <View className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center shadow-sm">
-                  <Users size={20} color={colorScheme.colors.primary} />
+                  <Users size={20} />
                 </View>
                 <Text 
                   className="text-xs text-center mt-1.5 font-medium px-1 w-full text-gray-900 dark:text-white"
@@ -69,7 +67,7 @@ export function ChannelSidebar({
                   : 'bg-white dark:bg-gray-800'
               }`}>
                 <View className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center shadow-sm">
-                  <Users size={20} color={colorScheme.colors.primary} />
+                  <Users size={20} />
                 </View>
                 <Text 
                   className="text-xs text-center mt-1.5 px-1 w-full text-gray-900 dark:text-white"
@@ -90,7 +88,7 @@ export function ChannelSidebar({
             className="flex-col items-center py-3 px-1"
           >
             <View className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 items-center justify-center shadow-sm">
-              <Settings size={20} color={colorScheme.colors.primary} />
+              <Settings size={20} />
             </View>
             <Text 
               className="text-xs text-center mt-1.5 font-medium text-gray-900 dark:text-white"

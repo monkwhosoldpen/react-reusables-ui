@@ -10,7 +10,6 @@ import {
   MediaItem, 
   MediaType, 
   InteractiveContent,
-  VisibilitySettings,
   DisplayMode
 } from '~/lib/enhanced-chat/types/superfeed';
 import { DEFAULT_INTERACTIVE_CONTENT } from '~/lib/enhanced-chat/types/superfeed';
@@ -21,7 +20,7 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2JlbWpld29zbWx2em50amtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxMzIxNDIsImV4cCI6MjA1NTcwODE0Mn0._5wXtDjCr9ZnYatWD7RO5DNhx_YxUjqCcdc6qhZpwGM',
 );
 
-export const DEFAULT_VISIBILITY: VisibilitySettings = {
+export const DEFAULT_VISIBILITY: any = {
   stats: true,
   shareButtons: true,
   header: true,

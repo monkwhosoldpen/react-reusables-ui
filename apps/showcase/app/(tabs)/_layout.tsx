@@ -4,9 +4,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { Menu, Settings } from 'lucide-react-native';
 import { LayoutPanelLeft } from '~/lib/icons/LayoutPanelLeft';
 import { CommonHeader } from '~/components/common/CommonHeader';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
-import { View, useWindowDimensions, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
+import { View, useWindowDimensions, TouchableOpacity, ActivityIndicator, SafeAreaView, useColorScheme } from 'react-native';
 import { Text } from '~/components/ui/text';
 import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import type { NavigationProp } from '@react-navigation/native';
@@ -20,8 +18,8 @@ interface NavigationItem {
 }
 
 export default function TabsLayout() {
-  const { colorScheme } = useColorScheme();
-  const { design } = useDesign();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const { width } = useWindowDimensions();
   const isMdAndAbove = width >= 768;
   const router = useRouter();
@@ -54,22 +52,22 @@ export default function TabsLayout() {
       )
     ),
     tabBarStyle: {
-      backgroundColor: colorScheme.colors.card,
-      borderTopColor: colorScheme.colors.border,
+      backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+      borderTopColor: isDark ? '#374151' : '#E5E7EB',
       borderTopWidth: 1,
       height: 60,
       paddingBottom: 4,
       elevation: 3,
-      shadowColor: colorScheme.colors.muted,
+      shadowColor: isDark ? '#111827' : '#6B7280',
       shadowOffset: { width: 0, height: -2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
       display: isMdAndAbove ? 'none' : 'flex',
     },
-    tabBarActiveTintColor: colorScheme.colors.primary,
-    tabBarInactiveTintColor: colorScheme.colors.text,
+    tabBarActiveTintColor: '#3B82F6', // blue-500
+    tabBarInactiveTintColor: isDark ? '#D1D5DB' : '#4B5563', // gray-300 : gray-600
     tabBarLabelStyle: {
-      fontSize: Number(design.spacing.fontSize.xs),
+      fontSize: 12,
       marginBottom: 0,
       fontWeight: '600',
     },
@@ -90,11 +88,11 @@ export default function TabsLayout() {
         )}
       >
         <Icon 
-          color={colorScheme.colors.text} 
+          color={isDark ? '#D1D5DB' : '#4B5563'} 
           size={24} 
         />
         <Text 
-          className="text-base font-medium text-gray-900 dark:text-white"
+          className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
         >
           {item.name}
         </Text>
@@ -106,14 +104,10 @@ export default function TabsLayout() {
     return (
       <View className="flex-1 flex-row">
         {/* Sidebar */}
-        <View className={cn(
-          "w-60 border-r",
-          "bg-white dark:bg-gray-900",
-          "border-gray-200 dark:border-gray-800"
-        )}>
+        <View className={`w-60 border-r ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
           <SafeAreaView className="flex-1 pt-8">
             <View className="px-4 pb-6">
-              <Text className="text-2xl font-bold text-gray-900 dark:text-white">
+              <Text className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 nchat
               </Text>
             </View>

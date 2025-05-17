@@ -8,9 +8,6 @@ import { FollowButton } from '~/components/common/FollowButton';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Channel } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';
-import { useTheme } from '~/lib/core/providers/theme/ThemeProvider';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommonHeader } from '~/components/common/CommonHeader';
@@ -22,7 +19,6 @@ export default function ExplorePage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [followingStatus, setFollowingStatus] = React.useState<Record<string, boolean>>({});
-  const { colorScheme } = useColorScheme();
   const router = useRouter();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();

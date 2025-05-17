@@ -1,5 +1,4 @@
 import { FormDataType, FeedItemType, MediaLayout, InteractiveContent } from '~/lib/enhanced-chat/types/superfeed';
-import { QUICK_ACTION_TEMPLATES } from './quickActionTemplates';
 
 type InteractiveType = 'poll' | 'quiz' | 'survey';
 type StateSetter<T> = (value: T | ((prev: T) => T)) => void;

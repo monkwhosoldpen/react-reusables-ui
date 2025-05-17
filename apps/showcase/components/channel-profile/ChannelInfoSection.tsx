@@ -4,7 +4,6 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { Channel } from '~/lib/core/types/channel.types';
 import { MessageCircle } from 'lucide-react';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
 import { JoinButton } from '~/components/common/JoinButton';
 import { FollowButton } from '~/components/common/FollowButton';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
@@ -25,8 +24,6 @@ const ChannelInfoSection = ({
   accessStatus = 'NONE',
   children 
 }: ChannelInfoSectionProps) => {
-  const { colorScheme } = useColorScheme();
-  const { user } = useAuth();
   
   // Determine access based on both the channel properties and API accessStatus
   const hasAccess = accessStatus === 'FULL' || 
@@ -35,7 +32,7 @@ const ChannelInfoSection = ({
   return (
     <View>
       <View className="flex-row items-center gap-2 p-2 bg-primary/10">
-        <MessageCircle size={12} color={colorScheme.colors.primary} />
+        <MessageCircle size={12} />
         <Text className="text-xs text-primary">
           {messageCount}
         </Text>
@@ -62,7 +59,6 @@ const ChannelInfoSection = ({
         {!hasAccess && (
           <View 
             className="absolute inset-0 z-10 opacity-70"
-            style={{ backgroundColor: colorScheme.colors.background }}
           />
         )}
       </View>

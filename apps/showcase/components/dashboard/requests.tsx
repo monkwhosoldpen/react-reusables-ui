@@ -15,7 +15,6 @@ import {
   Search,
   Plus
 } from 'lucide-react-native';
-import { useTheme } from '~/lib/core/providers/theme/ThemeProvider';
 import { createClient } from '@supabase/supabase-js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
@@ -40,7 +39,6 @@ interface TenantRequest {
 
 export default function RequestsTab() {
   const { username } = useLocalSearchParams();
-  const { theme } = useTheme();
   const colorScheme = useColorScheme();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();

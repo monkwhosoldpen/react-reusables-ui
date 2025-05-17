@@ -8,6 +8,7 @@ import { UserInfo } from '../types/channel.types';
 import { router } from 'expo-router';
 import { config } from '~/lib/core/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useInAppDB } from '../providers/InAppDBProvider';
 
 // Singleton for auth initialization
 export class AuthInitializer {
@@ -297,6 +298,8 @@ export function AuthHelper(): AuthHelperReturn {
     };
   }, []);
 
+  const inappDb = useInAppDB();
+
   // Fetch user info from the API when user ID is resolved
   const fetchUserInfo = async (userId: string) => {
     let savedUser; // Declare savedUser outside try block
@@ -350,7 +353,6 @@ export function AuthHelper(): AuthHelperReturn {
       const now = Date.now();
       
       if (cachedData && (now - cachedData.timestamp < CACHE_TTL)) {
-        // Use cached data directly
         setUserInfo(cachedData.data);
         return;
       }
@@ -367,10 +369,11 @@ export function AuthHelper(): AuthHelperReturn {
 
       fetchingUserInfo.current = true;
       
-      // Create a new promise for this fetch - same API call for both guest and non-guest
+      // Create a new promise for this fetch
       pendingFetchPromise.current = (async () => {
         try {
           const isGuestUser = savedUser?.role === 'guest' || isGuest;
+          
           const response = await fetch(`${config.api.endpoints.myinfo}?userId=${userId}`, {
             method: 'POST',
             headers: {
@@ -400,10 +403,21 @@ export function AuthHelper(): AuthHelperReturn {
                 }
               };
 
+              const toSave = data.rawRecords;
+              
               // Save all raw API data to IndexedDB in one call
               await indexedDB.saveRawApiData(userId, transformedData);
 
-              // Create simplified user info for state - extract just what's needed for UI
+              // Save to Zustand store
+              inappDb.setUserLanguage(userId, toSave.user_language);
+              inappDb.setUserNotifications(userId, toSave.user_notifications);
+              inappDb.setUserLocation(userId, toSave.user_location);
+              inappDb.saveTenantRequests(userId, toSave.tenant_requests);
+              inappDb.savePushSubscription(toSave.push_subscriptions);
+              inappDb.saveUserChannelFollow(userId, toSave.user_channel_follow);
+              inappDb.saveUserChannelLastViewed(userId, toSave.user_channel_last_viewed);
+              
+              // Extract data for UI state
               const preferences = transformedData.userPreferences;
               
               // Extract language
@@ -411,37 +425,39 @@ export function AuthHelper(): AuthHelperReturn {
                 ? preferences.user_language[0].language 
                 : 'english';
               
-              // Extract notification preference from user_notifications array
+              // Extract notification settings
               const notificationsEnabled = preferences?.user_notifications?.length > 0 
                 ? preferences.user_notifications[0].notifications_enabled 
                 : false;
-              
-              // Extract user location from user_location array
+                
+              // Extract user location
               const userLocation = preferences?.user_location?.length > 0 
                 ? preferences.user_location[0] 
                 : null;
-              
-              // Extract tenant requests - handle both tenant_requests and tena fields
-              const userTenantRequests = preferences?.tenant_requests || preferences?.tena || [];
+                
+              // Extract tenant requests
+              const tenantRequests = preferences?.tenant_requests || preferences?.tena || [];
 
-              // Create final user info with extracted fields
+              // Create complete user info object
               const updatedUserInfo = {
                 ...data.user,
                 language: language,
                 notifications_enabled: notificationsEnabled,
-                tenantRequests: userTenantRequests,
+                tenantRequests: tenantRequests,
                 userLocation: userLocation
               };
 
+              // Update cache
               userInfoCache.current[userId] = {
                 data: updatedUserInfo,
                 timestamp: Date.now()
               };
+
+              // Update state with API data
               setUserInfo(updatedUserInfo);
               lastFetchTime.current = Date.now();
 
             } catch (dbError) {
-              // Even if sync fails, we should still update the state with API data
             }
           } else {
           }
@@ -457,7 +473,7 @@ export function AuthHelper(): AuthHelperReturn {
     } catch (error) {
       // Now savedUser is accessible here
       if (savedUser) {
-        setUserInfo({
+        const fallbackUserInfo = {
           id: savedUser.id,
           email: savedUser.email,
           phone: null,
@@ -469,7 +485,8 @@ export function AuthHelper(): AuthHelperReturn {
           language: 'english',
           tenantRequests: [],
           userLocation: null
-        });
+        };
+        setUserInfo(fallbackUserInfo);
       }
     }
   };

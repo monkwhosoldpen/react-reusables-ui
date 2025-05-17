@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     completeChannelOnboarding,
     fetchChannelMessages,
     updateChannelLastViewed
-  } = SampleHelper(user, isGuest);
+  } = SampleHelper(user, isGuest, userInfo);
 
   // Memoize auth context value to prevent unnecessary re-renders
   const contextValue = useMemo<SimplifiedAuthContextType>(() => ({

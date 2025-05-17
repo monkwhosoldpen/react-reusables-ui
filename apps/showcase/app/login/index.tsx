@@ -1,6 +1,6 @@
-import { View, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider';
-import { useDesign } from '~/lib/core/providers/theme/DesignSystemProvider';
+'use client';
+
+import { View, SafeAreaView, useWindowDimensions, useColorScheme } from 'react-native';
 import LoginCommon from '~/components/common/LoginCommon';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { useState, useEffect } from 'react';
@@ -8,8 +8,8 @@ import { router } from 'expo-router';
 
 export default function LoginPage() {
   const { signIn, signInAnonymously, signInAsGuest, user, userInfo, loading } = useAuth();
-  const { colorScheme } = useColorScheme();
-  const { design } = useDesign();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const { width } = useWindowDimensions();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,64 +26,6 @@ export default function LoginPage() {
       router.replace('/(tabs)');
     }
   }, [user]);
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colorScheme.colors.background,
-    },
-    content: {
-      flex: 1,
-      marginBottom: 20,
-      marginTop: 20,
-      padding: Number(design.spacing.padding.card),
-      width: width > 768 ? 500 : '100%',
-      alignSelf: 'center',
-    },
-    header: {
-      marginBottom: Number(design.spacing.padding.card),
-    },
-    sectionHeader: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      marginTop: 8,
-      backgroundColor: 'transparent',
-    },
-    sectionHeaderText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: colorScheme.colors.text,
-      opacity: 0.7,
-      textTransform: 'uppercase',
-      letterSpacing: 1,
-    },
-    titleContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    iconContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 12,
-      backgroundColor: `${colorScheme.colors.primary}1A`,
-    },
-    title: {
-      fontSize: Number(design.spacing.fontSize.xl),
-      fontWeight: '700',
-      color: colorScheme.colors.text,
-      marginBottom: Number(design.spacing.padding.item),
-    },
-    description: {
-      fontSize: Number(design.spacing.fontSize.base),
-      color: colorScheme.colors.text,
-      opacity: 0.7,
-      lineHeight: 24,
-    },
-  });
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -125,8 +67,10 @@ export default function LoginPage() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+    <SafeAreaView className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+      <View 
+        className={`flex-1 my-5 px-6 ${width > 768 ? 'max-w-[500px]' : 'w-full'} self-center`}
+      >
         <LoginCommon
           email={email}
           setEmail={setEmail}

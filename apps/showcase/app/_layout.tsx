@@ -5,14 +5,13 @@ import { DeprecatedUi } from '@rnr/reusables';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
-import { Platform } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeToggle } from '~/components/settings/ThemeToggle';
 import { Text } from '~/components/ui/text';
 import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
 import { NAV_THEME } from '~/lib/core/constants/constants';
 import { Providers } from '~/lib/providers/Providers';
-import { useColorScheme } from '~/lib/useColorScheme';
 import { registerServiceWorker } from '../utils/register-sw';
 import { useEffect } from 'react';
 
@@ -39,7 +38,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const hasMounted = React.useRef(false);
-  const { colorScheme, isDarkColorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
 
   useEffect(() => {
@@ -67,8 +66,8 @@ export default function RootLayout() {
   return (
     <>
       <Providers>
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-          <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+        <ThemeProvider value={colorScheme === 'dark' ? DARK_THEME : LIGHT_THEME}>
+          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
           <GestureHandlerRootView style={{ flex: 1 }}>
             <BottomSheetModalProvider>
               <Stack
@@ -88,34 +87,6 @@ export default function RootLayout() {
                     headerShown: false,
                   }}
                 />
-
-                {/* <Stack.Screen
-                  name='login'
-                  options={{
-                    headerShown: false,
-                  }}
-                />
-
-                <Stack.Screen
-                  name='explore'
-                  options={{
-                    headerShown: true,
-                  }}
-                />
-
-                <Stack.Screen
-                  name='[username]'
-                  options={{
-                    headerShown: true,
-                  }}
-                />
-
-                <Stack.Screen
-                  name='dashboard'
-                  options={{
-                    headerShown: true,
-                  }}
-                /> */}
 
                 <Stack.Screen
                   name='modal'

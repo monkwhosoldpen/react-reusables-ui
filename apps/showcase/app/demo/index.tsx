@@ -1,4 +1,3 @@
-import { DashboardScreen } from '~/components/dashboard/dashboard-screen';
 import { PREMIUM_CONFIGS } from '~/lib/in-app-db/states/telangana/premium-data';
 import { Link } from 'expo-router';
 import { View, Text, Pressable, StyleSheet } from 'react-native';

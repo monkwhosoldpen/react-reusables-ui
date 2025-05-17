@@ -2,7 +2,7 @@
 
 import { indexedDB } from '~/lib/core/services/indexedDB';
 import { supabase } from '~/lib/core/supabase';
-import { ChannelActivity, Channel, ChannelMessage, TenantRequest } from '~/lib/core/types/channel.types';
+import { ChannelActivity, Channel, ChannelMessage, TenantRequest, UserInfo } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';
 import { User } from '@supabase/supabase-js';
 
@@ -52,7 +52,7 @@ export interface SampleHelperReturn {
   updateChannelLastViewed: (username: string) => Promise<boolean>;
 }
 
-export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperReturn {
+export function SampleHelper(user: User | null, isGuest: boolean, userInfo: UserInfo | null): SampleHelperReturn {
 
   const testFn = async (username: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -440,117 +440,37 @@ export function SampleHelper(user: User | null, isGuest: boolean): SampleHelperR
         userEmail: user.email
       });
 
-      // Get current notification state from IndexedDB for comparison
-      const currentDbState = await indexedDB.getUserNotifications(user.id);
-      console.log('[SampleHelper] Current IndexedDB notification state', {
-        userId: user.id,
-        enabled: currentDbState,
-        timestamp: new Date().toISOString()
-      });
+      // Use userInfo from AuthHelper instead of making API call
+      if (userInfo) {
+        // Get current notification state from IndexedDB for comparison
+        const currentDbState = await indexedDB.getUserNotifications(user.id);
+        console.log('[SampleHelper] Current IndexedDB notification state', {
+          userId: user.id,
+          enabled: currentDbState,
+          timestamp: new Date().toISOString()
+        });
 
-      // Fetch from API
-      console.log('[SampleHelper] Fetching myinfo data', {
-        userId: user.id,
-        endpoint: `${config.api.endpoints.myinfo}?userId=${user.id}`,
-        timestamp: new Date().toISOString(),
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: {
-          isGuest: isGuest
-        }
-      });
+        // Extract relevant data from userInfo
+        const channelActivityRecords = await indexedDB.getAllRawData(user.id);
+        
+        console.log('[SampleHelper] Processing user data', {
+          userId: user.id,
+          hasChannelsActivity: !!channelActivityRecords.channels_activity,
+          channelsActivityCount: channelActivityRecords.channels_activity?.length || 0,
+          timestamp: new Date().toISOString()
+        });
 
-      const response = await fetch(`${config.api.endpoints.myinfo}?userId=${user.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          isGuest: isGuest
-        })
-      });
-      
-      const data = await response.json();
-
-      console.log('[SampleHelper] Received myinfo response', {
-        userId: user.id,
-        success: data.success,
-        hasUserPreferences: !!data.userPreferences,
-        notificationState: data.userPreferences?.notifications_enabled,
-        pushSubscriptionCount: data.userPreferences?.push_subscriptions?.length || 0,
-        timestamp: new Date().toISOString(),
-        responseStatus: response.status,
-        responseStatusText: response.statusText,
-        dataKeys: Object.keys(data)
-      });
-
-      if (data.success) {
-        try {
-          // Check for state inconsistencies
-          const apiNotificationState = data.userPreferences?.notifications_enabled;
-          if (currentDbState !== apiNotificationState) {
-            console.warn('[SampleHelper] Notification state mismatch', {
-              userId: user.id,
-              dbState: currentDbState,
-              apiState: apiNotificationState,
-              timestamp: new Date().toISOString()
-            });
-          }
-
-          console.log('[SampleHelper] Processing myinfo data', {
-            userId: user.id,
-            preferencesKeys: Object.keys(data.userPreferences || {}),
-            pushSubscriptionsCount: data.userPreferences?.push_subscriptions?.length || 0,
-            channelsActivityCount: data.userPreferences?.channels_activity?.length || 0,
-            timestamp: new Date().toISOString(),
-            rawDataSize: JSON.stringify(data).length
-          });
-
-          // Save all raw API data to IndexedDB
-          await indexedDB.saveRawApiData(user.id, data);
-          console.log('[SampleHelper] Saved raw API data to IndexedDB', {
-            userId: user.id,
-            timestamp: new Date().toISOString()
-          });
-          
-          // Extract relevant data for returning
-          const preferences = data.userPreferences;
-          const language = preferences.user_language?.length > 0 
-            ? preferences.user_language[0].language 
-            : 'english';
-          const tenantRequests = preferences.tenant_requests || preferences.tena || [];
-          
-          console.log('[SampleHelper] Processed myinfo data', {
-            userId: user.id,
-            language,
-            tenantRequestsCount: tenantRequests.length,
-            channelsActivityCount: (preferences.channels_activity || []).length,
-            notificationState: preferences.notifications_enabled,
-            timestamp: new Date().toISOString(),
-            channelsActivitySample: preferences.channels_activity?.slice(0, 2)
-          });
-
-          return {
-            channelActivityRecords: preferences.channels_activity || [],
-            userLanguage: language,
-            tenantRequests: tenantRequests
-          };
-        } catch (syncError) {
-          console.error('[SampleHelper] Error syncing data to IndexedDB', {
-            error: syncError instanceof Error ? syncError.message : syncError,
-            stack: syncError instanceof Error ? syncError.stack : undefined,
-            userId: user.id,
-            timestamp: new Date().toISOString()
-          });
-        }
+        return {
+          channelActivityRecords: channelActivityRecords.channels_activity || [],
+          userLanguage: userInfo.language || 'english',
+          tenantRequests: userInfo.tenantRequests || []
+        };
       }
 
-      // Fallback to IndexedDB
-      console.log('[SampleHelper] API request failed, falling back to IndexedDB', {
+      // Fallback to IndexedDB if no userInfo
+      console.log('[SampleHelper] No userInfo available, falling back to IndexedDB', {
         userId: user.id,
-        timestamp: new Date().toISOString(),
-        reason: data.success ? 'Unknown error' : 'API request unsuccessful'
+        timestamp: new Date().toISOString()
       });
 
       const rawData = await indexedDB.getAllRawData(user.id);

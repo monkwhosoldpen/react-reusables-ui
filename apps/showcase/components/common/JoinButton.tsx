@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import LoginCommon from '~/components/common/LoginCommon'
 import { View, Text } from 'react-native'
 import { Channel } from '~/lib/core/types/channel.types'
-import { TenantRequest } from '~/lib/core/services/indexedDBSchema'
 import { indexedDB } from '~/lib/core/services/indexedDB'
 
 interface JoinButtonProps {

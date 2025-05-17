@@ -64,13 +64,13 @@ export function transformFeedItemToPreview(item: any): PreviewData {
       timestamp: item.created_at || item.metadata?.timestamp || new Date().toISOString(),
       isCollapsible: item.metadata?.isCollapsible ?? DEFAULT_METADATA.isCollapsible,
       displayMode: item.metadata?.displayMode || DEFAULT_METADATA.displayMode,
-      maxHeight: item.metadata?.maxHeight || DEFAULT_METADATA.maxHeight,
       visibility: {
         ...DEFAULT_METADATA.visibility,
         ...(item.metadata?.visibility || {})
       },
       mediaLayout: item.metadata?.mediaLayout || DEFAULT_METADATA.mediaLayout
     },
+    message_text: item.message_text || '',
     channel_username: item.channel_username || 'anonymous',
     interactive_content: item.interactive_content || {},
     fill_requirement: item.fill_requirement || 'partial',

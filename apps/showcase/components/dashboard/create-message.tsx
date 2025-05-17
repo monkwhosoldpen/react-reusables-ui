@@ -13,7 +13,6 @@ import {
 import { useFeedForm } from '~/lib/enhanced-chat/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { useInteractiveContent } from '~/lib/enhanced-chat/hooks/useInteractiveContent';
-import { createMessageStyles } from '~/lib/enhanced-chat/utils/createMessageStyles';
 import { InteractiveContentSection } from '~/components/dashboard/InteractiveContentSection';
 import { QUICK_ACTION_TEMPLATES, INTERACTIVE_TYPES } from '~/lib/enhanced-chat/utils/quickActionTemplates';
 import { MEDIA_LAYOUTS, getMediaLayoutLabel, getMediaLayoutIcon } from '~/lib/enhanced-chat/utils/mediaLayouts';

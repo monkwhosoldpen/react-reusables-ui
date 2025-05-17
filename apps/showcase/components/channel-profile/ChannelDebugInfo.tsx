@@ -4,7 +4,6 @@ import React, { useState } from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Channel } from '~/lib/core/types/channel.types'
 import { Users, Info } from 'lucide-react'
-import { useColorScheme } from '~/lib/core/providers/theme/ColorSchemeProvider'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 
 interface ChannelDebugInfoProps {
@@ -13,7 +12,6 @@ interface ChannelDebugInfoProps {
 }
 
 export function ChannelDebugInfo({ username, channelDetails }: ChannelDebugInfoProps) {
-  const { colorScheme } = useColorScheme();
   const [isOpen, setIsOpen] = useState(false);
 
   const ChannelProperty = ({ label, value }: { label: string; value: boolean }) => (
@@ -31,7 +29,7 @@ export function ChannelDebugInfo({ username, channelDetails }: ChannelDebugInfoP
         className="absolute right-4 top-4 z-10"
       >
         <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
-          <Info size={16} color={colorScheme.colors.primary} />
+          <Info size={16} />
         </View>
       </TouchableOpacity>
 
@@ -44,7 +42,7 @@ export function ChannelDebugInfo({ username, channelDetails }: ChannelDebugInfoP
             {/* Current Channel */}
             <View className="flex-col items-center p-1.5 rounded-lg m-0.5 bg-card">
               <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
-                <Users size={18} color={colorScheme.colors.primary} />
+                <Users size={18} />
               </View>
               <Text className="text-[10px] text-center mt-0.5">
                 {username}
@@ -65,7 +63,7 @@ export function ChannelDebugInfo({ username, channelDetails }: ChannelDebugInfoP
             {channelDetails.parent_channel && (
               <View className="flex-col items-center p-1.5 rounded-lg m-0.5 bg-card">
                 <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
-                  <Users size={18} color={colorScheme.colors.primary} />
+                  <Users size={18} />
                 </View>
                 <Text className="text-[10px] text-center mt-0.5 font-medium">
                   {channelDetails.parent_channel.username}
@@ -87,7 +85,7 @@ export function ChannelDebugInfo({ username, channelDetails }: ChannelDebugInfoP
             {channelDetails.related_channels && channelDetails.related_channels.length > 0 && (
               <View className="flex-col items-center p-1.5 rounded-lg bg-card">
                 <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
-                  <Users size={18} color={colorScheme.colors.primary} />
+                  <Users size={18} />
                 </View>
                 <Text className="text-[10px] text-center mt-0.5">
                   {channelDetails.related_channels.length} Related Channels

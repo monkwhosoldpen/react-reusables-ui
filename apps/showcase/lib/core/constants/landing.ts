@@ -1,4 +1,3 @@
-import { useColorScheme } from 'react-native';
 
 export const LANDING_CONTENT = {
   tagline: "YOUR PERSONAL COMMUNITY SPACE",
