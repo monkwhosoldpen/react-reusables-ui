@@ -10,7 +10,7 @@ export default function LoginPage() {
   const { signIn, signInAnonymously, signInAsGuest, user, userInfo, loading } = useAuth();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -60,22 +60,22 @@ export default function LoginPage() {
   };
 
   return (
-    <SafeAreaView className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
-      <View 
-        className={`flex-1 my-5 px-6 ${width > 768 ? 'max-w-[500px]' : 'w-full'} self-center`}
-      >
-        <LoginCommon
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          error={error}
-          isLoading={isLoading}
-          handleSubmit={handleSubmit}
-          handleAnonymousSignIn={handleAnonymousSignIn}
-          handleGuestSignIn={handleGuestSignIn}
-          onCancel={() => {}}
-        />
+    <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
+      <View className="flex-1 justify-center items-center px-4">
+        <View className="w-full max-w-[400px] rounded-2xl bg-white dark:bg-gray-800 shadow-md">
+          <LoginCommon
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            error={error}
+            isLoading={isLoading}
+            handleSubmit={handleSubmit}
+            handleAnonymousSignIn={handleAnonymousSignIn}
+            handleGuestSignIn={handleGuestSignIn}
+            onCancel={() => { }}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
