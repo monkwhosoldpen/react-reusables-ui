@@ -233,10 +233,6 @@ export function AuthHelper(): AuthHelperReturn {
             last_sign_in_at: existingUser.last_sign_in_at,
             app_metadata: {},
             user_metadata: {},
-            language: userLanguage || 'english',
-            tenantRequests: tenantRequests || [],
-            notifications_enabled: notificationPreference,
-            userLocation: userLocation
           };
 
           setUserInfo(initialUserInfo);
@@ -267,9 +263,6 @@ export function AuthHelper(): AuthHelperReturn {
                     last_sign_in_at: user.last_sign_in_at || null,
                     app_metadata: {},
                     user_metadata: {},
-                    language: 'english',
-                    tenantRequests: [],
-                    userLocation: null
                   });
                   setLoading(false);
                 }
@@ -556,53 +549,26 @@ export function AuthHelper(): AuthHelperReturn {
         const apiData = await response.json();
 
         if (apiData.success) {
-          // Transform the API response into the expected format
-          const transformedData = {
-            ...apiData,
-            userPreferences: {
-              channels_messages: apiData.rawRecords?.channels_messages || [],
-              channels_activity: apiData.rawRecords?.channels_activity || [],
-              user_language: apiData.rawRecords?.user_language || [],
-              user_notifications: apiData.rawRecords?.user_notifications || [],
-              push_subscriptions: apiData.rawRecords?.push_subscriptions || [],
-              tenant_requests: apiData.rawRecords?.tenant_requests || [],
-              user_location: apiData.rawRecords?.user_location || [],
-              user_channel_follow: apiData.rawRecords?.user_channel_follow || [],
-              user_channel_last_viewed: apiData.rawRecords?.user_channel_last_viewed || []
-            }
-          };
+         const user_language = apiData.rawRecords?.user_language || [];
+         const user_notifications = apiData.rawRecords?.user_notifications || [];
+         const push_subscriptions = apiData.rawRecords?.push_subscriptions || [];
+         const tenant_requests = apiData.rawRecords?.tenant_requests || [];
+         const user_location = apiData.rawRecords?.user_location || [];
+         const user_channel_follow = apiData.rawRecords?.user_channel_follow || [];
+         const user_channel_last_viewed = apiData.rawRecords?.user_channel_last_viewed || [];
 
           // Save all raw API data to InAppDB
-          await inappDb.saveRawApiData(data.user.id, transformedData);
-
-          // Extract data for UI state
-          const preferences = transformedData.userPreferences;
-
-          // Extract language
-          const language = preferences?.user_language?.length > 0
-            ? preferences.user_language[0].language
-            : 'english';
-
-          // Extract notification settings
-          const notificationsEnabled = preferences?.user_notifications?.length > 0
-            ? preferences.user_notifications[0].notifications_enabled
-            : false;
-
-          // Extract user location
-          const userLocation = preferences?.user_location?.length > 0
-            ? preferences.user_location[0]
-            : null;
-
-          // Extract tenant requests
-          const tenantRequests = preferences?.tenant_requests || preferences?.tena || [];
+          await inappDb.savePushSubscription(push_subscriptions);
+          await inappDb.saveUserChannelFollow(data.user.id, user_channel_follow);
+          await inappDb.saveUserChannelLastViewed(data.user.id, user_channel_last_viewed);
+          await inappDb.saveTenantRequests(data.user.id, tenant_requests);
+          await inappDb.setUserLanguage(data.user.id, user_language);
+          await inappDb.setUserNotifications(data.user.id, user_notifications);
+          await inappDb.setUserLocation(data.user.id, user_location);
 
           // Create complete user info object
           const updatedUserInfo = {
             ...apiData.user,
-            language: language,
-            notifications_enabled: notificationsEnabled,
-            tenantRequests: tenantRequests,
-            userLocation: userLocation
           };
 
           // Update cache
@@ -655,9 +621,6 @@ export function AuthHelper(): AuthHelperReturn {
           last_sign_in_at: data.user.last_sign_in_at || new Date().toISOString(),
           app_metadata: {},
           user_metadata: {},
-          language: 'english',
-          tenantRequests: [],
-          userLocation: null
         };
 
         // Set initial state
@@ -722,9 +685,6 @@ export function AuthHelper(): AuthHelperReturn {
         last_sign_in_at: guestUser.last_sign_in_at,
         app_metadata: {},
         user_metadata: {},
-        language: 'english',
-        tenantRequests: [],
-        userLocation: null
       };
 
       setUserInfo(guestUserInfo);

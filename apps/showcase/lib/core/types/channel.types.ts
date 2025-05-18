@@ -133,9 +133,4 @@ export interface UserInfo {
   app_metadata: any;
 
   user_metadata: any;
-  language: string;
-  notifications?: any;
-  notifications_enabled?: boolean;
-  tenantRequests?: TenantRequest[];
-  userLocation?: UserLocation | null;
 }

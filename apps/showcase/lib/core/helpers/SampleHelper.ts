@@ -31,8 +31,6 @@ export interface SampleHelperReturn {
   unfollowChannel: (username: string) => Promise<void>;
   getChannelActivity: () => Promise<{
     channelActivityRecords: ChannelActivity[];
-    userLanguage: string;
-    tenantRequests: TenantRequest[];
   }>;
   fetchChannelDetails: (username: string) => Promise<{
     channelData: Channel | null;
@@ -285,8 +283,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
         
         return {
           channelActivityRecords: channelActivityRecords.channels_activity || [],
-          userLanguage: userInfo.language || 'english',
-          tenantRequests: userInfo.tenantRequests || []
         };
       }
 
@@ -294,8 +290,6 @@ export function SampleHelper(user: User | null, isGuest: boolean, userInfo: User
 
       return {
         channelActivityRecords: rawData.channels_activity || [],
-        userLanguage: rawData.user_language?.[0]?.language || 'english',
-        tenantRequests: rawData.tenant_requests || []
       };
 
     } catch (error) {
