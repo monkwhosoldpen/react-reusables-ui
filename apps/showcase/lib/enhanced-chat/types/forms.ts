@@ -1,5 +1,5 @@
 import { MediaItem, PollData, QuizData, SurveyData } from './superfeed';
-import type { Channel } from '../../core/types/database.types';
+import type { Channel } from '../../core/types/channel.types';
 
 export interface MediaInputProps {
   mediaUrls: string[];
@@ -233,12 +233,6 @@ export interface TenantConfig {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-}
-
-export interface ChannelWithOnboarding extends Channel {
-  onboarding_config?: OnboardingConfig;
-  tenant_supabase_url?: string;
-  tenant_supabase_anon_key?: string;
 }
 
 export interface RequestAccessFormProps {

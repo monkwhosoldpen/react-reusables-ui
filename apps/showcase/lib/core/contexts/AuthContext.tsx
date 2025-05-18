@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { User } from '@supabase/supabase-js';
-import { ChannelActivity } from '../types/notifications';
 import {
   AuthHelper,
   AuthHelperReturn
@@ -11,7 +10,7 @@ import {
   SampleHelper,
   SampleHelperReturn
 } from '~/lib/core/helpers/SampleHelper';
-import { Channel, ChannelMessage, TenantRequest, UserInfo } from '~/lib/core/types/channel.types';
+import { Channel, ChannelActivity, ChannelMessage, TenantRequest, UserInfo } from '~/lib/core/types/channel.types';
 
 // Define a simplified context type without the raw DB records functions
 interface SimplifiedAuthContextType {
@@ -28,8 +27,6 @@ interface SimplifiedAuthContextType {
   updatePushSubscription: (subscription: PushSubscription, enabled: boolean) => Promise<void>;
   getChannelActivity: () => Promise<{
     channelActivityRecords: ChannelActivity[];
-    userLanguage: string;
-    tenantRequests: TenantRequest[];
   }>;
   updateLanguagePreference: (language: string) => Promise<void>;
   isFollowingChannel: (username: string) => Promise<boolean>;

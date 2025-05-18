@@ -7,7 +7,7 @@ import { MessageCircle } from 'lucide-react';
 import { JoinButton } from '~/components/common/JoinButton';
 import { FollowButton } from '~/components/common/FollowButton';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
-import { AccessStatus } from '~/lib/channel/channel-profile-util';
+import { AccessStatus } from '~/lib/core/utils/channel-profile-util';
 
 interface ChannelInfoSectionProps {
   username: string;

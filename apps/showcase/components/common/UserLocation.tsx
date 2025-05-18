@@ -71,12 +71,6 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
       if (!user) return;
 
       try {
-        // Try to get location from userInfo first (which should be synced with InAppDB)
-        if (userInfo?.userLocation) {
-          updateFormWithLocation(userInfo.userLocation);
-          return;
-        }
-        
         // As a fallback, try to get location directly from InAppDB
         const userLocation = await inappDb.getUserLocation(user.id);
         if (userLocation) {
@@ -136,31 +130,7 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
 
   const handleCancel = async () => {
     if (!user) return;
-    
-    // Reset form data from userInfo or InAppDB
-    if (userInfo?.userLocation) {
-      updateFormWithLocation(userInfo.userLocation);
-    } else {
-      const userLocation = await inappDb.getUserLocation(user.id);
-      if (userLocation) {
-        updateFormWithLocation(userLocation);
-      } else {
-        // Clear form if no data available
-        setFormData({
-          state: "",
-          district: "",
-          mp_constituency: "",
-          assembly_constituency: "",
-          mandal: "",
-          village: "",
-          ward: "",
-          pincode: "",
-          latitude: "",
-          longitude: ""
-        });
-      }
-    }
-    
+   
     setIsEditing(false);
   };
 
@@ -213,22 +183,6 @@ export function UserLocation({ onValidityChange }: UserLocationProps = {}) {
       return false;
     } finally {
       setLoading(false);
-    }
-  };
-
-  const resetForm = async () => {
-    if (!user) return;
-    
-    try {
-      // Reset form data from userInfo or InAppDB
-      if (userInfo?.userLocation) {
-        return userInfo.userLocation;
-      }
-      
-      const userLocation = await inappDb.getUserLocation(user.id);
-      return userLocation;
-    } catch (error) {
-      return null;
     }
   };
 

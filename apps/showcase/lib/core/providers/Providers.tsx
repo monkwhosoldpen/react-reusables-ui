@@ -1,11 +1,10 @@
 import React, { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 
-import { AuthProvider } from '../core/contexts/AuthContext';
-import { NotificationProvider } from '../core/contexts/NotificationContext';
-import { FeedInteractionProvider } from '../enhanced-chat/providers/feed/FeedInteractionProvider';
-import { APIProvider } from '../core/providers/api/APIProvider';
-import { RealtimeProvider } from '../core/providers/RealtimeProvider';
+import { AuthProvider } from '../contexts/AuthContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
+import { FeedInteractionProvider } from '../../enhanced-chat/providers/feed/FeedInteractionProvider';
+import { RealtimeProvider } from './RealtimeProvider';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -15,7 +14,7 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <AuthProvider>
-      <APIProvider>
+      <>
         <>
           <>
             <FeedInteractionProvider>
@@ -27,7 +26,7 @@ export function Providers({ children }: ProvidersProps) {
             </FeedInteractionProvider>
           </>
         </>
-      </APIProvider>
+      </>
     </AuthProvider>
   );
 }

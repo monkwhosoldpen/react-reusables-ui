@@ -6,7 +6,7 @@ import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { cn } from '~/lib/utils';
 import { Switch } from '../ui/switch';
 import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
-import { setupPushSubscription } from '~/utils/register-sw';
+import { setupPushSubscription } from '~/lib/core/utils/register-sw';
 import { toast } from 'sonner';
 
 export function NotificationPreference() {

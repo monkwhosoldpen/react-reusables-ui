@@ -62,7 +62,7 @@ export default function LanguageChanger({ variant = "default", className = "" }:
       }
     } catch (error) {
       // Revert to previous language on error
-      setLocalLanguage(userInfo?.language || "english");
+      setLocalLanguage(userInfo?.id ? inAppDB.getUserLanguage(userInfo.id) || "english" : "english");
     } finally {
       setIsChanging(false);
     }

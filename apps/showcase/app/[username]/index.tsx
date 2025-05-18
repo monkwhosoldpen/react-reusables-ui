@@ -11,7 +11,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ChannelHeader } from '~/components/channel-profile/ChannelHeader';
 import { useWindowDimensions } from 'react-native';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
-import useChannelData from '~/lib/channel/channel-profile-util';
+import useChannelData from '~/lib/core/utils/channel-profile-util';
 import { FollowButton } from '~/components/common/FollowButton';
 import { JoinButton } from '~/components/common/JoinButton';
 import { AuthHelper } from '~/lib/core/helpers/AuthHelpers';

@@ -2,15 +2,14 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '~/lib/core/supabase';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
-import { ChannelActivity } from '~/lib/core/types/notifications';
 import {
   setupPushSubscription,
   registerServiceWorker,
   cleanupPushSubscription,
-} from '~/utils/register-sw';
+} from '~/lib/core/utils/register-sw';
 import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
+import { ChannelActivity } from '../types/channel.types';
 
 // Types --------------------------------------------------------------------
 type NotificationPermissionStatus = 'default' | 'granted' | 'denied';

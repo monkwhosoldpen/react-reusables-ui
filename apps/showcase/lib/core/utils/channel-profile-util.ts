@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Channel, ChannelResponse } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';
 import { FormDataType } from '~/lib/enhanced-chat/types/superfeed';
-import { AuthHelper } from '../core/helpers/AuthHelpers';
+import { AuthHelper } from '../helpers/AuthHelpers';
 
 /**
  * Channel response structure based on actual API response:
