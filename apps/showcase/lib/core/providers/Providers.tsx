@@ -16,7 +16,7 @@ export function Providers({ children }: ProvidersProps) {
     <AuthProvider>
       <>
         <>
-          <>
+          <RealtimeProvider>
             <FeedInteractionProvider>
               <NotificationProvider>
                 {children}
@@ -24,7 +24,7 @@ export function Providers({ children }: ProvidersProps) {
               {/* Global toast notifications */}
               <Toaster position="top-right" closeButton richColors />
             </FeedInteractionProvider>
-          </>
+          </RealtimeProvider>
         </>
       </>
     </AuthProvider>

@@ -9,8 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import LoginCommon from '~/components/common/LoginCommon'
 import { View, Text } from 'react-native'
 import { Channel } from '~/lib/core/types/channel.types'
-import { useRouter } from 'expo-router'
-import { useInAppDB } from '~/lib/core/providers/InAppDBProvider'
 
 interface JoinButtonProps {
   username: string;
@@ -21,7 +19,6 @@ interface JoinButtonProps {
   className?: string;
   showIcon?: boolean;
   onJoin?: (response?: any) => void;
-  onRequestAccess?: () => void;
   isLoading?: boolean;
 }
 
@@ -32,15 +29,14 @@ export function JoinButton({
   buttonText = 'Join',
   className,
   size = 'default',
-  showIcon = true,
+  showIcon = false,
   onJoin,
-  onRequestAccess,
   isLoading: externalLoading = false,
   ...props
 }: JoinButtonProps) {
   const { user, signIn, signInAnonymously, signInAsGuest, refreshUserInfo, completeChannelOnboarding, isFollowingChannel } = useAuth()
   const [initialized, setInitialized] = useState(false)
-  
+
   const [showDialog, setShowDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [hasJoined, setHasJoined] = useState(false)
@@ -69,17 +65,6 @@ export function JoinButton({
   // Combine internal and external loading states
   const isButtonLoading = isLoading || externalLoading;
 
-  useEffect(() => {
-    (async () => {
-      try {
-        // No need to initialize IndexedDB anymore
-        setInitialized(true);
-      } catch (e) {
-        // Handle error
-      }
-    })();
-  }, []);
-
   // Function to handle button click
   const handleClick = () => {
     setShowDialog(true);
@@ -97,38 +82,19 @@ export function JoinButton({
   }
 
   const handleNextStep = async () => {
-    
+
     if (currentStep < onboardingSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      
+
       try {
         const result = await completeChannelOnboarding(username, channelDetails as Channel);
 
         if (result && typeof result === 'object') {
-          
-          // Check if there's a new access status in the response
-          if (result && 'access_status' in result) {
-            const typedResult = result as { access_status: string };
-          }
-          
+
           setShowDialog(false);
           setHasJoined(true);
           onJoin?.(result);
-          
-          // Check for status in the response to customize the toast message
-          if (result && 'status' in result) {
-            const typedResult = result as { status: string };
-            if (typedResult.status === 'APPROVED') {
-              toast.success(`You've joined @${username}`);
-            } else if (typedResult.status === 'PENDING') {
-              toast.success(`You've requested access to @${username}`);
-            } else {
-              toast.success(`Request for @${username} submitted`);
-            }
-          } else {
-            toast.success(`You've requested access to @${username}`);
-          }
         } else if (result === true) {
           setShowDialog(false);
           setHasJoined(true);
@@ -145,8 +111,6 @@ export function JoinButton({
 
   const handleSubmit = async () => {
     if (!email || !password) {
-      console.warn('[JoinButton] Login attempted with missing email or password');
-      setError('Please enter both email and password')
       return
     }
 
@@ -190,18 +154,6 @@ export function JoinButton({
       setIsLoginLoading(false)
     }
   }
-
-  const handleComplete = async () => {
-    
-    const result = await completeChannelOnboarding(username, channelDetails);
-    
-    if (result) {
-      setHasJoined(true);
-      setShowDialog(false);
-      onJoin?.(result);
-    } else {
-    }
-  };
 
   const renderDialogContent = () => {
     if (showLogin) {
@@ -259,16 +211,16 @@ export function JoinButton({
 
   return (
     <View className="relative">
-      <Button 
+      <Button
         onPress={handleClick}
         variant={hasJoined ? "default" : "outline"}
         className={`rounded-md px-3 py-1.5 ${hasJoined ? 'bg-primary border-transparent' : 'bg-transparent border-primary'}`}
-        disabled={isButtonLoading }
+        disabled={isButtonLoading}
         {...props}
       >
         {isButtonLoading ? (
           <View className="flex-row items-center gap-2">
-            <Loader2 
+            <Loader2
               size={16}
               color={hasJoined ? 'white' : '#3B82F6'}
               className="rotate-45"
@@ -278,20 +230,22 @@ export function JoinButton({
         ) : (
           <View className="flex-row items-center gap-2">
             {showIcon && (
-              <UserPlus 
+              <UserPlus
                 size={16}
                 color={hasJoined ? 'white' : '#3B82F6'}
               />
             )}
             <Text className={`text-sm font-medium ${hasJoined ? 'text-white' : 'text-primary'}`}>
               {
-                `Request ${accessStatus || 'NA'}`
+                `${buttonText}`
               }
             </Text>
           </View>
         )}
       </Button>
-      
+
+      <Text className="text-xs py-4 text-muted-foreground">{`Request Status: ${accessStatus || 'NA'}`}</Text>
+
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="w-[90%] sm:max-w-[425px] mx-auto">
           {renderDialogContent()}
