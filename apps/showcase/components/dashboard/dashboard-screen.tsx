@@ -64,6 +64,11 @@ const TAB_CONFIGS: TabConfig[] = [
   }
 ];
 
+// Define allowed tabs for each client type
+const PRO_CLIENT_TABS = ['overview', 'chat', 'requests', 'ai-user-analytics', 'ai-dashboard'];
+const BASIC_CLIENT_TABS = ['overview', 'requests', 'chat', 'ai-user-analytics'];
+const PUBLIC_CLIENT_TABS = ['overview'];
+
 // Replace the TabContent component with this
 function TabContent({ tabName, username }: { tabName: string; username: string }) {
   const { user } = useAuth();
@@ -227,18 +232,38 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
 
   const isDesktop = width >= 768;
 
-  // Add this before the return statement
-  const filteredTabs = !premiumConfig || Object.keys(premiumConfig).length === 0
+  // ---------------------------------------------
+  // ** NEW LOGIC: limit tabs when not basic / pro
+  // ---------------------------------------------
+  const isBasicClient = clientType === 'basic';
+  const isProClient = clientType === 'pro';
+
+  // Filter TAB_CONFIGS by role (existing logic)
+  const roleBasedTabs = !premiumConfig || Object.keys(premiumConfig).length === 0
     ? TAB_CONFIGS // Show all tabs for public channels
     : TAB_CONFIGS.filter(tab => userRole ? tab.allowedRoles.includes(userRole.role) : false);
 
-  const navItems = [
+  // Apply client-type limitation using the constant arrays
+  const filteredTabs = roleBasedTabs.filter(tab => {
+    if (isProClient) return PRO_CLIENT_TABS.includes(tab.name);
+    if (isBasicClient) return BASIC_CLIENT_TABS.includes(tab.name);
+    return PUBLIC_CLIENT_TABS.includes(tab.name);
+  });
+
+  // Navigation items (labels) – using the same constant arrays
+  const navItemsBase = [
     { name: 'overview', label: 'Overview' },
     { name: 'requests', label: 'Requests' },
     { name: 'chat', label: 'Chat' },
     { name: 'ai-user-analytics', label: 'AI User Analytics' },
     { name: 'ai-dashboard', label: 'AI Dashboard' },
   ];
+
+  const navItems = navItemsBase.filter(item => {
+    if (isProClient) return PRO_CLIENT_TABS.includes(item.name);
+    if (isBasicClient) return BASIC_CLIENT_TABS.includes(item.name);
+    return PUBLIC_CLIENT_TABS.includes(item.name);
+  });
 
   // Helper function to determine border color based on client type
   const getBorderColorClass = () => {
@@ -254,7 +279,6 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
       <View className="flex-1 flex-row">
-        {/* Sidebar - Only show on desktop */}
 
         <Sidebar
           username={username}
@@ -263,49 +287,54 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
           relatedChannels={premiumConfig?.related_channels}
         />
 
-       
         {/* Main Content */}
         <ScrollView
           ref={ref}
           className="flex-1"
           contentContainerStyle={{ flexGrow: 1 }}
         >
-           <View className="border-t border-b border-gray-200 dark:border-gray-700">
-          <View className={`px-4 py-4 flex-row items-center justify-between ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
-            {/* Navigation Links */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="flex-1"
-            >
-              <View className="flex-row items-center space-x-6">
-                {navItems.map((item) => (
-                  <TouchableOpacity
-                    key={item.name}
-                    className={`py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 border-b-2 ${activeTab === item.name
-                        ? getBorderColorClass()
-                        : 'border-transparent'
-                      }`}
-                    onPress={() => setActiveTab(item.name)}
-                  >
-                    <Text className={`text-base font-medium whitespace-nowrap ${activeTab === item.name
-                        ? clientType === 'basic'
-                          ? 'text-red-500 dark:text-red-400'
-                          : clientType === 'pro'
-                            ? 'text-blue-500 dark:text-blue-400'
-                            : 'text-gray-900 dark:text-gray-100'
-                        : 'text-gray-600 dark:text-gray-400'
-                      }`}>
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+          {/* Fixed Header Section */}
+          <View className="sticky top-0 z-10 bg-white dark:bg-gray-900">
+            {/* Tabs Row */}
+            <View className="border-t border-b border-gray-200 dark:border-gray-700">
+              <View className={`px-4 py-4 flex-row items-center justify-between ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
+                {/* Navigation Links */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  className="flex-1"
+                >
+                  <View className="flex-row items-center space-x-6">
+                    {navItems.map((item) => (
+                      <TouchableOpacity
+                        key={item.name}
+                        className={`py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 border-b-2 ${activeTab === item.name
+                          ? getBorderColorClass()
+                          : 'border-transparent'
+                        }`}
+                        onPress={() => setActiveTab(item.name)}
+                      >
+                        <Text className={`text-base font-medium whitespace-nowrap ${activeTab === item.name
+                          ? clientType === 'basic'
+                            ? 'text-red-500 dark:text-red-400'
+                            : clientType === 'pro'
+                              ? 'text-blue-500 dark:text-blue-400'
+                              : 'text-gray-900 dark:text-gray-100'
+                          : 'text-gray-600 dark:text-gray-400'
+                        }`}>
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
               </View>
-            </ScrollView>
+            </View>
 
           </View>
-        </View>
-          <View className={`flex-1 p-4 ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
+
+          {/* Main Content Area */}
+          <View className={`flex-1 ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
             {hasAccess && filteredTabs.length > 0 && (
               <View className="flex-1">
                 <View className="flex-1">
@@ -318,4 +347,4 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
       </View>
     </SafeAreaView>
   );
-} 
+}

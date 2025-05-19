@@ -151,9 +151,9 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
             <View className="flex-1 flex-row p-4 gap-4">
 
               {/* Editor + Preview */}
-              <View className="flex-[0.6] border-2 border-blue-500 rounded-lg p-2 flex-row">
+              <View className="flex-1 border-2 border-blue-500 rounded-lg p-2 flex-row">
                 {/* Editor */}
-                <View className="flex-[0.5] pr-4">
+                <View className="flex-[0.5] pr-4 border border-yellow-400">
                   <ScrollView className="p-4">
                     {/* Content Section */}
                     <View className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
@@ -268,12 +268,16 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
                         />
                       )}
                     </View>
+
+                    <Button onPress={() => createItemUtil(formData)} disabled={isSubmitting}>
+                      <Text>Create</Text>
+                    </Button>
                   </ScrollView>
                 </View>
 
                 {/* Preview */}
-                <View className="flex-[0.5]">
-                  <ScrollView className="p-4">
+                <View className="flex-[0.5] ">
+                  <ScrollView className="p-4 border border-pink-400">
 
 
                     <Card className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
@@ -290,10 +294,6 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
 
             </View>
 
-            <Button onPress={() => createItemUtil(formData)} disabled={isSubmitting}>
-              <Text>Create</Text>
-            </Button>
-            
           </ScrollView>
 
         </View>

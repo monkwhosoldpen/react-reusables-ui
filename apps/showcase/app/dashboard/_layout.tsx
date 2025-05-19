@@ -7,7 +7,6 @@ export default function DashboardLayout() {
       headerShown: false,
     }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="label-primitive" />
     </Stack>
   );
 }

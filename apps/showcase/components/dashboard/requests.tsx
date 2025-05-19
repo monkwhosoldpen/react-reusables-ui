@@ -15,7 +15,6 @@ import {
   Plus
 } from 'lucide-react-native';
 import { createClient } from '@supabase/supabase-js';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
 

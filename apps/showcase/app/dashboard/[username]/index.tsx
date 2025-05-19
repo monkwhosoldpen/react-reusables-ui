@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
-import { MainScreen } from "~/components/home/main";
 import { View, ActivityIndicator, Text } from 'react-native';
-import { Landing } from '~/components/home/landing';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '~/components/ui/button';
 import { router, useLocalSearchParams } from 'expo-router';
 import { DashboardScreen } from '~/components/dashboard/dashboard-screen';
@@ -16,7 +13,6 @@ export default function DashboardRoute({ username }: { username: string }) {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [userData, setUserData] = useState<any>(null);
-  const insets = useSafeAreaInsets();
 
   const params = useLocalSearchParams();
   const [selectedChannel, setSelectedChannel] = React.useState(username);
@@ -95,18 +91,10 @@ export default function DashboardRoute({ username }: { username: string }) {
     );
   }
 
-  // Show MainScreen if we have either a cached user or current user, and data is loaded
   if ((cachedUser || user) && dataLoaded) {
-    return <View className="flex-1 flex-row">
-      <View className="flex-1 bg-gray-50 dark:bg-gray-900">
-        <View className="flex-1">
-          <DashboardScreen username={selectedChannel as string} tabname={'overview'} />
-        </View>
-      </View>
-    </View>
+    return <DashboardScreen username={selectedChannel as string} tabname={'overview'} />
   }
 
-  // If no user and not loading, show landing
   if (!loading) {
     return (
       <View className="flex-1 bg-white dark:bg-gray-900">
@@ -116,7 +104,6 @@ export default function DashboardRoute({ username }: { username: string }) {
     );
   }
 
-  // During loading with no cache, show a blank screen with app background
   return (
     <View className="flex-1 justify-center items-center p-6 bg-white dark:bg-gray-900">
       <View className="w-full max-w-md mx-auto p-8 rounded-2xl bg-white dark:bg-gray-800 shadow-xl">
