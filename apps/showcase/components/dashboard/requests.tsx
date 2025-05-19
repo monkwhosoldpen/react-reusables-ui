@@ -39,7 +39,6 @@ export default function RequestsTab() {
   const { username } = useLocalSearchParams();
   const colorScheme = useColorScheme();
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const isMobile = width < 768;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

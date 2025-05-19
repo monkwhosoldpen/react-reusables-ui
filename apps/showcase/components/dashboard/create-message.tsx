@@ -4,67 +4,63 @@ import { Text } from '~/components/ui/text';
 import { Card } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Plus } from 'lucide-react-native';
-import { 
-  FormDataType, 
-  FeedItemType, 
+import { QuickActionButtons } from './quick-action-buttons';
+import {
+  FormDataType,
+  FeedItemType,
   DEFAULT_METADATA,
-  DEFAULT_INTERACTIVE_CONTENT
 } from '~/lib/enhanced-chat/types/superfeed';
 import { useFeedForm } from '~/lib/enhanced-chat/hooks/useFeedForm';
 import { FeedItem } from '~/lib/enhanced-chat/components/feed/FeedItem';
 import { useInteractiveContent } from '~/lib/enhanced-chat/hooks/useInteractiveContent';
 import { InteractiveContentSection } from '~/components/dashboard/InteractiveContentSection';
-import { QUICK_ACTION_TEMPLATES, INTERACTIVE_TYPES } from '~/lib/enhanced-chat/utils/quickActionTemplates';
-import { MEDIA_LAYOUTS, getMediaLayoutLabel, getMediaLayoutIcon } from '~/lib/enhanced-chat/utils/mediaLayouts';
-import { calculateMaxHeight, logHeightCalculation } from '~/lib/enhanced-chat/utils/heightCalculations';
+import { QUICK_ACTION_TEMPLATES } from '~/lib/enhanced-chat/utils/quickActionTemplates';
+import { MEDIA_LAYOUTS, getMediaLayoutLabel } from '~/lib/enhanced-chat/utils/mediaLayouts';
 import { usePreviewData } from '~/lib/enhanced-chat/hooks/usePreviewData';
 import { useMessageHandling } from '~/lib/enhanced-chat/hooks/useMessageHandling';
 import { useMediaHandling } from '~/lib/enhanced-chat/hooks/useMediaHandling';
 import { handleQuickAction } from '~/lib/enhanced-chat/utils/quickActionHandlers';
-import { 
-  generateBulkShortMessages, 
+import {
+  generateBulkShortMessages,
   generateBulkLongMessages,
   generateBulkPollMessages,
   generateBulkQuizMessages,
-  generateBulkSurveyMessages
+  generateBulkSurveyMessages,
 } from '~/lib/enhanced-chat/utils/bulkCreateTemplates';
-import { PREMIUM_CONFIGS } from '~/lib/in-app-db/states/telangana/premium-data';
+
+const createItem = (hookHandler) => async (item) => {
+  if (item) await hookHandler(item);
+};
 
 interface CreateMessageScreenProps {
   username: string;
+  clientType: 'basic' | 'pro' | 'public';
+  isPublic: boolean;
+  hasAccess: boolean;
+  userRole: {
+    role: string;
+  } | null;
 }
 
-export default function CreateMessageScreen({ username }: CreateMessageScreenProps) {
-
-  // State declarations with proper types
-  const [selectedType, setSelectedType] = useState<FeedItemType>('whatsapp');
-  const [isInteractive, setIsInteractive] = useState<boolean>(false);
-  const [includeMedia, setIncludeMedia] = useState<boolean>(false);
-  const [includeContent, setIncludeContent] = useState<boolean>(true);
-  const [previewKey, setPreviewKey] = useState<number>(0);
+export default function CreateMessageScreen({ username, clientType, isPublic, hasAccess, userRole }: CreateMessageScreenProps) {
+  const [isInteractive, setIsInteractive] = useState(false);
+  const [includeMedia, setIncludeMedia] = useState(false);
+  const [includeContent, setIncludeContent] = useState(true);
+  const [previewKey, setPreviewKey] = useState(0);
   const [error, setError] = useState<Error | null>(null);
 
-  const {
-    formData,
-    handleFormDataChange,
-  } = useFeedForm({
-    user: { email: username }
-  });
-
-  const { submitResponse } = useInteractiveContent(formData as FormDataType);
+  const { formData, handleFormDataChange } = useFeedForm({ user: { email: username } });
+  useInteractiveContent(formData as FormDataType);
 
   const {
     messageCount,
     messages,
     isSubmitting,
     error: messageError,
-    handleCreateItem,
-    handleEditMessage
-  } = useMessageHandling({
-    username,
-    formData,
-    handleFormDataChange
-  });
+    handleCreateItem: hookCreateItem,
+    handleEditMessage,
+  } = useMessageHandling({ username, formData, handleFormDataChange });
+  const createItemUtil = useCallback(createItem(hookCreateItem), [hookCreateItem]);
 
   const {
     error: mediaError,
@@ -72,32 +68,29 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
     handleMediaUrlChange,
     handleMediaCaptionChange,
     handleAddImage,
-    handleAddVideo
-  } = useMediaHandling({
-    formData,
-    handleFormDataChange
-  });
+    handleAddVideo,
+  } = useMediaHandling({ formData, handleFormDataChange });
 
-  const handleQuickActionClick = useCallback((type: keyof typeof QUICK_ACTION_TEMPLATES) => {
-    try {
-      const template = QUICK_ACTION_TEMPLATES[type];
-      handleQuickAction({
-        template,
-        handleFormDataChange,
-        setIsInteractive,
-        setIncludeMedia,
-        setIncludeContent,
-        setSelectedType,
-        setPreviewKey
-      });
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to handle quick action');
-      setError(error);
-      console.error('Error in handleQuickActionClick:', error);
-    }
-  }, [handleFormDataChange]);
+  const handleQuickActionClick = useCallback(
+    (type: keyof typeof QUICK_ACTION_TEMPLATES) => {
+      try {
+        const template = QUICK_ACTION_TEMPLATES[type];
+        handleQuickAction({
+          template,
+          handleFormDataChange,
+          setIsInteractive,
+          setIncludeMedia,
+          setIncludeContent,
+          setPreviewKey,
+          setSelectedType: (type) => handleFormDataChange({ metadata: { ...formData.metadata, interactiveType: type } }),
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed quick action'));
+      }
+    },
+    [handleFormDataChange],
+  );
 
-  // Use the new usePreviewData hook
   const previewData = usePreviewData({
     formData,
     mediaLayout: formData.metadata?.mediaLayout,
@@ -105,95 +98,27 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
     selectedInteractiveType: formData.metadata?.interactiveType,
     username,
     includeMedia,
-    includeContent
+    includeContent,
   });
 
-  // Add effect to monitor collapsible state changes
-  useEffect(() => {
+  const makeBulk = (gen, total) => async () => {
     try {
-      logHeightCalculation(formData);
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to calculate height');
-      setError(error);
-    }
-  }, [formData.metadata?.isCollapsible, formData.metadata?.maxHeight, formData.metadata?.mediaLayout, formData.media]);
-
-  const handleBulkCreateShort = useCallback(async () => {
-    try {
-      const messages = generateBulkShortMessages(20);
-      const batchSize = 5;
-      
-      for (let i = 0; i < messages.length; i += batchSize) {
-        const batch = messages.slice(i, i + batchSize);
-        await Promise.all(batch.map(message => handleCreateItem(message)));
+      const all = gen(total);
+      const batch = 5;
+      for (let i = 0; i < all.length; i += batch) {
+        await Promise.all(all.slice(i, i + batch).map(createItemUtil));
       }
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to bulk create short messages');
-      setError(error);
+      setError(err instanceof Error ? err : new Error('Bulk create failed'));
     }
-  }, [handleCreateItem]);
+  };
 
-  const handleBulkCreateLong = useCallback(async () => {
-    try {
-      const messages = generateBulkLongMessages(20);
-      const batchSize = 5;
-      
-      for (let i = 0; i < messages.length; i += batchSize) {
-        const batch = messages.slice(i, i + batchSize);
-        await Promise.all(batch.map(message => handleCreateItem(message)));
-      }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to bulk create long messages');
-      setError(error);
-    }
-  }, [handleCreateItem]);
+  const handleBulkCreateShort = useCallback(makeBulk(generateBulkShortMessages, 20), [createItemUtil]);
+  const handleBulkCreateLong = useCallback(makeBulk(generateBulkLongMessages, 20), [createItemUtil]);
+  const handleBulkCreatePolls = useCallback(makeBulk(generateBulkPollMessages, 10), [createItemUtil]);
+  const handleBulkCreateQuizzes = useCallback(makeBulk(generateBulkQuizMessages, 10), [createItemUtil]);
+  const handleBulkCreateSurveys = useCallback(makeBulk(generateBulkSurveyMessages, 10), [createItemUtil]);
 
-  const handleBulkCreatePolls = useCallback(async () => {
-    try {
-      const messages = generateBulkPollMessages(10);
-      const batchSize = 5;
-      
-      for (let i = 0; i < messages.length; i += batchSize) {
-        const batch = messages.slice(i, i + batchSize);
-        await Promise.all(batch.map(message => handleCreateItem(message)));
-      }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to bulk create poll messages');
-      setError(error);
-    }
-  }, [handleCreateItem]);
-
-  const handleBulkCreateQuizzes = useCallback(async () => {
-    try {
-      const messages = generateBulkQuizMessages(10);
-      const batchSize = 5;
-      
-      for (let i = 0; i < messages.length; i += batchSize) {
-        const batch = messages.slice(i, i + batchSize);
-        await Promise.all(batch.map(message => handleCreateItem(message)));
-      }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to bulk create quiz messages');
-      setError(error);
-    }
-  }, [handleCreateItem]);
-
-  const handleBulkCreateSurveys = useCallback(async () => {
-    try {
-      const messages = generateBulkSurveyMessages(10);
-      const batchSize = 5;
-      
-      for (let i = 0; i < messages.length; i += batchSize) {
-        const batch = messages.slice(i, i + batchSize);
-        await Promise.all(batch.map(message => handleCreateItem(message)));
-      }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to bulk create survey messages');
-      setError(error);
-    }
-  }, [handleCreateItem]);
-
-  // Combine all errors
   const combinedError = error || messageError || mediaError;
 
   return (
@@ -203,93 +128,36 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
           <ScrollView style={{ flex: 1 }}>
             {combinedError && (
               <View className="p-4 m-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-                <Text className="text-red-600 dark:text-red-400 text-sm font-medium">{combinedError.message}</Text>
+                <Text className="text-red-600 dark:text-red-400 text-sm font-medium">
+                  {combinedError.message}
+                </Text>
               </View>
             )}
-            
-            {/* Quick Action Buttons */}
-            <View className="flex-row gap-2 p-4 border-2 border-pink-500 rounded-lg">
-              <Button
-                variant="outline"
-                onPress={() => handleQuickActionClick('small')}
-                className="flex-1"
-              >
-                <Text className="text-gray-900 dark:text-white">Short Text</Text>
-              </Button>
-              <Button
-                variant="outline"
-                onPress={() => handleQuickActionClick('long')}
-                className="flex-1"
-              >
-                <Text className="text-gray-900 dark:text-white">Long Text</Text>
-              </Button>
-              <Button
-                variant="outline"
-                onPress={() => handleQuickActionClick('superfeed')}
-                className="flex-1"
-              >
-                <Text className="text-gray-900 dark:text-white">Create SuperfeedItem</Text>
-              </Button>
-              <Button
-                variant="outline"
-                onPress={handleBulkCreateShort}
-                className="flex-1"
-              >
-                <Text className="text-gray-900 dark:text-white">Bulk Create Short</Text>
-              </Button>
-              <Button
-                variant="outline"
-                onPress={handleBulkCreateLong}
-                className="flex-1"
-              >
-                <Text className="text-gray-900 dark:text-white">Bulk Create Long</Text>
-              </Button>
-            </View>
 
-            {/* Interactive Bulk Create Buttons */}
-            <View className="flex-row gap-2 p-4 border-2 border-pink-500 rounded-lg mt-2">
-              <Button
-                variant="outline"
-                onPress={handleBulkCreatePolls}
-                className="flex-1"
-              >
-                <Text className="text-gray-900 dark:text-white">Bulk Create Polls</Text>
-              </Button>
-              <Button
-                variant="outline"
-                onPress={handleBulkCreateQuizzes}
-                className="flex-1"
-              >
-                <Text className="text-gray-900 dark:text-white">Bulk Create Quizzes</Text>
-              </Button>
-              <Button
-                variant="outline"
-                onPress={handleBulkCreateSurveys}
-                className="flex-1"
-              >
-                <Text className="text-gray-900 dark:text-white">Bulk Create Surveys</Text>
-              </Button>
-            </View>
+            <QuickActionButtons
+              handleQuickActionClick={handleQuickActionClick}
+              handleBulkCreateShort={handleBulkCreateShort}
+              handleBulkCreateLong={handleBulkCreateLong}
+              handleBulkCreatePolls={handleBulkCreatePolls}
+              handleBulkCreateQuizzes={handleBulkCreateQuizzes}
+              handleBulkCreateSurveys={handleBulkCreateSurveys}
+              isPublic={isPublic}
+              clientType={clientType}
+              hasAccess={hasAccess}
+              userRole={userRole}
+            />
 
             <View className="flex-1 flex-row p-4 gap-4">
-
+              {/* Messages list */}
               <View className="flex-[0.4] border-2 border-green-500 rounded-lg p-2">
                 <Text className="text-sm font-medium text-gray-900 dark:text-white mb-4">
                   Total Messages: {messageCount}
                 </Text>
-                
                 <ScrollView className="p-4">
-                  {messages.map((message) => (
-                    <View key={message.id} className="mb-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
-                      <FeedItem
-                        data={message}
-                        showHeader={message.metadata?.visibility?.header ?? true}
-                        showFooter={message.metadata?.visibility?.footer ?? false}
-                      />
-                      <TouchableOpacity
-                        className="p-3 rounded-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 mt-2 items-center"
-                        onPress={() => handleEditMessage(message)}
-                      >
+                  {messages.map((m) => (
+                    <View key={m.id} className="mb-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+                      <FeedItem data={m} showHeader={m.metadata?.visibility?.header ?? true} showFooter={m.metadata?.visibility?.footer ?? false} />
+                      <TouchableOpacity className="p-3 rounded-lg bg-blue-500 mt-2 items-center" onPress={() => handleEditMessage(m)}>
                         <Text className="text-white text-sm font-medium">Edit</Text>
                       </TouchableOpacity>
                     </View>
@@ -297,89 +165,68 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
                 </ScrollView>
               </View>
 
+              {/* Editor + Preview */}
               <View className="flex-[0.6] border-2 border-blue-500 rounded-lg p-2 flex-row">
+                {/* Editor */}
                 <View className="flex-[0.5] pr-4">
                   <ScrollView className="p-4">
                     {/* Content Section */}
                     <View className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-                      <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Content</Text>
+                      <Text className="text-lg font-semibold mb-4">Content</Text>
                       <View className="flex-row items-center mb-2">
-                        <Text className="text-base text-gray-700 dark:text-gray-300">Make Content Collapsible</Text>
+                        <Text className="text-base">Make Content Collapsible</Text>
                         <Switch
                           value={formData.metadata?.isCollapsible ?? true}
-                          onValueChange={(value) => handleFormDataChange({
-                            metadata: {
-                              ...DEFAULT_METADATA,
-                              ...formData.metadata,
-                              isCollapsible: value
-                            }
-                          })}
+                          onValueChange={(v) =>
+                            handleFormDataChange({ metadata: { ...DEFAULT_METADATA, ...formData.metadata, isCollapsible: v } })
+                          }
                         />
                       </View>
                       <View className="flex-row items-center mb-2">
-                        <Text className="text-base text-gray-700 dark:text-gray-300">Include Content</Text>
-                        <Switch
-                          value={includeContent}
-                          onValueChange={setIncludeContent}
-                        />
+                        <Text className="text-base">Include Content</Text>
+                        <Switch value={includeContent} onValueChange={setIncludeContent} />
                       </View>
                       <View className="flex-row items-center mb-2">
-                        <Text className="text-base text-gray-700 dark:text-gray-300">Show Footer</Text>
+                        <Text className="text-base">Show Footer</Text>
                         <Switch
                           value={formData.metadata?.visibility?.footer ?? true}
-                          onValueChange={(value) => handleFormDataChange({
-                            metadata: {
-                              ...formData.metadata,
-                              visibility: {
-                                ...formData.metadata?.visibility,
-                                footer: value
-                              }
-                            }
-                          })}
+                          onValueChange={(v) =>
+                            handleFormDataChange({ metadata: { ...formData.metadata, visibility: { ...formData.metadata?.visibility, footer: v } } })
+                          }
                         />
                       </View>
                       {includeContent && (
                         <TextInput
-                          className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                          className="p-3 border rounded-lg bg-white dark:bg-gray-900"
                           value={formData.content}
-                          onChangeText={(text) => handleFormDataChange({ ...formData, content: text })}
+                          onChangeText={(t) => handleFormDataChange({ ...formData, content: t })}
                           placeholder="Enter your content"
                           multiline
-                          numberOfLines={4}
                         />
                       )}
                     </View>
 
                     {/* Media Section */}
                     <View className="p-4 mt-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-                      <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Media</Text>
+                      <Text className="text-lg font-semibold mb-4">Media</Text>
                       <View className="flex-row items-center mb-2">
-                        <Text className="text-base text-gray-700 dark:text-gray-300">Include Media</Text>
-                        <Switch
-                          value={includeMedia}
-                          onValueChange={setIncludeMedia}
-                        />
+                        <Text className="text-base">Include Media</Text>
+                        <Switch value={includeMedia} onValueChange={setIncludeMedia} />
                       </View>
                       {includeMedia && (
                         <View>
                           <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2 text-gray-900 dark:text-white">Layout Style</Text>
+                            <Text className="text-base font-semibold mb-2">Layout Style</Text>
                             <View className="flex-row gap-2">
                               {MEDIA_LAYOUTS.map((layout) => (
                                 <TouchableOpacity
                                   key={layout}
                                   className={`flex-1 p-3 border rounded-lg ${
-                                    formData.metadata?.mediaLayout === layout 
-                                      ? 'border-black bg-primary'
-                                      : 'border-gray-200'
+                                    formData.metadata?.mediaLayout === layout ? 'border-black bg-primary' : 'border-gray-200'
                                   }`}
                                   onPress={() => handleMediaLayoutChange(layout)}
                                 >
-                                  <Text className={
-                                    formData.metadata?.mediaLayout === layout 
-                                      ? 'text-white'
-                                      : 'text-gray-700'
-                                  }>
+                                  <Text className={formData.metadata?.mediaLayout === layout ? 'text-white' : 'text-gray-700'}>
                                     {getMediaLayoutLabel(layout)}
                                   </Text>
                                 </TouchableOpacity>
@@ -387,45 +234,34 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
                             </View>
                           </View>
 
-                          {/* Media Items List */}
                           <View className="mb-4">
-                            {formData.media?.map((item, index) => (
-                              <View key={index} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg mb-2">
-                                <Text className="text-sm font-medium mb-2 text-gray-900 dark:text-white">
-                                  {item.type === 'image' ? `Image ${index + 1}` : `Video ${index + 1}`}
+                            {formData.media?.map((item, idx) => (
+                              <View key={idx} className="p-3 border rounded-lg mb-2">
+                                <Text className="text-sm font-medium mb-2">
+                                  {item.type === 'image' ? `Image ${idx + 1}` : `Video ${idx + 1}`}
                                 </Text>
                                 <TextInput
-                                  className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                                  className="p-3 border rounded-lg bg-white dark:bg-gray-900"
                                   value={item.url}
-                                  onChangeText={(text) => handleMediaUrlChange(index, text)}
-                                  placeholder={`https://placeholder.co/800x600?text=${item.type}+${index + 1}`}
+                                  onChangeText={(t) => handleMediaUrlChange(idx, t)}
+                                  placeholder={`https://placeholder.co/800x600?text=${item.type}+${idx + 1}`}
                                 />
                                 <TextInput
-                                  className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                                  className="p-3 border rounded-lg bg-white dark:bg-gray-900"
                                   value={item.caption}
-                                  onChangeText={(text) => handleMediaCaptionChange(index, text)}
-                                  placeholder={`Enter caption for ${item.type} ${index + 1}`}
+                                  onChangeText={(t) => handleMediaCaptionChange(idx, t)}
+                                  placeholder={`Caption for ${item.type} ${idx + 1}`}
                                 />
                               </View>
                             ))}
                           </View>
 
                           <View className="flex-row gap-2">
-                            <Button
-                              onPress={handleAddImage}
-                              variant="default"
-                              size="default"
-                              className="flex-1"
-                            >
-                              <Text className="text-gray-900 dark:text-white">Add Image</Text>
+                            <Button onPress={handleAddImage} className="flex-1">
+                              <Text>Add Image</Text>
                             </Button>
-                            <Button
-                              onPress={handleAddVideo}
-                              variant="default"
-                              size="default"
-                              className="flex-1"
-                            >
-                              <Text className="text-gray-900 dark:text-white">Add Video</Text>
+                            <Button onPress={handleAddVideo} className="flex-1">
+                              <Text>Add Video</Text>
                             </Button>
                           </View>
                         </View>
@@ -434,24 +270,16 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
 
                     {/* Interactive Section */}
                     <View className="p-4 mt-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-                      <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Interactive Content</Text>
+                      <Text className="text-lg font-semibold mb-4">Interactive Content</Text>
                       <View className="flex-row items-center mb-2">
-                        <Text className="text-base text-gray-700 dark:text-gray-300">Enable Interactive Content</Text>
-                        <Switch
-                          value={isInteractive}
-                          onValueChange={setIsInteractive}
-                        />
+                        <Text className="text-base">Enable Interactive Content</Text>
+                        <Switch value={isInteractive} onValueChange={setIsInteractive} />
                       </View>
                       {isInteractive && (
                         <InteractiveContentSection
                           formData={formData}
                           selectedInteractiveType={formData.metadata?.interactiveType}
-                          onTypeChange={(type) => handleFormDataChange({
-                            metadata: {
-                              ...formData.metadata,
-                              interactiveType: type
-                            }
-                          })}
+                          onTypeChange={(type) => handleFormDataChange({ metadata: { ...formData.metadata, interactiveType: type } })}
                           onFormDataChange={handleFormDataChange}
                         />
                       )}
@@ -459,6 +287,7 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
                   </ScrollView>
                 </View>
 
+                {/* Preview */}
                 <View className="flex-[0.5]">
                   <ScrollView className="p-4">
                     <Card className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
@@ -477,6 +306,7 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
         </View>
       </SafeAreaView>
 
+      {/* Floating add button */}
       <TouchableOpacity
         style={{
           position: 'absolute',
@@ -489,20 +319,12 @@ export default function CreateMessageScreen({ username }: CreateMessageScreenPro
           justifyContent: 'center',
           alignItems: 'center',
           elevation: 4,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
           zIndex: 1000,
         }}
-        onPress={() => handleCreateItem(formData)}
+        onPress={() => createItemUtil(formData)}
         disabled={isSubmitting}
       >
-        {isSubmitting ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Plus size={24} color="white" />
-        )}
+        {isSubmitting ? <ActivityIndicator color="white" /> : <Plus size={24} color="white" />}
       </TouchableOpacity>
     </View>
   );
