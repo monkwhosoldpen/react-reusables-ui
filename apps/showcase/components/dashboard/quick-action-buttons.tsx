@@ -18,6 +18,7 @@ interface QuickActionButtonsProps {
   userRole?: {
     role: string;
   } | null;
+  messageCount: number;
 }
 
 export function QuickActionButtons({
@@ -31,6 +32,7 @@ export function QuickActionButtons({
   clientType,
   hasAccess,
   userRole,
+  messageCount,
 }: QuickActionButtonsProps) {
   return (
     <View className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 space-y-2">
@@ -99,6 +101,9 @@ export function QuickActionButtons({
             <Text className="text-xs font-medium text-purple-800 dark:text-purple-200">{userRole.role}</Text>
           </View>
         )}
+        <View className="px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900">
+          <Text className="text-xs font-medium text-purple-800 dark:text-purple-200">Total Messages: {messageCount}</Text>
+        </View>
       </ScrollView>
     </View>
   );

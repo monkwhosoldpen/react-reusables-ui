@@ -145,25 +145,10 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
               clientType={clientType}
               hasAccess={hasAccess}
               userRole={userRole}
+              messageCount={messageCount}
             />
 
             <View className="flex-1 flex-row p-4 gap-4">
-              {/* Messages list */}
-              <View className="flex-[0.4] border-2 border-green-500 rounded-lg p-2">
-                <Text className="text-sm font-medium text-gray-900 dark:text-white mb-4">
-                  Total Messages: {messageCount}
-                </Text>
-                <ScrollView className="p-4">
-                  {messages.map((m) => (
-                    <View key={m.id} className="mb-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
-                      <FeedItem data={m} showHeader={m.metadata?.visibility?.header ?? true} showFooter={m.metadata?.visibility?.footer ?? false} />
-                      <TouchableOpacity className="p-3 rounded-lg bg-blue-500 mt-2 items-center" onPress={() => handleEditMessage(m)}>
-                        <Text className="text-white text-sm font-medium">Edit</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
 
               {/* Editor + Preview */}
               <View className="flex-[0.6] border-2 border-blue-500 rounded-lg p-2 flex-row">
@@ -221,9 +206,8 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
                               {MEDIA_LAYOUTS.map((layout) => (
                                 <TouchableOpacity
                                   key={layout}
-                                  className={`flex-1 p-3 border rounded-lg ${
-                                    formData.metadata?.mediaLayout === layout ? 'border-black bg-primary' : 'border-gray-200'
-                                  }`}
+                                  className={`flex-1 p-3 border rounded-lg ${formData.metadata?.mediaLayout === layout ? 'border-black bg-primary' : 'border-gray-200'
+                                    }`}
                                   onPress={() => handleMediaLayoutChange(layout)}
                                 >
                                   <Text className={formData.metadata?.mediaLayout === layout ? 'text-white' : 'text-gray-700'}>
@@ -290,6 +274,8 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
                 {/* Preview */}
                 <View className="flex-[0.5]">
                   <ScrollView className="p-4">
+
+
                     <Card className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
                       <FeedItem
                         key={`preview-${previewKey}`}
@@ -301,31 +287,18 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
                   </ScrollView>
                 </View>
               </View>
+
             </View>
+
+            <Button onPress={() => createItemUtil(formData)} disabled={isSubmitting}>
+              <Text>Create</Text>
+            </Button>
+            
           </ScrollView>
+
         </View>
       </SafeAreaView>
 
-      {/* Floating add button */}
-      <TouchableOpacity
-        style={{
-          position: 'absolute',
-          bottom: 24,
-          right: 24,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: '#3B82F6',
-          justifyContent: 'center',
-          alignItems: 'center',
-          elevation: 4,
-          zIndex: 1000,
-        }}
-        onPress={() => createItemUtil(formData)}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? <ActivityIndicator color="white" /> : <Plus size={24} color="white" />}
-      </TouchableOpacity>
     </View>
   );
 }
