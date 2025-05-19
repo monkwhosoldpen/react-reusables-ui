@@ -8,15 +8,12 @@ export default function Index() {
   const { user, loading, userInfo } = useAuth();
 
   if ((user)) {
-    return <MainScreen/>;
+    return <MainScreen />;
   }
 
-  // If no user and not loading, show landing
   if (!loading) {
     return (
-      <View className="flex-1 bg-white dark:bg-gray-900">
-        <Landing />
-      </View>
+      <Landing />
     );
   }
 

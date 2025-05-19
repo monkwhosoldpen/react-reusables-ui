@@ -10,128 +10,146 @@ import { ChannelHeader } from "~/components/channel-profile/ChannelHeader";
 import { ChannelSidebar } from "~/components/channel-profile/ChannelSidebar";
 import { FeedItem } from "~/lib/enhanced-chat/components/feed/FeedItem";
 import useChannelData from "~/lib/core/utils/channel-profile-util";
-import { FollowButton } from "~/components/common/FollowButton";
 import { JoinButton } from "~/components/common/JoinButton";
 import { useRealtime } from "~/lib/core/providers/RealtimeProvider";
 
-/* ------------ isolated main-content component ------------ */
+/* ------------ isolated components ------------ */
+
+const AgentChat = memo(({ username }: { username: string }) => {
+  return (
+    <View className="flex-1 items-center justify-center">
+      <Text className="text-xl text-foreground">Hello Agent Chat</Text>
+      <Text className="text-muted-foreground mt-2">Agent interface for {username}</Text>
+    </View>
+  );
+});
+
 type MainContentProps = {
   width: number;
   username: string;
   channel: any;
-  messages: any[];
-  loadingMessages: boolean;
-  messageError: string | null;
-  accessStatus: string;
-  refreshMessages: () => void;
+  refreshKey: number;
 };
 
-const MainContent = memo(
-  ({
-    width,
-    username,
-    channel,
+const MainContent = memo(({
+  width,
+  username,
+  channel,
+  refreshKey,
+}: MainContentProps) => {
+  const isPrivate = channel?.is_owner_db;
+  const isAgent = channel?.is_agent;
+
+  // Move message fetching here
+  const {
     messages,
-    loadingMessages,
-    messageError,
+    loading: loadingMessages,
+    error: messageError,
     accessStatus,
     refreshMessages,
-  }: MainContentProps) => {
-    const isPrivate = channel?.is_owner_db;
+  } = useChannelData(username, refreshKey);
 
-    const renderLoading = (label: string) => (
-      <View className="flex-1 items-center justify-center p-6">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <Text className="mt-2 text-base text-muted-foreground">{label}</Text>
-      </View>
-    );
+  const renderLoading = (label: string) => (
+    <View className="flex-1 items-center justify-center p-6">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <Text className="mt-2 text-base text-muted-foreground">{label}</Text>
+    </View>
+  );
 
-    return (
-      <View style={{ width }} className="bg-background flex-1">
-        {/* MESSAGES SECTION WITH SCROLL */}
-        <View className="flex-1 relative">
-          {isPrivate && accessStatus !== "APPROVED" && (
-            <View className="absolute inset-0 z-50 backdrop-blur-md bg-orange-500/30 items-center justify-center">
-              <View className="bg-orange-500/90 p-8 rounded-lg items-center max-w-md">
-                <Text className="text-2xl font-bold text-white text-center mb-4">
-                  No Access
-                </Text>
-                <View className="p-2">
-                  {isPrivate ? (
-                    <JoinButton
-                      username={username}
-                      accessStatus={accessStatus}
-                      channelDetails={channel}
-                      onJoin={refreshMessages}
-                    />
-                  ) : (
-                    <FollowButton username={username} />
-                  )}
-                </View>
-              </View>
+  const renderMessages = () => (
+    <View className="flex-1">
+      <View className="flex-1">
+        <ScrollView className={`flex-1 ${isPrivate ? "border-red-500" : "border-blue-500"}`} contentContainerStyle={{ padding: 8 }}>
+          {loadingMessages ? (
+            renderLoading("Loading messages...")
+          ) : messageError ? (
+            <View className="items-center justify-center p-6">
+              <Text className="mb-2 text-lg text-foreground">{messageError}</Text>
+              <Text className="text-base text-muted-foreground">There was a problem loading messages.</Text>
             </View>
+          ) : messages.length === 0 ? (
+            <View className="items-center justify-center p-6">
+              <Text className="mb-2 text-lg text-foreground">No messages yet</Text>
+              <Text className="text-base text-muted-foreground">This channel hasn't posted any messages.</Text>
+            </View>
+          ) : (
+            messages.map((msg, idx) => (
+              <FeedItem
+                key={msg.id ?? idx}
+                data={{
+                  ...msg,
+                  channel_username: msg.channel_username ?? username,
+                }}
+                showHeader={msg.metadata?.visibility?.header ?? true}
+                showFooter={msg.metadata?.visibility?.footer ?? false}
+              />
+            ))
           )}
+        </ScrollView>
+      </View>
 
-          <ScrollView
-            className={`flex-1 p-2 border-2 ${
-              isPrivate ? "border-red-500" : "border-blue-500"
-            }`}
-          >
-            {loadingMessages
-              ? renderLoading("Loading messages...")
-              : messageError
-              ? (
-                <View className="flex-1 items-center justify-center p-6">
-                  <Text className="mb-2 text-lg text-foreground">
-                    {messageError}
-                  </Text>
-                  <Text className="text-base text-muted-foreground">
-                    There was a problem loading messages.
-                  </Text>
-                </View>
-              )
-              : messages.length === 0
-              ? (
-                <View className="flex-1 items-center justify-center p-6">
-                  <Text className="mb-2 text-lg text-foreground">
-                    No messages yet
-                  </Text>
-                  <Text className="text-base text-muted-foreground">
-                    This channel hasn't posted any messages.
-                  </Text>
-                </View>
-              )
-              : messages.map((msg, idx) => (
-                  <FeedItem
-                    key={msg.id ?? idx}
-                    data={{
-                      ...msg,
-                      channel_username: msg.channel_username ?? username,
-                    }}
-                    showHeader={msg.metadata?.visibility?.header ?? true}
-                    showFooter={msg.metadata?.visibility?.footer ?? false}
-                  />
-                ))}
-          </ScrollView>
-        </View>
-
-        {/* MESSAGE INPUT SECTION */}
-        <View className="border-t border-border bg-background p-4">
-          <View className="flex-row items-center gap-2">
-            <View className="flex-1 bg-muted rounded-lg p-3">
-              <Text className="text-muted-foreground">
-                Type your message here...
-              </Text>
-            </View>
-            <Button variant="secondary" onPress={() => {}}>
-              <Text>Send</Text>
-            </Button>
+      <View className="border-t border-border bg-background p-4">
+        <View className="flex-row items-center gap-2">
+          <View className="flex-1 bg-muted rounded-lg p-3">
+            <Text className="text-muted-foreground">Type your message here...</Text>
           </View>
+          <Button variant="secondary" onPress={() => { }}>
+            <Text>Send</Text>
+          </Button>
         </View>
       </View>
-    );
-  }
-);
+    </View>
+  );
+
+  const renderNoAccess = () => (
+    <View className="absolute inset-0 z-50 backdrop-blur-md bg-orange-500/30 items-center justify-center">
+      <View className="bg-orange-500/90 p-8 rounded-lg items-center max-w-md">
+        <Text className="text-2xl font-bold text-white text-center mb-4">No Access</Text>
+        <View className="p-2">
+          <JoinButton
+            username={username}
+            accessStatus={accessStatus}
+            channelDetails={channel}
+            onJoin={refreshMessages}
+          />
+        </View>
+      </View>
+    </View>
+  );
+
+  // Main render logic following the flow
+  const renderContent = () => {
+    // If still loading, show loading state
+    if (loadingMessages) {
+      return renderLoading("Loading messages...");
+    }
+
+    // If public channel, show messages directly
+    if (!isPrivate) {
+      return renderMessages();
+    }
+
+    // If private channel, check access (only after loading is complete)
+    if (accessStatus !== "APPROVED") {
+      return renderNoAccess();
+    }
+
+    // If has access, check if agent
+    if (isAgent) {
+      return <AgentChat username={username} />;
+    }
+
+    // Otherwise show regular messages
+    return renderMessages();
+  };
+
+  return (
+    <View style={{ width }} className="bg-background flex-1">
+      {renderContent()}
+    </View>
+  );
+});
+
 /* --------------------------------------------------------- */
 
 export default function ChannelPage() {
@@ -179,11 +197,6 @@ export default function ChannelPage() {
     channel,
     loading,
     error,
-    messages,
-    loadingMessages,
-    messageError,
-    accessStatus,
-    refreshMessages,
   } = useChannelData(usernameStr, refreshKey);
 
   const renderLoading = (label: string) => (
@@ -229,16 +242,11 @@ export default function ChannelPage() {
           />
         </View>
 
-        {/* use the refactored component */}
         <MainContent
           width={contentWidth}
           username={usernameStr}
           channel={channel}
-          messages={messages}
-          loadingMessages={loadingMessages}
-          messageError={messageError}
-          accessStatus={accessStatus}
-          refreshMessages={refreshMessages}
+          refreshKey={refreshKey}
         />
       </View>
     </View>
