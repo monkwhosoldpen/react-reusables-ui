@@ -13,6 +13,7 @@ import useChannelData from "~/lib/core/utils/channel-profile-util";
 import { JoinButton } from "~/components/common/JoinButton";
 import { useRealtime } from "~/lib/core/providers/RealtimeProvider";
 import { Skeleton } from "~/components/ui/skeleton";
+import AiChat from "~/components/ai-chat";
 
 /* ------------ isolated components ------------ */
 
@@ -50,10 +51,7 @@ const MessageSkeleton = memo(() => {
 
 const AgentChat = memo(({ username }: { username: string }) => {
   return (
-    <View className="flex-1 items-center justify-center">
-      <Text className="text-xl text-foreground">Hello Agent Chat</Text>
-      <Text className="text-muted-foreground mt-2">Agent interface for {username}</Text>
-    </View>
+    <AiChat />
   );
 });
 

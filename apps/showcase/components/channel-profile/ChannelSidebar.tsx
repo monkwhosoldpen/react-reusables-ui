@@ -14,6 +14,12 @@ interface ChannelSidebarProps {
   sidebarWidth: number
 }
 
+const getUsernameColor = (channel: Channel) => {
+  if (channel.is_agent) return 'text-green-600 dark:text-green-400'
+  if (channel.is_owner_db) return 'text-red-600 dark:text-red-400'
+  return 'text-blue-600 dark:text-blue-400'
+}
+
 export function ChannelSidebar({
   username,
   channelDetails,
@@ -47,7 +53,7 @@ export function ChannelSidebar({
               </View>
               <View className="flex-col items-center">
                 <Text 
-                  className="text-xs text-center mt-1.5 font-medium px-1 w-full text-gray-900 dark:text-white"
+                  className="text-[10px] text-center mt-1.5 font-medium px-1 w-full text-gray-900 dark:text-white"
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -75,7 +81,7 @@ export function ChannelSidebar({
                   <Users size={20} />
                 </View>
                 <Text 
-                  className="text-xs text-center mt-1.5 px-1 w-full text-gray-900 dark:text-white"
+                  className={`text-[10px] text-center mt-1.5 px-1 w-full ${getUsernameColor(related)}`}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -96,7 +102,7 @@ export function ChannelSidebar({
               <Settings size={20} />
             </View>
             <Text 
-              className="text-xs text-center mt-1.5 font-medium text-gray-900 dark:text-white"
+              className="text-[10px] text-center mt-1.5 font-medium text-gray-900 dark:text-white"
             >
               Settings
             </Text>
