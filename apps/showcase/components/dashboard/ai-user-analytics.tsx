@@ -1,51 +1,757 @@
-import { View } from 'react-native';
-import { Text } from '~/components/ui/text';
+import { View, Text, ScrollView, Image, Pressable, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { useAuth } from '~/lib/core/contexts/AuthContext';
-import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
+import { MOCK_USER_SEGMENTS, MOCK_USER_ANALYTICS, MOCK_CHANNEL_ANALYTICS } from '~/constants/mockAnalytics';
+import { Card } from '~/components/ui/card';
+import { Badge } from '~/components/ui/badge';
+import { 
+  formatRelativeTime, 
+  formatNumber, 
+  formatPercentage, 
+  getSentimentColor,
+  getChurnRiskColor,
+  formatDuration
+} from '~/utils/ai-user-analytics-utils';
+import { Dimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
+
+const screenWidth = Dimensions.get('window').width;
+
+const chartConfig = {
+  backgroundColor: '#ffffff',
+  backgroundGradientFrom: '#ffffff',
+  backgroundGradientTo: '#ffffff',
+  decimalPlaces: 0,
+  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  style: {
+    borderRadius: 16
+  },
+  propsForDots: {
+    r: '6',
+    strokeWidth: '2',
+    stroke: '#3B82F6'
+  }
+};
 
 export default function AIUserAnalyticsTab() {
   const { username } = useLocalSearchParams();
-  const { user } = useAuth();
 
-  // Find the channel in all configs to get owner
-  const findChannelOwner = () => {
-    for (const [ownerUsername, config] of Object.entries(PREMIUM_CONFIGS)) {
-      const channel = config?.related_channels?.find(ch => ch.username === username);
-      if (channel) {
-        return {
-          ownerUsername,
-          channel,
-          config
-        };
-      }
-    }
-    return null;
-  };
+  const renderHeader = () => (
+    <View className="flex-row justify-between items-center mb-6">
+      <View>
+        <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          AI User Analytics
+        </Text>
+        <Text className="text-sm text-gray-600 dark:text-gray-400">
+          Channel: {username}
+        </Text>
+      </View>
+      <View className="flex-row gap-2">
+        <TouchableOpacity className="bg-blue-500 px-4 py-2 rounded-lg flex-row items-center">
+          <Ionicons name="download-outline" size={20} color="white" />
+          <Text className="text-white ml-2">Export</Text>
+        </TouchableOpacity>
+        <TouchableOpacity className="bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg flex-row items-center">
+          <Ionicons name="refresh-outline" size={20} color="#6B7280" />
+          <Text className="text-gray-600 dark:text-gray-400 ml-2">Refresh</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
-  const channelInfo = findChannelOwner();
-  const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username as string];
-  const clientType = premiumConfig?.client_type || 'public';
-  const isPublic = !premiumConfig || Object.keys(premiumConfig).length === 0 || premiumConfig.is_public;
-  
-  // Get user role and access
-  const userRole = premiumConfig?.roles ? 
-    Object.entries(premiumConfig.roles).find(([_, emails]) => 
-      Array.isArray(emails) && emails.includes(user?.email || '')
-    )?.[0] : null;
+  const renderSearchAndFilters = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row items-center mb-4">
+        <View className="flex-1 flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
+          <Ionicons name="search" size={20} color="#6B7280" />
+          <Text className="text-gray-500 ml-2">Search users, segments, or metrics...</Text>
+        </View>
+        <TouchableOpacity className="ml-2 p-2">
+          <Ionicons name="options-outline" size={24} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      <View className="flex-row flex-wrap gap-2">
+        <Badge variant="secondary" className="px-3 py-1">
+          <Ionicons name="time-outline" size={16} color="#6B7280" className="mr-1" />
+          Last 7 Days
+        </Badge>
+        <Badge variant="outline" className="px-3 py-1">
+          <Ionicons name="people-outline" size={16} color="#6B7280" className="mr-1" />
+          All Segments
+        </Badge>
+        <Badge variant="outline" className="px-3 py-1">
+          <Ionicons name="trending-up-outline" size={16} color="#6B7280" className="mr-1" />
+          Growth Metrics
+        </Badge>
+        <Badge variant="outline" className="px-3 py-1">
+          <Ionicons name="alert-outline" size={16} color="#6B7280" className="mr-1" />
+          Show Anomalies
+        </Badge>
+      </View>
+    </Card>
+  );
 
-  const hasAccess = !premiumConfig || Object.keys(premiumConfig).length === 0 
-    ? (user?.email ? user.email === global_superadmin : false) 
-    : userRole !== null;
+  const renderQuickActions = () => (
+    <View className="flex-row flex-wrap gap-4 mb-6">
+      <Card className="flex-1 p-4 min-w-[200px]">
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text className="text-sm text-gray-500">Pending Requests</Text>
+            <Text className="text-2xl font-bold mt-1">50</Text>
+          </View>
+          <TouchableOpacity className="bg-blue-500 p-2 rounded-lg">
+            <Ionicons name="checkmark-circle-outline" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </Card>
+      <Card className="flex-1 p-4 min-w-[200px]">
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text className="text-sm text-gray-500">New Users Today</Text>
+            <Text className="text-2xl font-bold mt-1">25</Text>
+          </View>
+          <TouchableOpacity className="bg-green-500 p-2 rounded-lg">
+            <Ionicons name="person-add-outline" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </Card>
+      <Card className="flex-1 p-4 min-w-[200px]">
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text className="text-sm text-gray-500">At Risk Users</Text>
+            <Text className="text-2xl font-bold mt-1">12</Text>
+          </View>
+          <TouchableOpacity className="bg-red-500 p-2 rounded-lg">
+            <Ionicons name="warning-outline" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </Card>
+    </View>
+  );
+
+  const renderExportOptions = () => (
+    <Card className="p-4 mb-6">
+      <Text className="text-lg font-semibold mb-4">Export Options</Text>
+      <View className="flex-row flex-wrap gap-4">
+        <TouchableOpacity className="flex-1 min-w-[150px] bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+          <View className="flex-row items-center">
+            <Ionicons name="document-text-outline" size={24} color="#6B7280" />
+            <View className="ml-3">
+              <Text className="font-medium">CSV Export</Text>
+              <Text className="text-sm text-gray-500">User Analytics</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity className="flex-1 min-w-[150px] bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+          <View className="flex-row items-center">
+            <Ionicons name="bar-chart-outline" size={24} color="#6B7280" />
+            <View className="ml-3">
+              <Text className="font-medium">PDF Report</Text>
+              <Text className="text-sm text-gray-500">Channel Analytics</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity className="flex-1 min-w-[150px] bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+          <View className="flex-row items-center">
+            <Ionicons name="analytics-outline" size={24} color="#6B7280" />
+            <View className="ml-3">
+              <Text className="font-medium">JSON Data</Text>
+              <Text className="text-sm text-gray-500">Raw Analytics</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </Card>
+  );
+
+  const renderUserSegment = (segment: typeof MOCK_USER_SEGMENTS[0]) => (
+    <Card key={segment.id} className="p-4 mb-4">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center">
+          <Text className="text-2xl mr-2">{segment.icon}</Text>
+          <View>
+            <Text className="text-lg font-semibold">{segment.name}</Text>
+            <Text className="text-sm text-gray-500">{segment.description}</Text>
+          </View>
+        </View>
+        <View className="flex-row items-center gap-2">
+          <Badge variant="secondary" className="px-3 py-1">
+            {segment.count} users
+          </Badge>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="ellipsis-vertical" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View className="flex-row justify-between mt-2">
+        <View>
+          <Text className="text-xs text-gray-500">Activity</Text>
+          <Text className="text-sm font-medium">{segment.metrics.averageActivity}%</Text>
+        </View>
+        <View>
+          <Text className="text-xs text-gray-500">Retention</Text>
+          <Text className="text-sm font-medium">{segment.metrics.retentionRate}%</Text>
+        </View>
+        <View>
+          <Text className="text-xs text-gray-500">Satisfaction</Text>
+          <Text className="text-sm font-medium">{segment.metrics.satisfactionScore}/5</Text>
+        </View>
+      </View>
+    </Card>
+  );
+
+  const renderUserCard = (user: typeof MOCK_USER_ANALYTICS[0]) => (
+    <Card key={user.id} className="p-4 mb-4">
+      <View className="flex-row items-center mb-3">
+        <Image 
+          source={{ uri: user.avatar }} 
+          className="w-12 h-12 rounded-full mr-3"
+        />
+        <View className="flex-1">
+          <View className="flex-row items-center">
+            <Text className="text-lg font-semibold mr-2">{user.username}</Text>
+            {user.isVIP && <Text className="text-yellow-500">👑</Text>}
+          </View>
+          <Text className="text-sm text-gray-500">{user.email}</Text>
+        </View>
+        <View className="flex-row gap-2">
+          <Badge 
+            variant={user.requestStatus === 'approved' ? 'default' : 
+                    user.requestStatus === 'pending' ? 'secondary' : 'destructive'}
+          >
+            {user.requestStatus}
+          </Badge>
+          <Badge 
+            variant={user.sentiment === 'positive' ? 'default' : 
+                    user.sentiment === 'neutral' ? 'secondary' : 'destructive'}
+          >
+            {user.sentiment === 'positive' ? '🟢' : user.sentiment === 'neutral' ? '🟠' : '🔴'}
+          </Badge>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="ellipsis-vertical" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+      </View>
+      
+      <View className="flex-row justify-between mb-2">
+        <Text className="text-sm text-gray-600">Messages: {formatNumber(user.messageCount)}</Text>
+        <Text className="text-sm text-gray-600">
+          Last active: {formatRelativeTime(user.lastViewed)}
+        </Text>
+      </View>
+
+      <View className="flex-row justify-between mb-2">
+        <Text className="text-sm text-gray-600">Requests: {user.tenantRequests}</Text>
+        <Text className="text-sm text-gray-600">Joined: {user.joinDate}</Text>
+      </View>
+
+      {user.churnRisk && (
+        <View className="mt-2">
+          <Text className="text-sm font-medium mb-1">Churn Risk: 
+            <Text style={{ color: getChurnRiskColor(user.churnRisk) }}>
+              {' '}{user.churnRisk.toUpperCase()}
+            </Text>
+          </Text>
+        </View>
+      )}
+
+      <View className="mt-3">
+        <Text className="text-sm font-medium mb-2">Activity Metrics</Text>
+        <View className="flex-row justify-between">
+          <View>
+            <Text className="text-xs text-gray-500">Daily Active</Text>
+            <Text className="text-sm">{user.activityMetrics.dailyActiveMinutes}m</Text>
+          </View>
+          <View>
+            <Text className="text-xs text-gray-500">Weekly Active</Text>
+            <Text className="text-sm">{user.activityMetrics.weeklyActiveDays}d</Text>
+          </View>
+          <View>
+            <Text className="text-xs text-gray-500">Engagement</Text>
+            <Text className="text-sm">{user.activityMetrics.monthlyEngagement}%</Text>
+          </View>
+        </View>
+      </View>
+
+      {user.tags && user.tags.length > 0 && (
+        <View className="flex-row flex-wrap gap-2 mt-2">
+          {user.tags.map(tag => (
+            <Badge key={tag} variant="outline" className="px-2 py-1">
+              {tag}
+            </Badge>
+          ))}
+        </View>
+      )}
+
+      {user.network && (
+        <View className="mt-2">
+          <Text className="text-sm text-gray-600">
+            Network: {formatNumber(user.network.followers)} followers • {formatNumber(user.network.following)} following
+            {user.network.referredBy && ` • Referred by ${user.network.referredBy}`}
+          </Text>
+        </View>
+      )}
+
+      <View className="flex-row justify-end mt-4 gap-2">
+        <TouchableOpacity className="bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg">
+          <Text className="text-gray-600 dark:text-gray-400">View Details</Text>
+        </TouchableOpacity>
+        <TouchableOpacity className="bg-blue-500 px-3 py-1 rounded-lg">
+          <Text className="text-white">Take Action</Text>
+        </TouchableOpacity>
+      </View>
+    </Card>
+  );
+
+  const renderTimeSeriesChart = (data: typeof MOCK_CHANNEL_ANALYTICS.timeSeriesData.dailyActiveUsers) => (
+    <LineChart
+      data={{
+        labels: data.labels,
+        datasets: [{
+          data: data.datasets[0].data,
+          color: (opacity = 1) => data.datasets[0].color
+        }]
+      }}
+      width={screenWidth - 32}
+      height={220}
+      chartConfig={chartConfig}
+      bezier
+      style={{
+        marginVertical: 8,
+        borderRadius: 16
+      }}
+    />
+  );
+
+  const renderPieChart = (data: typeof MOCK_CHANNEL_ANALYTICS.distributionData.requestTypes) => (
+    <PieChart
+      data={data.labels.map((label, index) => ({
+        name: label,
+        population: data.data[index],
+        color: data.colors[index],
+        legendFontColor: '#7F9C9F',
+        legendFontSize: 12
+      }))}
+      width={screenWidth - 32}
+      height={220}
+      chartConfig={chartConfig}
+      accessor="population"
+      backgroundColor="transparent"
+      paddingLeft="15"
+      absolute
+    />
+  );
+
+  const renderBarChart = (data: typeof MOCK_CHANNEL_ANALYTICS.distributionData.timeDistribution) => (
+    <BarChart
+      data={{
+        labels: data.labels,
+        datasets: [{
+          data: data.datasets[0].data,
+          color: (opacity = 1) => data.datasets[0].color
+        }]
+      }}
+      width={screenWidth - 32}
+      height={220}
+      chartConfig={chartConfig}
+      style={{
+        marginVertical: 8,
+        borderRadius: 16
+      }}
+      yAxisLabel=""
+      yAxisSuffix=""
+      showValuesOnTopOfBars
+    />
+  );
+
+  const renderChannelStats = () => (
+    <View className="flex-row flex-wrap justify-between mb-6">
+      <Card className="w-[48%] p-4 mb-4">
+        <View className="flex-row justify-between items-start">
+          <View>
+            <Text className="text-sm text-gray-500 mb-1">Total Viewers</Text>
+            <Text className="text-2xl font-bold">{formatNumber(MOCK_CHANNEL_ANALYTICS.totalViewers)}</Text>
+            <Text className="text-xs text-gray-500 mt-1">
+              {formatPercentage(MOCK_CHANNEL_ANALYTICS.performanceMetrics.retentionRate)} retention
+            </Text>
+          </View>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+      </Card>
+      <Card className="w-[48%] p-4 mb-4">
+        <View className="flex-row justify-between items-start">
+          <View>
+            <Text className="text-sm text-gray-500 mb-1">Active Users</Text>
+            <Text className="text-2xl font-bold">{formatNumber(MOCK_CHANNEL_ANALYTICS.activeUsers)}</Text>
+            <Text className="text-xs text-gray-500 mt-1">
+              {formatPercentage(MOCK_CHANNEL_ANALYTICS.performanceMetrics.engagementScore)} engagement
+            </Text>
+          </View>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+      </Card>
+      <Card className="w-[48%] p-4 mb-4">
+        <View className="flex-row justify-between items-start">
+          <View>
+            <Text className="text-sm text-gray-500 mb-1">Avg Messages</Text>
+            <Text className="text-2xl font-bold">{formatNumber(MOCK_CHANNEL_ANALYTICS.averageMessages)}</Text>
+            <Text className="text-xs text-gray-500 mt-1">
+              {formatDuration(MOCK_CHANNEL_ANALYTICS.performanceMetrics.responseTime)} avg response
+            </Text>
+          </View>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+      </Card>
+      <Card className="w-[48%] p-4 mb-4">
+        <View className="flex-row justify-between items-start">
+          <View>
+            <Text className="text-sm text-gray-500 mb-1">Total Requests</Text>
+            <Text className="text-2xl font-bold">{formatNumber(MOCK_CHANNEL_ANALYTICS.totalRequests)}</Text>
+            <Text className="text-xs text-gray-500 mt-1">
+              {formatPercentage(MOCK_CHANNEL_ANALYTICS.performanceMetrics.satisfactionScore * 20)} satisfaction
+            </Text>
+          </View>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+      </Card>
+    </View>
+  );
+
+  const renderFunnelMetrics = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-semibold">User Lifecycle Funnel</Text>
+        <TouchableOpacity className="p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      {MOCK_CHANNEL_ANALYTICS.funnelMetrics.map((stage, index) => (
+        <View key={stage.stage} className="mb-3">
+          <View className="flex-row justify-between mb-1">
+            <Text className="text-sm font-medium">{stage.stage}</Text>
+            <Text className="text-sm text-gray-500">{stage.conversionRate}%</Text>
+          </View>
+          <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <View 
+              className="h-full bg-blue-500 rounded-full"
+              style={{ width: `${stage.conversionRate}%` }}
+            />
+          </View>
+          <Text className="text-xs text-gray-500 mt-1">{stage.count} users</Text>
+        </View>
+      ))}
+    </Card>
+  );
+
+  const renderAgingRequests = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-semibold">Request Aging</Text>
+        <TouchableOpacity className="p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      {MOCK_CHANNEL_ANALYTICS.agingRequests.map(request => (
+        <View key={request.status} className="mb-3">
+          <View className="flex-row justify-between items-center">
+            <Text className="text-sm font-medium capitalize">{request.status}</Text>
+            <Badge variant="secondary">{request.count} requests</Badge>
+          </View>
+          <Text className="text-sm text-gray-500">
+            Avg. time: {formatDuration(request.averageTime)}
+          </Text>
+        </View>
+      ))}
+    </Card>
+  );
+
+  const renderAnomalies = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-semibold">Recent Anomalies</Text>
+        <TouchableOpacity className="p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      {MOCK_CHANNEL_ANALYTICS.anomalies.map((anomaly, index) => (
+        <View key={index} className="mb-3">
+          <View className="flex-row items-center">
+            <Text className={`text-xl mr-2 ${anomaly.type === 'spike' ? 'text-green-500' : 'text-red-500'}`}>
+              {anomaly.type === 'spike' ? '📈' : '📉'}
+            </Text>
+            <View>
+              <Text className="text-sm font-medium capitalize">
+                {anomaly.metric.replace('_', ' ')}
+              </Text>
+              <Text className="text-sm text-gray-500">
+                {formatPercentage(anomaly.change)} on {anomaly.date}
+              </Text>
+            </View>
+          </View>
+        </View>
+      ))}
+    </Card>
+  );
+
+  const renderSLAMetrics = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-semibold">SLA Metrics</Text>
+        <TouchableOpacity className="p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      <View className="flex-row justify-between mb-3">
+        <View>
+          <Text className="text-sm font-medium">Avg Resolution Time</Text>
+          <Text className="text-sm text-gray-500">{formatDuration(MOCK_CHANNEL_ANALYTICS.slaMetrics.averageResolutionTime)}</Text>
+        </View>
+        <View>
+          <Text className="text-sm font-medium">SLA Violations</Text>
+          <Text className="text-sm text-gray-500">{MOCK_CHANNEL_ANALYTICS.slaMetrics.slaViolations}</Text>
+        </View>
+        <View>
+          <Text className="text-sm font-medium">Pending {'>'} 24h</Text>
+          <Text className="text-sm text-gray-500">{MOCK_CHANNEL_ANALYTICS.slaMetrics.pendingOver24h}</Text>
+        </View>
+      </View>
+    </Card>
+  );
+
+  const renderGrowthForecast = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-semibold">Growth Forecast</Text>
+        <TouchableOpacity className="p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      <View className="flex-row justify-between">
+        <View>
+          <Text className="text-sm font-medium">New Users</Text>
+          <Text className="text-sm text-gray-500">{MOCK_CHANNEL_ANALYTICS.growthForecast.newUsers}</Text>
+        </View>
+        <View>
+          <Text className="text-sm font-medium">Active Users</Text>
+          <Text className="text-sm text-gray-500">{MOCK_CHANNEL_ANALYTICS.growthForecast.activeUsers}</Text>
+        </View>
+        <View>
+          <Text className="text-sm font-medium">Requests</Text>
+          <Text className="text-sm text-gray-500">{MOCK_CHANNEL_ANALYTICS.growthForecast.requests}</Text>
+        </View>
+      </View>
+      <Text className="text-xs text-gray-500 mt-2">
+        Confidence: {MOCK_CHANNEL_ANALYTICS.growthForecast.confidence * 100}%
+      </Text>
+    </Card>
+  );
+
+  const renderInsightsPanel = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-semibold">AI Insights</Text>
+        <TouchableOpacity className="p-2">
+          <Ionicons name="refresh-outline" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      <View className="space-y-4">
+        <View className="flex-row items-start">
+          <View className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg mr-3">
+            <Ionicons name="trending-up" size={24} color="#3B82F6" />
+          </View>
+          <View className="flex-1">
+            <Text className="font-medium">User Engagement Spike</Text>
+            <Text className="text-sm text-gray-500">Active users increased by 25% in the last 24 hours</Text>
+            <Text className="text-xs text-blue-500 mt-1">View Details →</Text>
+          </View>
+        </View>
+        <View className="flex-row items-start">
+          <View className="bg-yellow-100 dark:bg-yellow-900 p-2 rounded-lg mr-3">
+            <Ionicons name="warning" size={24} color="#F59E0B" />
+          </View>
+          <View className="flex-1">
+            <Text className="font-medium">Churn Risk Alert</Text>
+            <Text className="text-sm text-gray-500">12 users showing high churn risk indicators</Text>
+            <Text className="text-xs text-yellow-500 mt-1">Take Action →</Text>
+          </View>
+        </View>
+        <View className="flex-row items-start">
+          <View className="bg-green-100 dark:bg-green-900 p-2 rounded-lg mr-3">
+            <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+          </View>
+          <View className="flex-1">
+            <Text className="font-medium">Performance Milestone</Text>
+            <Text className="text-sm text-gray-500">Response time improved by 40% this week</Text>
+            <Text className="text-xs text-green-500 mt-1">View Report →</Text>
+          </View>
+        </View>
+      </View>
+    </Card>
+  );
+
+  const renderUserActivityTimeline = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-semibold">Recent Activity</Text>
+        <TouchableOpacity className="p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      <View className="space-y-4">
+        {MOCK_USER_ANALYTICS.slice(0, 3).map((user, index) => (
+          <View key={user.id} className="flex-row">
+            <View className="w-8 flex items-center">
+              <View className="w-2 h-2 rounded-full bg-blue-500" />
+              {index < 2 && <View className="w-0.5 h-16 bg-gray-200 dark:bg-gray-700" />}
+            </View>
+            <View className="flex-1 ml-4">
+              <View className="flex-row items-center">
+                <Image source={{ uri: user.avatar }} className="w-8 h-8 rounded-full mr-2" />
+                <View>
+                  <Text className="font-medium">{user.username}</Text>
+                  <Text className="text-sm text-gray-500">{formatRelativeTime(user.lastViewed)}</Text>
+                </View>
+              </View>
+              <View className="mt-2 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                <Text className="text-sm">
+                  {user.messageCount > 100 ? 'High activity user' : 'Regular user'} • 
+                  {user.tenantRequests} requests • 
+                  {user.sentiment === 'positive' ? 'Positive sentiment' : 'Neutral sentiment'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
+    </Card>
+  );
+
+  const renderPerformanceMetrics = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-semibold">Performance Metrics</Text>
+        <TouchableOpacity className="p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      <View className="grid grid-cols-2 gap-4">
+        <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+          <Text className="text-sm text-gray-500 mb-1">Response Time</Text>
+          <Text className="text-2xl font-bold">{formatDuration(MOCK_CHANNEL_ANALYTICS.performanceMetrics.responseTime)}</Text>
+          <View className="flex-row items-center mt-1">
+            <Ionicons name="trending-down" size={16} color="#10B981" />
+            <Text className="text-sm text-green-500 ml-1">-15% from last week</Text>
+          </View>
+        </View>
+        <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+          <Text className="text-sm text-gray-500 mb-1">Satisfaction Score</Text>
+          <Text className="text-2xl font-bold">{MOCK_CHANNEL_ANALYTICS.performanceMetrics.satisfactionScore}/5</Text>
+          <View className="flex-row items-center mt-1">
+            <Ionicons name="trending-up" size={16} color="#10B981" />
+            <Text className="text-sm text-green-500 ml-1">+0.5 from last month</Text>
+          </View>
+        </View>
+        <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+          <Text className="text-sm text-gray-500 mb-1">Engagement Rate</Text>
+          <Text className="text-2xl font-bold">{formatPercentage(MOCK_CHANNEL_ANALYTICS.performanceMetrics.engagementScore)}</Text>
+          <View className="flex-row items-center mt-1">
+            <Ionicons name="trending-up" size={16} color="#10B981" />
+            <Text className="text-sm text-green-500 ml-1">+8% from last week</Text>
+          </View>
+        </View>
+        <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+          <Text className="text-sm text-gray-500 mb-1">Retention Rate</Text>
+          <Text className="text-2xl font-bold">{formatPercentage(MOCK_CHANNEL_ANALYTICS.performanceMetrics.retentionRate)}</Text>
+          <View className="flex-row items-center mt-1">
+            <Ionicons name="trending-up" size={16} color="#10B981" />
+            <Text className="text-sm text-green-500 ml-1">+5% from last month</Text>
+          </View>
+        </View>
+      </View>
+    </Card>
+  );
+
+  const renderCharts = () => (
+    <View className="mb-6">
+      <Card className="p-4 mb-4">
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-lg font-semibold">Daily Active Users</Text>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+        {renderTimeSeriesChart(MOCK_CHANNEL_ANALYTICS.timeSeriesData.dailyActiveUsers)}
+      </Card>
+
+      <Card className="p-4 mb-4">
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-lg font-semibold">Message Volume</Text>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+        {renderTimeSeriesChart(MOCK_CHANNEL_ANALYTICS.timeSeriesData.messageVolume)}
+      </Card>
+
+      <Card className="p-4 mb-4">
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-lg font-semibold">Request Types Distribution</Text>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+        {renderPieChart(MOCK_CHANNEL_ANALYTICS.distributionData.requestTypes)}
+      </Card>
+
+      <Card className="p-4 mb-4">
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-lg font-semibold">User Activity by Time</Text>
+          <TouchableOpacity className="p-2">
+            <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+        {renderBarChart(MOCK_CHANNEL_ANALYTICS.distributionData.timeDistribution)}
+      </Card>
+    </View>
+  );
   
   return (
-    <View className="p-4">
-      <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-        AI User Analytics Content
-      </Text>
-      <Text className="text-sm text-gray-600 dark:text-gray-400">
-        Channel: {username}
-      </Text>
-    </View>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900">
+      <View className="p-4">
+        {renderHeader()}
+        {renderSearchAndFilters()}
+        {renderQuickActions()}
+        {renderInsightsPanel()}
+        {renderChannelStats()}
+        {renderCharts()}
+        {renderPerformanceMetrics()}
+        {renderExportOptions()}
+        {renderFunnelMetrics()}
+        {renderAgingRequests()}
+        {renderSLAMetrics()}
+        {renderAnomalies()}
+        {renderGrowthForecast()}
+        {renderUserActivityTimeline()}
+
+        <Text className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          User Segments
+        </Text>
+        {MOCK_USER_SEGMENTS.map(renderUserSegment)}
+
+        <Text className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 mt-6">
+          Recent Users
+        </Text>
+        {MOCK_USER_ANALYTICS.map(renderUserCard)}
+      </View>
+    </ScrollView>
   );
 } 

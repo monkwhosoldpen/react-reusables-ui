@@ -1,8 +1,9 @@
-import React from 'react';
-import { View, TouchableOpacity, useColorScheme, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, useColorScheme, ScrollView, Dimensions } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import { Avatar, AvatarImage } from '~/components/ui/avatar';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 interface SidebarProps {
   username: string;
@@ -18,6 +19,9 @@ interface SidebarProps {
 export function Sidebar({ username, ownerUsername, clientType, relatedChannels = [] }: SidebarProps) {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const windowWidth = Dimensions.get('window').width;
+  const isMobile = windowWidth < 768;
 
   // Helper function to determine border color based on client type
   const getBorderColorClass = () => {
@@ -72,16 +76,18 @@ export function Sidebar({ username, ownerUsername, clientType, relatedChannels =
         >
           <AvatarImage source={{ uri: 'https://placehold.co/150' }} />
         </Avatar>
-        <View className="flex-1">
-          <Text className={`font-medium ${getTextColorClass(isActive)}`}>
-            {channelUsername}
-          </Text>
-          {isOwner && (
-            <Text className="text-xs text-gray-500 dark:text-gray-400">
-              Owner Channel
+        {(!isMobile || isExpanded) && (
+          <View className="flex-1">
+            <Text className={`font-medium ${getTextColorClass(isActive)}`}>
+              {channelUsername}
             </Text>
-          )}
-        </View>
+            {isOwner && (
+              <Text className="text-xs text-gray-500 dark:text-gray-400">
+                Owner Channel
+              </Text>
+            )}
+          </View>
+        )}
         {isActive && (
           <View className={`w-2 h-2 rounded-full ${
             clientType === 'basic'
@@ -95,27 +101,52 @@ export function Sidebar({ username, ownerUsername, clientType, relatedChannels =
     );
   };
 
-  return (
-    <View className="w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-      <ScrollView className="flex-1 p-4">
-        {/* Owner Channel Section */}
-        <View className="mb-6">
+  const SidebarContent = () => (
+    <ScrollView className="flex-1 p-4">
+      {/* Owner Channel Section */}
+      <View className="mb-6">
+        {(!isMobile || isExpanded) && (
           <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
             Owner Channel
           </Text>
-          {renderChannelItem(ownerUsername, true)}
-        </View>
+        )}
+        {renderChannelItem(ownerUsername, true)}
+      </View>
 
-        {/* Related Channels Section */}
-        {relatedChannels.length > 0 && (
-          <View>
+      {/* Related Channels Section */}
+      {relatedChannels.length > 0 && (
+        <View>
+          {(!isMobile || isExpanded) && (
             <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
               Related Channels
             </Text>
-            {relatedChannels.map(channel => renderChannelItem(channel.username))}
-          </View>
-        )}
-      </ScrollView>
+          )}
+          {relatedChannels.map(channel => renderChannelItem(channel.username))}
+        </View>
+      )}
+    </ScrollView>
+  );
+
+  return (
+    <View 
+      className={`border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 transition-all duration-300 ${
+        isMobile ? (isExpanded ? 'w-64' : 'w-20') : 'w-64'
+      }`}
+    >
+      {/* Toggle Button - Only visible on mobile */}
+      {isMobile && (
+        <TouchableOpacity
+          onPress={() => setIsExpanded(!isExpanded)}
+          className="absolute -right-3 top-4 z-50 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md"
+        >
+          {isExpanded ? (
+            <ChevronLeft size={16} color={colorScheme === 'dark' ? 'white' : 'black'} />
+          ) : (
+            <ChevronRight size={16} color={colorScheme === 'dark' ? 'white' : 'black'} />
+          )}
+        </TouchableOpacity>
+      )}
+      <SidebarContent />
     </View>
   );
 } 
