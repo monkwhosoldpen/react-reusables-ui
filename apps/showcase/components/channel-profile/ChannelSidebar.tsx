@@ -66,8 +66,7 @@ export function ChannelSidebar({
           {/* Related Channels */}
           {channelDetails.related_channels
             ?.filter(related => 
-              related.username !== mainChannelUsername && 
-              related.username !== selectedChannel
+              related.username !== mainChannelUsername
             )
             ?.sort((a, b) => a.username.localeCompare(b.username))
             .map((related) => (

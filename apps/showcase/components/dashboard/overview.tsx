@@ -119,10 +119,6 @@ export default function OverviewTab({
               </View>
             </View>
 
-            {/* icon badge */}
-            <View className="w-10 h-10 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/30">
-              <MaterialIcons name="person" size={20} color={iconColor} />
-            </View>
           </View>
         </Card>
 
