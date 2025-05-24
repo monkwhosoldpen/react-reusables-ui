@@ -122,8 +122,7 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
   const combinedError = error || messageError || mediaError;
 
   return (
-    <View style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }} className="bg-white dark:bg-gray-900">
+    <SafeAreaView className="bg-white dark:bg-gray-900">
         <View style={{ flex: 1 }}>
           <ScrollView style={{ flex: 1 }}>
             {combinedError && (
@@ -148,12 +147,12 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
               messageCount={messageCount}
             />
 
-            <View className="flex-1 flex-row p-4 gap-4">
+            <View className="flex-1 flex-row p-0 gap-4">
 
               {/* Editor + Preview */}
-              <View className="flex-1 border-2 border-blue-500 rounded-lg p-2 flex-row">
+              <View className="flex-1 border-2 border-blue-500 rounded-lg p-0 flex-row">
                 {/* Editor */}
-                <View className="flex-[0.5] pr-4 border border-yellow-400">
+                <View className="flex-[0.5] pr-0 border border-yellow-400">
                   <ScrollView className="p-4">
                     {/* Content Section */}
                     <View className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
@@ -298,7 +297,5 @@ export default function CreateMessageScreen({ username, clientType, isPublic, ha
 
         </View>
       </SafeAreaView>
-
-    </View>
   );
 }

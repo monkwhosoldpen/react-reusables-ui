@@ -93,7 +93,7 @@ EXECUTE FUNCTION update_timestamp();
 
 CREATE OR REPLACE FUNCTION create_superfeed_response(
     p_feed_item_id UUID,
-    p_user_id TEXT,
+    p_user_id UUID,
     p_response_data JSONB
 )
 RETURNS UUID AS $$
@@ -124,89 +124,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create or replace function that retrieves both paginated superfeed items and tenant access status
-CREATE OR REPLACE FUNCTION get_channel_superfeed_with_access_status(
-    p_channel_username TEXT,
-    p_user_id TEXT,
-    p_page_size INTEGER DEFAULT 20,
-    p_last_message_timestamp TIMESTAMPTZ DEFAULT NULL
-)
-RETURNS JSONB AS $$
-DECLARE
-    messages_result JSONB;
-    access_status TEXT := 'private'; -- Default to private for tenant databases
-BEGIN
-    -- Get the paginated superfeed items
-    SELECT jsonb_agg(
-        jsonb_build_object(
-            'id', s.id,
-            'type', s.type,
-            'content', s.content,
-            'caption', s.caption,
-            'message', s.message,
-            'media', s.media,
-            'metadata', s.metadata,
-            'stats', s.stats,
-            'interactive_content', s.interactive_content,
-            'fill_requirement', s.fill_requirement,
-            'expires_at', s.expires_at,
-            'channel_username', s.channel_username,
-            'username', s.channel_username, -- Add username for compatibility
-            'created_at', s.created_at,
-            'updated_at', s.updated_at
-        )
-    )
-    INTO messages_result
-    FROM (
-        SELECT
-            s.id,
-            s.type,
-            s.content,
-            s.caption,
-            s.message,
-            s.media,
-            s.metadata,
-            s.stats,
-            s.interactive_content,
-            s.fill_requirement,
-            s.expires_at,
-            s.channel_username,
-            s.created_at,
-            s.updated_at
-        FROM
-            superfeed s
-        WHERE
-            s.channel_username = p_channel_username
-            AND (p_last_message_timestamp IS NULL OR s.created_at < p_last_message_timestamp)
-            AND (s.expires_at IS NULL OR s.expires_at > NOW())
-        ORDER BY
-            s.created_at DESC
-        LIMIT
-            p_page_size
-    ) s;
-
-    -- Return combined result with access status
-    RETURN jsonb_build_object(
-        'messages', COALESCE(messages_result, '[]'::jsonb),
-        'user_id', p_user_id,
-        'channel_username', p_channel_username,
-        'access_status', access_status,
-        'has_more', (SELECT COUNT(*) FROM superfeed s
-                     WHERE s.channel_username = p_channel_username
-                     AND (p_last_message_timestamp IS NULL OR s.created_at < p_last_message_timestamp)
-                     AND (s.expires_at IS NULL OR s.expires_at > NOW())) > p_page_size
-    );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-
 
 
 
 
 CREATE OR REPLACE FUNCTION get_channel_superfeed_with_access_status(
     p_channel_username TEXT,
-    p_user_id TEXT,
+    p_user_id UUID,
     p_page_size INTEGER DEFAULT 20,
     p_last_message_timestamp TIMESTAMPTZ DEFAULT NULL
 )
@@ -226,18 +150,29 @@ BEGIN
         LIMIT p_page_size
     ) sf;
 
+    -- Handle access status check with proper null handling
     SELECT CASE
-        WHEN p_user_id IS NULL OR p_user_id = '' THEN 'NONE'
+        WHEN p_user_id IS NULL THEN 'NONE'
         WHEN status IS NULL THEN 'NONE'
         WHEN status = 'PENDING' THEN 'PENDING'
         WHEN status = 'APPROVED' THEN 'APPROVED'
         ELSE 'REJECTED'
     END INTO access_status
     FROM tenant_requests
-    WHERE username = p_channel_username AND uid = p_user_id;
+    WHERE username = p_channel_username 
+    AND uid = p_user_id::text;  -- Convert UUID to text for comparison
 
     IF access_status IS NULL THEN
         access_status := 'NONE';
+    END IF;
+
+    -- Update user_channel_last_viewed table only if user_id is not null
+    IF p_user_id IS NOT NULL THEN
+        INSERT INTO user_channel_last_viewed (user_id, username, last_viewed, message_count)
+        VALUES (p_user_id, p_channel_username, NOW(), 0)
+        ON CONFLICT (user_id, username) DO UPDATE SET
+            last_viewed = NOW(),
+            message_count = user_channel_last_viewed.message_count + 1;
     END IF;
 
     RETURN jsonb_build_object(

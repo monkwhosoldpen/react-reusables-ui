@@ -1,8 +1,18 @@
 import { useScrollToTop } from '@react-navigation/native';
 import * as React from 'react';
-import { View, ScrollView, TouchableOpacity, useWindowDimensions, SafeAreaView, useColorScheme } from 'react-native';
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  useWindowDimensions,
+  SafeAreaView,
+  useColorScheme
+} from 'react-native';
 import { Text } from '~/components/ui/text';
-import { PREMIUM_CONFIGS, global_superadmin } from '~/lib/in-app-db/states/telangana/premium-data';
+import {
+  PREMIUM_CONFIGS,
+  global_superadmin
+} from '~/lib/in-app-db/states/telangana/premium-data';
 import { useAuth } from '~/lib/core/contexts/AuthContext';
 import { Sidebar } from './Sidebar';
 
@@ -26,7 +36,7 @@ const ROLES = {
   ONBOARDER: 'onboarder'
 } as const;
 
-type Role = typeof ROLES[keyof typeof ROLES];
+type Role = (typeof ROLES)[keyof typeof ROLES];
 
 interface UserRole {
   email: string;
@@ -34,7 +44,6 @@ interface UserRole {
   channelUsername?: string;
 }
 
-// Add this after the existing interfaces
 interface TabConfig {
   name: string;
   title: string;
@@ -45,12 +54,22 @@ const TAB_CONFIGS: TabConfig[] = [
   {
     name: 'overview',
     title: 'Overview',
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.VIEWER, ROLES.VERIFIER, ROLES.ONBOARDER]
+    allowedRoles: [
+      ROLES.SUPER_ADMIN,
+      ROLES.VIEWER,
+      ROLES.VERIFIER,
+      ROLES.ONBOARDER
+    ]
   },
   {
     name: 'chat',
     title: 'Chat',
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.VIEWER, ROLES.VERIFIER, ROLES.ONBOARDER]
+    allowedRoles: [
+      ROLES.SUPER_ADMIN,
+      ROLES.VIEWER,
+      ROLES.VERIFIER,
+      ROLES.ONBOARDER
+    ]
   },
   {
     name: 'ai-dashboard',
@@ -65,18 +84,36 @@ const TAB_CONFIGS: TabConfig[] = [
 ];
 
 // Define allowed tabs for each client type
-const PRO_CLIENT_TABS = ['overview', 'chat', 'requests', 'ai-user-analytics', 'ai-dashboard'];
-const BASIC_CLIENT_TABS = ['overview', 'requests', 'chat', 'ai-user-analytics'];
+const PRO_CLIENT_TABS = [
+  'overview',
+  'chat',
+  'requests',
+  'ai-user-analytics',
+  'ai-dashboard'
+];
+const BASIC_CLIENT_TABS = [
+  'overview',
+  'requests',
+  'chat',
+  'ai-user-analytics'
+];
 const PUBLIC_CLIENT_TABS = ['overview'];
 
-// Replace the TabContent component with this
-function TabContent({ tabName, username }: { tabName: string; username: string }) {
+function TabContent({
+  tabName,
+  username
+}: {
+  tabName: string;
+  username: string;
+}) {
   const { user } = useAuth();
 
-  // Find the channel in all configs to get owner
+  // util: find channel owner
   const findChannelOwner = () => {
     for (const [ownerUsername, config] of Object.entries(PREMIUM_CONFIGS)) {
-      const channel = config?.related_channels?.find(ch => ch.username === username);
+      const channel = config?.related_channels?.find(
+        ch => ch.username === username
+      );
       if (channel) {
         return {
           ownerUsername,
@@ -88,54 +125,51 @@ function TabContent({ tabName, username }: { tabName: string; username: string }
     return null;
   };
 
-  // Get all user roles across all channels
   const getAllUserRoles = (): UserRole[] => {
-    const allRoles: UserRole[] = [];
+    const roles: UserRole[] = [];
     const channelInfo = findChannelOwner();
     const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username];
 
-    // For public channels (empty config), add global super admin role
+    // public channel
     if (!premiumConfig || Object.keys(premiumConfig).length === 0) {
-      if (user?.email && user.email === global_superadmin) {
-        allRoles.push({
+      if (user?.email === global_superadmin) {
+        roles.push({
           email: user.email,
           role: ROLES.SUPER_ADMIN,
           channelUsername: username
         });
       }
-      return allRoles;
+      return roles;
     }
 
-    // Check current channel only
     if (premiumConfig?.roles) {
       Object.entries(premiumConfig.roles).forEach(([role, emails]) => {
         if (Array.isArray(emails)) {
-          allRoles.push(...emails.map(email => ({
-            email,
-            role: role as Role,
-            channelUsername: username
-          })));
+          roles.push(
+            ...emails.map(email => ({
+              email,
+              role: role as Role,
+              channelUsername: username
+            }))
+          );
         }
       });
     }
-
-    return allRoles;
+    return roles;
   };
 
   const channelInfo = findChannelOwner();
   const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username];
   const userRoles = getAllUserRoles();
   const hasAccess = !premiumConfig || Object.keys(premiumConfig).length === 0
-    ? (user?.email ? user.email === global_superadmin : false)
-    : userRoles.some(ur => ur.email === user?.email);
-  const userRole = userRoles.find(ur => ur.email === user?.email);
+    ? user?.email === global_superadmin
+    : userRoles.some(r => r.email === user?.email);
+  const userRole = userRoles.find(r => r.email === user?.email);
+  const clientType = premiumConfig?.client_type || 'public';
   const relatedChannelsCount = premiumConfig?.related_channels?.length || 0;
 
-  const clientType = premiumConfig?.client_type || 'public';
-
-  // Map tab names to their components
-  const tabComponents = {
-    'overview': () => (
+  const components = {
+    overview: () => (
       <OverviewTab
         username={username}
         user={user}
@@ -146,35 +180,41 @@ function TabContent({ tabName, username }: { tabName: string; username: string }
         relatedChannelsCount={relatedChannelsCount}
       />
     ),
-    'chat': () => <CreateMessageScreen username={username as string} clientType={clientType} isPublic={false} hasAccess={hasAccess} userRole={userRole} />,
-    'requests': () => <RequestsTab />,
+    chat: () => (
+      <CreateMessageScreen
+        username={username}
+        clientType={clientType}
+        isPublic={false}
+        hasAccess={hasAccess}
+        userRole={userRole}
+      />
+    ),
+    requests: () => <RequestsTab />,
     'ai-user-analytics': () => <AIUserAnalyticsTab />,
     'ai-dashboard': () => <AIDashboardTab />
-  };
+  } as const;
 
-  const TabComponent = tabComponents[tabName as keyof typeof tabComponents];
-
-  return TabComponent ? <TabComponent /> : null;
+  const Comp = components[tabName as keyof typeof components];
+  return Comp ? <Comp /> : null;
 }
 
-export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
+export function DashboardScreen({
+  username,
+  tabname
+}: DashboardScreenProps) {
   const ref = React.useRef(null);
   const { width } = useWindowDimensions();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState(tabname || 'overview');
   const colorScheme = useColorScheme();
 
-  // Find the channel in all configs to get owner
+  // channel helpers
   const findChannelOwner = () => {
     for (const [ownerUsername, config] of Object.entries(PREMIUM_CONFIGS)) {
-      const channel = config?.related_channels?.find(ch => ch.username === username);
-      if (channel) {
-        return {
-          ownerUsername,
-          channel,
-          config
-        };
-      }
+      const channel = config?.related_channels?.find(
+        ch => ch.username === username
+      );
+      if (channel) return { ownerUsername, channel, config };
     }
     return null;
   };
@@ -182,81 +222,63 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
   const channelInfo = findChannelOwner();
   const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username];
 
-  // Get all user roles across all channels
   const getAllUserRoles = (): UserRole[] => {
-    const allRoles: UserRole[] = [];
+    const roles: UserRole[] = [];
     const channelInfo = findChannelOwner();
     const premiumConfig = channelInfo?.config || PREMIUM_CONFIGS[username];
-
-    // For public channels (empty config), add global super admin role
     if (!premiumConfig || Object.keys(premiumConfig).length === 0) {
-      if (user?.email && user.email === global_superadmin) {
-        allRoles.push({
-          email: user.email,
-          role: ROLES.SUPER_ADMIN,
-          channelUsername: username
-        });
+      if (user?.email === global_superadmin) {
+        roles.push({ email: user.email, role: ROLES.SUPER_ADMIN });
       }
-      return allRoles;
+      return roles;
     }
-
-    // Check current channel only
     if (premiumConfig?.roles) {
       Object.entries(premiumConfig.roles).forEach(([role, emails]) => {
         if (Array.isArray(emails)) {
-          allRoles.push(...emails.map(email => ({
-            email,
-            role: role as Role,
-            channelUsername: username
-          })));
+          roles.push(...emails.map(email => ({ email, role: role as Role })));
         }
       });
     }
-
-    return allRoles;
+    return roles;
   };
 
   const userRoles = getAllUserRoles();
   const hasAccess = !premiumConfig || Object.keys(premiumConfig).length === 0
-    ? (user?.email ? user.email === global_superadmin : false)
-    : userRoles.some(ur => ur.email === user?.email);
-  const userRole = userRoles.find(ur => ur.email === user?.email);
+    ? user?.email === global_superadmin
+    : userRoles.some(r => r.email === user?.email);
+  const userRole = userRoles.find(r => r.email === user?.email);
   const clientType = premiumConfig?.client_type || 'public';
   const relatedChannelsCount = premiumConfig?.related_channels?.length || 0;
-  const isPublic = !premiumConfig || Object.keys(premiumConfig).length === 0 || premiumConfig.is_public;
+  const isPublic =
+    !premiumConfig || Object.keys(premiumConfig).length === 0 || premiumConfig.is_public;
 
-  React.useEffect(() => {
-  }, [username, clientType, relatedChannelsCount, hasAccess, userRoles, user, channelInfo, userRole, isPublic]);
+  React.useEffect(() => {}, [username, clientType, relatedChannelsCount]);
 
   useScrollToTop(ref);
-
   const isDesktop = width >= 768;
 
-  // ---------------------------------------------
-  // ** NEW LOGIC: limit tabs when not basic / pro
-  // ---------------------------------------------
+  // client-type filtering
   const isBasicClient = clientType === 'basic';
   const isProClient = clientType === 'pro';
 
-  // Filter TAB_CONFIGS by role (existing logic)
   const roleBasedTabs = !premiumConfig || Object.keys(premiumConfig).length === 0
-    ? TAB_CONFIGS // Show all tabs for public channels
-    : TAB_CONFIGS.filter(tab => userRole ? tab.allowedRoles.includes(userRole.role) : false);
+    ? TAB_CONFIGS
+    : TAB_CONFIGS.filter(tab =>
+        userRole ? tab.allowedRoles.includes(userRole.role) : false
+      );
 
-  // Apply client-type limitation using the constant arrays
   const filteredTabs = roleBasedTabs.filter(tab => {
     if (isProClient) return PRO_CLIENT_TABS.includes(tab.name);
     if (isBasicClient) return BASIC_CLIENT_TABS.includes(tab.name);
     return PUBLIC_CLIENT_TABS.includes(tab.name);
   });
 
-  // Navigation items (labels) – using the same constant arrays
   const navItemsBase = [
     { name: 'overview', label: 'Overview' },
     { name: 'requests', label: 'Requests' },
     { name: 'chat', label: 'Chat' },
     { name: 'ai-user-analytics', label: 'AI User Analytics' },
-    { name: 'ai-dashboard', label: 'AI Dashboard' },
+    { name: 'ai-dashboard', label: 'AI Dashboard' }
   ];
 
   const navItems = navItemsBase.filter(item => {
@@ -265,85 +287,72 @@ export function DashboardScreen({ username, tabname }: DashboardScreenProps) {
     return PUBLIC_CLIENT_TABS.includes(item.name);
   });
 
-  // Helper function to determine border color based on client type
   const getBorderColorClass = () => {
-    if (clientType === 'basic') {
-      return 'border-red-500 dark:border-red-600';
-    }
-    if (clientType === 'pro') {
-      return 'border-blue-500 dark:border-blue-600';
-    }
+    if (clientType === 'basic') return 'border-red-500 dark:border-red-600';
+    if (clientType === 'pro') return 'border-blue-500 dark:border-blue-600';
     return 'border-gray-500 dark:border-gray-600';
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
-      <View className="flex-1 flex-row">
+      {/* Outer frame */}
+      <View className="flex-1 m-0 border border-gray-200 dark:border-gray-700">
+        <View className="flex-1 flex-row">
+          {/* Sidebar with right border */}
+          <Sidebar
+            username={username}
+            ownerUsername={channelInfo?.ownerUsername || username}
+            clientType={clientType}
+            relatedChannels={premiumConfig?.related_channels}
+          />
 
-        <Sidebar
-          username={username}
-          ownerUsername={channelInfo?.ownerUsername || username}
-          clientType={clientType}
-          relatedChannels={premiumConfig?.related_channels}
-        />
-
-        {/* Main Content */}
-        <ScrollView
-          ref={ref}
-          className="flex-1"
-          contentContainerStyle={{ flexGrow: 1 }}
-        >
-          {/* Fixed Header Section */}
-          <View className="sticky top-0 z-10 bg-white dark:bg-gray-900">
-            {/* Tabs Row */}
-            <View className="border-t border-b border-gray-200 dark:border-gray-700">
-              <View className={`px-4 py-4 flex-row items-center justify-between ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
-                {/* Navigation Links */}
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="flex-1"
-                >
-                  <View className="flex-row items-center space-x-6">
-                    {navItems.map((item) => (
-                      <TouchableOpacity
-                        key={item.name}
-                        className={`py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 border-b-2 ${activeTab === item.name
+          {/* Main section with left border */}
+          <ScrollView
+            ref={ref}
+            className="flex-1 border-l border-gray-200 dark:border-gray-700"
+            contentContainerStyle={{ flexGrow: 1 }}
+          >
+            {/* Tabs header */}
+            <View className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-t border-gray-200 dark:border-gray-700">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row items-center space-x-6 px-2 py-2">
+                  {navItems.map(item => (
+                    <TouchableOpacity
+                      key={item.name}
+                      className={`py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 border-b-2 ${
+                        activeTab === item.name
                           ? getBorderColorClass()
                           : 'border-transparent'
-                        }`}
-                        onPress={() => setActiveTab(item.name)}
-                      >
-                        <Text className={`text-base font-medium whitespace-nowrap ${activeTab === item.name
-                          ? clientType === 'basic'
-                            ? 'text-red-500 dark:text-red-400'
-                            : clientType === 'pro'
+                      }`}
+                      onPress={() => setActiveTab(item.name)}
+                    >
+                      <Text
+                        className={`text-base font-medium whitespace-nowrap ${
+                          activeTab === item.name
+                            ? clientType === 'basic'
+                              ? 'text-red-500 dark:text-red-400'
+                              : clientType === 'pro'
                               ? 'text-blue-500 dark:text-blue-400'
                               : 'text-gray-900 dark:text-gray-100'
-                          : 'text-gray-600 dark:text-gray-400'
-                        }`}>
-                          {item.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </ScrollView>
-              </View>
+                            : 'text-gray-600 dark:text-gray-400'
+                        }`}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
             </View>
 
-          </View>
-
-          {/* Main Content Area */}
-          <View className={`flex-1 ${isDesktop ? 'max-w-[1200px] self-center w-full' : ''}`}>
-            {hasAccess && filteredTabs.length > 0 && (
-              <View className="flex-1">
-                <View className="flex-1">
-                  <TabContent tabName={activeTab} username={username} />
-                </View>
-              </View>
-            )}
-          </View>
-        </ScrollView>
+            {/* Main content */}
+            <View className="flex-1">
+              {hasAccess && filteredTabs.length > 0 && (
+                <TabContent tabName={activeTab} username={username} />
+              )}
+            </View>
+          </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );

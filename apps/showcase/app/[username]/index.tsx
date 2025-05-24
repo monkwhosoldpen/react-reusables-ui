@@ -12,8 +12,41 @@ import { FeedItem } from "~/lib/enhanced-chat/components/feed/FeedItem";
 import useChannelData from "~/lib/core/utils/channel-profile-util";
 import { JoinButton } from "~/components/common/JoinButton";
 import { useRealtime } from "~/lib/core/providers/RealtimeProvider";
+import { Skeleton } from "~/components/ui/skeleton";
 
 /* ------------ isolated components ------------ */
+
+const MessageSkeleton = memo(() => {
+  return (
+    <View className="flex-1">
+      <View className="flex-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <View key={i} className="flex-row items-start gap-3 p-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <View className="flex-1 gap-2">
+              <View className="flex-row items-center gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </View>
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* Message Input Skeleton */}
+      <View className="border-t border-border bg-background p-4">
+        <View className="flex-row items-center gap-2">
+          <View className="flex-1 bg-muted rounded-lg p-3">
+            <Skeleton className="h-5 w-full" />
+          </View>
+          <Skeleton className="h-10 w-20 rounded-lg" />
+        </View>
+      </View>
+    </View>
+  );
+});
 
 const AgentChat = memo(({ username }: { username: string }) => {
   return (
@@ -50,9 +83,8 @@ const MainContent = memo(({
   } = useChannelData(username, refreshKey);
 
   const renderLoading = (label: string) => (
-    <View className="flex-1 items-center justify-center p-6">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <Text className="mt-2 text-base text-muted-foreground">{label}</Text>
+    <View className="flex-1">
+      <MessageSkeleton />
     </View>
   );
 
@@ -150,6 +182,66 @@ const MainContent = memo(({
   );
 });
 
+const PageSkeleton = memo(() => {
+  const { width: screenWidth } = useWindowDimensions();
+  const sidebarWidth = Math.floor(screenWidth * 0.2);
+  const contentWidth = screenWidth - sidebarWidth;
+
+  return (
+    <View className="flex-1 bg-background">
+      {/* Header Skeleton */}
+      <View className="border-b border-border bg-background p-4">
+        <View className="flex-row items-center gap-4">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <View className="flex-1 gap-2">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-4 w-24" />
+          </View>
+        </View>
+      </View>
+
+      <View className="flex-1 flex-row">
+        {/* Sidebar Skeleton */}
+        <View
+          style={{ width: sidebarWidth }}
+          className="border-border border-r bg-white dark:bg-gray-800"
+        >
+          <View className="flex-1">
+            <ScrollView className="flex-1">
+              {/* Parent Channel Skeleton */}
+              <View className="flex-col items-center py-2 px-1 m-1 shadow-sm bg-gray-50 dark:bg-gray-700/50">
+                <Skeleton className="w-12 h-12 rounded-full" />
+                <Skeleton className="h-3 w-16 mt-1.5" />
+              </View>
+
+              {/* Related Channels Skeletons */}
+              {[1, 2, 3].map((i) => (
+                <View key={i} className="flex-col items-center py-2 px-1 m-1 shadow-sm bg-white dark:bg-gray-800">
+                  <Skeleton className="w-12 h-12 rounded-full" />
+                  <Skeleton className="h-3 w-16 mt-1.5" />
+                </View>
+              ))}
+            </ScrollView>
+
+            {/* Settings Section Skeleton */}
+            <View className="border-t border-gray-200 dark:border-gray-700 mt-2">
+              <View className="flex-col items-center py-3 px-1">
+                <Skeleton className="w-12 h-12 rounded-full" />
+                <Skeleton className="h-3 w-16 mt-1.5" />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Main Content Skeleton */}
+        <View style={{ width: contentWidth }} className="bg-background">
+          <MessageSkeleton />
+        </View>
+      </View>
+    </View>
+  );
+});
+
 /* --------------------------------------------------------- */
 
 export default function ChannelPage() {
@@ -199,14 +291,7 @@ export default function ChannelPage() {
     error,
   } = useChannelData(usernameStr, refreshKey);
 
-  const renderLoading = (label: string) => (
-    <View className="flex-1 items-center justify-center p-6">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <Text className="mt-2 text-base text-muted-foreground">{label}</Text>
-    </View>
-  );
-
-  if (loading) return renderLoading("Loading channel...");
+  if (loading) return <PageSkeleton />;
   if (error || !channel) {
     return (
       <View className="flex-1 items-center justify-center p-6 bg-background">

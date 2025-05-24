@@ -12,11 +12,12 @@ CREATE TABLE tenant_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     requestInfo JSONB,
     type TEXT,
-    uid TEXT,
-    username TEXT UNIQUE,
+    uid UUID NOT NULL,
+    username TEXT NOT NULL,
     status TEXT CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(username, uid)
 );
 
 -- Index for performance
@@ -30,6 +31,11 @@ DECLARE
     request_info JSONB;
     result_record JSONB;
 BEGIN
+    -- Validate UUID format
+    IF NOT (userid ~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$') THEN
+        RAISE EXCEPTION 'Invalid UUID format: %', userid;
+    END IF;
+
     request_info := jsonb_build_object(
         'userId', userid,
         'channelUsername', channel_username,
@@ -37,23 +43,34 @@ BEGIN
     ) || config;
 
     INSERT INTO tenant_requests (requestInfo, type, uid, username, status)
-    VALUES (request_info, 'channel_access', userid, channel_username, 'PENDING')
-    ON CONFLICT (username) 
+    VALUES (
+        request_info, 
+        'channel_access', 
+        userid::uuid,  -- Cast to UUID
+        channel_username, 
+        'PENDING'
+    )
+    ON CONFLICT (username, uid) 
     DO UPDATE SET 
         requestInfo = EXCLUDED.requestInfo,
-        uid = EXCLUDED.uid,
         status = 'PENDING',
         updated_at = NOW()
     RETURNING id INTO new_request_id;
 
-    result_record := jsonb_build_object(
-        'id', new_request_id,
-        'requestInfo', request_info,
-        'type', 'channel_access',
-        'uid', userid,
-        'username', channel_username,
-        'status', 'PENDING'
-    );
+    -- Get the complete record for return
+    SELECT jsonb_build_object(
+        'id', tr.id,
+        'requestInfo', tr.requestInfo,
+        'type', tr.type,
+        'uid', tr.uid,
+        'username', tr.username,
+        'status', tr.status,
+        'created_at', tr.created_at,
+        'updated_at', tr.updated_at
+    )
+    INTO result_record
+    FROM tenant_requests tr
+    WHERE tr.id = new_request_id;
 
     RETURN result_record;
 END;

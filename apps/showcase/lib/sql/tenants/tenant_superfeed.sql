@@ -1,21 +1,31 @@
 -- SQL Definitions for NChat Application
 -- Core database objects for the application
-
 -- ======= SUPER FEED TABLES =======
-
 -- Drop existing tables if they exist
-DROP TABLE IF EXISTS superfeed_responses;
-DROP TABLE IF EXISTS superfeed;
+drop table if exists superfeed_responses;
+
+drop table if exists superfeed;
 
 -- Create superfeed table
-CREATE TABLE superfeed (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    type TEXT NOT NULL CHECK (type IN ('tweet', 'instagram', 'linkedin', 'whatsapp', 'poll', 'survey', 'quiz', 'all')),
-    content TEXT NOT NULL,
-    caption TEXT,
-    message TEXT,
-    media JSONB DEFAULT '[]'::jsonb,
-    metadata JSONB DEFAULT '{
+create table superfeed (
+  id UUID primary key default uuid_generate_v4 (),
+  type TEXT not null check (
+    type in (
+      'tweet',
+      'instagram',
+      'linkedin',
+      'whatsapp',
+      'poll',
+      'survey',
+      'quiz',
+      'all'
+    )
+  ),
+  content TEXT not null,
+  caption TEXT,
+  message TEXT,
+  media JSONB default '[]'::jsonb,
+  metadata JSONB default '{
         "isCollapsible": true, 
         "displayMode": "compact", 
         "maxHeight": 300,
@@ -27,43 +37,59 @@ CREATE TABLE superfeed (
         },
         "mediaLayout": "grid"
     }'::jsonb,
-    stats JSONB DEFAULT '{
+  stats JSONB default '{
         "views": 0,
         "likes": 0,
         "shares": 0,
         "responses": 0
     }'::jsonb,
-    interactive_content JSONB DEFAULT '{}'::jsonb,
-    fill_requirement TEXT DEFAULT 'partial' CHECK (fill_requirement IN ('partial', 'strict')),
-    expires_at TIMESTAMPTZ,
-    channel_username TEXT,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+  interactive_content JSONB default '{}'::jsonb,
+  fill_requirement TEXT default 'partial' check (fill_requirement in ('partial', 'strict')),
+  expires_at TIMESTAMPTZ,
+  channel_username TEXT,
+  created_at TIMESTAMPTZ default now(),
+  updated_at TIMESTAMPTZ default now()
 );
 
 -- Create superfeed_responses table
-CREATE TABLE superfeed_responses (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    feed_item_id UUID NOT NULL REFERENCES superfeed(id) ON DELETE CASCADE,
-    user_id TEXT NOT NULL,
-    response_type TEXT NOT NULL CHECK (response_type IN ('poll', 'quiz', 'survey')),
-    response_data JSONB NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE(feed_item_id, user_id)
+create table superfeed_responses (
+  id UUID primary key default uuid_generate_v4 (),
+  feed_item_id UUID not null references superfeed (id) on delete CASCADE,
+  user_id UUID not null,
+  response_type TEXT not null check (response_type in ('poll', 'quiz', 'survey')),
+  response_data JSONB not null,
+  created_at TIMESTAMPTZ default now(),
+  updated_at TIMESTAMPTZ default now(),
+  unique (feed_item_id, user_id)
+);
+
+-- Drop the table if it exists
+drop table if exists user_channel_last_viewed;
+
+-- Create the user_channel_follow table with username field
+create table user_channel_last_viewed (
+  user_id UUID not null,
+  username VARCHAR not null,
+  last_viewed TIMESTAMPTZ default NOW(),
+  message_count INTEGER,
+  primary key (user_id, username)
 );
 
 -- Create essential indexes
-CREATE INDEX IF NOT EXISTS idx_superfeed_channel_username ON superfeed(channel_username);
-CREATE INDEX IF NOT EXISTS idx_superfeed_type ON superfeed(type);
-CREATE INDEX IF NOT EXISTS idx_superfeed_created_at ON superfeed(created_at);
-CREATE INDEX IF NOT EXISTS idx_superfeed_updated_at ON superfeed(updated_at);
-CREATE INDEX IF NOT EXISTS idx_superfeed_responses_feed_item_id ON superfeed_responses(feed_item_id);
-CREATE INDEX IF NOT EXISTS idx_superfeed_responses_user_id ON superfeed_responses(user_id);
+create index IF not exists idx_superfeed_channel_username on superfeed (channel_username);
+
+create index IF not exists idx_superfeed_type on superfeed (type);
+
+create index IF not exists idx_superfeed_created_at on superfeed (created_at);
+
+create index IF not exists idx_superfeed_updated_at on superfeed (updated_at);
+
+create index IF not exists idx_superfeed_responses_feed_item_id on superfeed_responses (feed_item_id);
+
+create index IF not exists idx_superfeed_responses_user_id on superfeed_responses (user_id);
 
 -- Create timestamp update trigger function
-CREATE OR REPLACE FUNCTION update_timestamp()
-RETURNS TRIGGER AS $$
+create or replace function update_timestamp () RETURNS TRIGGER as $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
@@ -71,23 +97,19 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers
-CREATE TRIGGER trigger_update_superfeed_timestamp
-BEFORE UPDATE ON superfeed
-FOR EACH ROW
-EXECUTE FUNCTION update_timestamp();
+create trigger trigger_update_superfeed_timestamp BEFORE
+update on superfeed for EACH row
+execute FUNCTION update_timestamp ();
 
-CREATE TRIGGER trigger_update_superfeed_responses_timestamp
-BEFORE UPDATE ON superfeed_responses
-FOR EACH ROW
-EXECUTE FUNCTION update_timestamp();
+create trigger trigger_update_superfeed_responses_timestamp BEFORE
+update on superfeed_responses for EACH row
+execute FUNCTION update_timestamp ();
 
-
-CREATE OR REPLACE FUNCTION create_superfeed_response(
-    p_feed_item_id UUID,
-    p_user_id TEXT,
-    p_response_data JSONB
-)
-RETURNS UUID AS $$
+create or replace function create_superfeed_response (
+  p_feed_item_id UUID,
+  p_user_id UUID,
+  p_response_data JSONB
+) RETURNS UUID as $$
 DECLARE
     v_response_id UUID;
 BEGIN
@@ -115,93 +137,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create or replace function that retrieves both paginated superfeed items and tenant access status
-CREATE OR REPLACE FUNCTION get_channel_superfeed_with_access_status(
-    p_channel_username TEXT,
-    p_user_id TEXT,
-    p_page_size INTEGER DEFAULT 20,
-    p_last_message_timestamp TIMESTAMPTZ DEFAULT NULL
-)
-RETURNS JSONB AS $$
-DECLARE
-    messages_result JSONB;
-    access_status TEXT := 'private'; -- Default to private for tenant databases
-BEGIN
-    -- Get the paginated superfeed items
-    SELECT jsonb_agg(
-        jsonb_build_object(
-            'id', s.id,
-            'type', s.type,
-            'content', s.content,
-            'caption', s.caption,
-            'message', s.message,
-            'media', s.media,
-            'metadata', s.metadata,
-            'stats', s.stats,
-            'interactive_content', s.interactive_content,
-            'fill_requirement', s.fill_requirement,
-            'expires_at', s.expires_at,
-            'channel_username', s.channel_username,
-            'username', s.channel_username, -- Add username for compatibility
-            'created_at', s.created_at,
-            'updated_at', s.updated_at
-        )
-    )
-    INTO messages_result
-    FROM (
-        SELECT
-            s.id,
-            s.type,
-            s.content,
-            s.caption,
-            s.message,
-            s.media,
-            s.metadata,
-            s.stats,
-            s.interactive_content,
-            s.fill_requirement,
-            s.expires_at,
-            s.channel_username,
-            s.created_at,
-            s.updated_at
-        FROM
-            superfeed s
-        WHERE
-            s.channel_username = p_channel_username
-            AND (p_last_message_timestamp IS NULL OR s.created_at < p_last_message_timestamp)
-            AND (s.expires_at IS NULL OR s.expires_at > NOW())
-        ORDER BY
-            s.created_at DESC
-        LIMIT
-            p_page_size
-    ) s;
-
-    -- Return combined result with access status
-    RETURN jsonb_build_object(
-        'messages', COALESCE(messages_result, '[]'::jsonb),
-        'user_id', p_user_id,
-        'channel_username', p_channel_username,
-        'access_status', access_status,
-        'has_more', (SELECT COUNT(*) FROM superfeed s
-                     WHERE s.channel_username = p_channel_username
-                     AND (p_last_message_timestamp IS NULL OR s.created_at < p_last_message_timestamp)
-                     AND (s.expires_at IS NULL OR s.expires_at > NOW())) > p_page_size
-    );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION get_channel_superfeed_with_access_status(
-    p_channel_username TEXT,
-    p_user_id TEXT,
-    p_page_size INTEGER DEFAULT 20,
-    p_last_message_timestamp TIMESTAMPTZ DEFAULT NULL
-)
-RETURNS JSONB AS $$
+create or replace function get_channel_superfeed_with_access_status (
+  p_channel_username TEXT,
+  p_user_id UUID,
+  p_page_size INTEGER default 20,
+  p_last_message_timestamp TIMESTAMPTZ default null
+) RETURNS JSONB as $$
 DECLARE
     messages_result JSONB;
     access_status TEXT;
@@ -218,7 +159,7 @@ BEGIN
     ) sf;
 
     SELECT CASE
-        WHEN p_user_id IS NULL OR p_user_id = '' THEN 'NONE'
+        WHEN p_user_id IS NULL THEN 'NONE'
         WHEN status IS NULL THEN 'NONE'
         WHEN status = 'PENDING' THEN 'PENDING'
         WHEN status = 'APPROVED' THEN 'APPROVED'
@@ -229,6 +170,14 @@ BEGIN
 
     IF access_status IS NULL THEN
         access_status := 'NONE';
+    END IF;
+
+    IF p_user_id IS NOT NULL THEN
+    INSERT INTO user_channel_last_viewed (user_id, username, last_viewed, message_count)
+    VALUES (p_user_id, p_channel_username, NOW(), 0)
+    ON CONFLICT (user_id, username) DO UPDATE SET
+        last_viewed = NOW(),
+        message_count = user_channel_last_viewed.message_count + 1;
     END IF;
 
     RETURN jsonb_build_object(

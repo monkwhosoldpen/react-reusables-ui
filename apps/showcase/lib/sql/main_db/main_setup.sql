@@ -67,29 +67,6 @@ CREATE TABLE IF NOT EXISTS public.push_subscriptions (
   CONSTRAINT push_subscriptions_endpoint_key UNIQUE (endpoint)
 );
 
--- Enable Row Level Security for push_subscriptions
-ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
-
--- Create policy allowing users to manage their own push subscriptions
-CREATE POLICY "Users can manage their own push subscriptions"
-  ON public.push_subscriptions
-  FOR ALL
-  USING (auth.uid() = user_id);
-
--- Create policy allowing service role to manage all push subscriptions
-CREATE POLICY "Service role can manage all push subscriptions"
-  ON public.push_subscriptions
-  FOR ALL
-  USING (auth.role() = 'service_role');
-
--- Create index on user_id for faster lookups
-CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id 
-  ON public.push_subscriptions(user_id);
-
--- Create index for by-user lookups used in the application
-CREATE INDEX IF NOT EXISTS idx_push_subscriptions_by_user 
-  ON public.push_subscriptions(user_id);
-
 -- Create UUID extension if it doesn't exist
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, memo } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Animated, SafeAreaView, ScrollView, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { toast } from 'sonner';
@@ -10,11 +10,48 @@ import { Channel } from '~/lib/core/types/channel.types';
 import { config } from '~/lib/core/config';
 import { CommonHeader } from '~/components/common/CommonHeader';
 import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
+import { Skeleton } from '~/components/ui/skeleton';
 
 // Add URL constants for profile images
 const SUPABASE_URL = 'https://ilzjdtlikhhavnfzfnvj.supabase.co';
 const STORAGE_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/channels/assets/media/images`;
 const IMAGE_SUFFIX = '_dp.png';
+
+const ChannelGridSkeleton = memo(() => {
+  const { width } = useWindowDimensions();
+  const cardWidth = (width - 32) / 2 - 8;
+
+  return (
+    <View>
+      <View className="px-4 py-3">
+        <Skeleton className="h-4 w-32" />
+      </View>
+      <View className="flex-row flex-wrap justify-between px-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <View
+            key={`skeleton-${i}`}
+            style={{ width: cardWidth }}
+            className="mb-4"
+          >
+            <View className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden p-4">
+              <View className="flex-row items-center mb-3">
+                <Skeleton className="w-10 h-10 rounded-full mr-3" />
+                <View className="flex-1">
+                  <Skeleton className="h-5 w-24" />
+                </View>
+              </View>
+              <View className="mb-3">
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-3/4" />
+              </View>
+              <Skeleton className="h-9 w-full rounded-lg" />
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+});
 
 export default function ExplorePage() {
   const { user, isFollowingChannel } = useAuth();
@@ -174,15 +211,7 @@ export default function ExplorePage() {
         showsVerticalScrollIndicator={false}
       >
         {isLoading ? (
-          <View className="flex-1 justify-center px-6 mt-6">
-            <View className="p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-lg">
-              <ActivityIndicator size="large" className="text-blue-500" />
-              <Text className="mt-6 text-2xl font-bold text-center text-gray-900 dark:text-white">Loading Channels</Text>
-              <Text className="mt-3 text-base text-center text-gray-600 dark:text-gray-300">
-                Please wait while we fetch available channels
-              </Text>
-            </View>
-          </View>
+          <ChannelGridSkeleton />
         ) : channels.length > 0 ? (
           <View>
             <View className="px-4 py-3">

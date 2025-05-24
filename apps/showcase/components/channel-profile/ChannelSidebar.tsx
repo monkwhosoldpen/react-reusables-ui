@@ -4,7 +4,7 @@ import React from 'react'
 import { View, ScrollView, Pressable, useColorScheme } from 'react-native'
 import { Channel } from "~/lib/core/types/channel.types"
 import { Text } from '~/components/ui/text'
-import { Users, Settings } from 'lucide-react'
+import { Users, Settings, Home, X, Twitter } from 'lucide-react'
 import { useRouter } from 'expo-router'
 
 interface ChannelSidebarProps {
@@ -21,6 +21,8 @@ export function ChannelSidebar({
   sidebarWidth,
 }: ChannelSidebarProps) {
   const router = useRouter()
+  const isPrivate = channelDetails?.is_owner_db
+  const mainChannelUsername = isPrivate ? channelDetails.owner_username : username
 
   const handleChannelPress = (channelUsername: string) => {
     router.push(`/${channelUsername}`)
@@ -33,30 +35,34 @@ export function ChannelSidebar({
     <View style={{ width: sidebarWidth }} className="h-full border-r border-border bg-white dark:bg-gray-800">
       <View className="flex-1">
         <ScrollView className="flex-1">
-          {/* Parent Channel */}
-          {channelDetails.parent_channel && (
-            <Pressable onPress={() => handleChannelPress(channelDetails.parent_channel.username)}>
-              <View className={`flex-col items-center py-2 px-1 m-1 shadow-sm ${
-                selectedChannel === channelDetails.parent_channel.username 
-                  ? 'bg-gray-50 dark:bg-gray-700/50' 
-                  : 'bg-white dark:bg-gray-800'
-              }`}>
-                <View className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center shadow-sm">
-                  <Users size={20} />
-                </View>
+          {/* Main Channel */}
+          <Pressable onPress={() => handleChannelPress(mainChannelUsername)}>
+            <View className={`flex-col items-center py-2 px-1 m-1 shadow-sm ${
+              selectedChannel === mainChannelUsername 
+                ? 'bg-gray-50 dark:bg-gray-700/50' 
+                : 'bg-white dark:bg-gray-800'
+            }`}>
+              <View className="w-12 h-12 rounded-full bg-black dark:bg-white items-center justify-center shadow-sm">
+                <Twitter size={24} className="text-white dark:text-black" />
+              </View>
+              <View className="flex-col items-center">
                 <Text 
                   className="text-xs text-center mt-1.5 font-medium px-1 w-full text-gray-900 dark:text-white"
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {channelDetails.parent_channel.username}
+                  {mainChannelUsername}
                 </Text>
               </View>
-            </Pressable>
-          )}
+            </View>
+          </Pressable>
 
           {/* Related Channels */}
           {channelDetails.related_channels
+            ?.filter(related => 
+              related.username !== mainChannelUsername && 
+              related.username !== selectedChannel
+            )
             ?.sort((a, b) => a.username.localeCompare(b.username))
             .map((related) => (
             <Pressable key={related.username} onPress={() => handleChannelPress(related.username)}>
