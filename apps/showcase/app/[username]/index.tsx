@@ -132,10 +132,13 @@ const MainContent = memo(({
   );
 
   const renderNoAccess = () => (
-    <View className="absolute inset-0 z-50 backdrop-blur-md bg-orange-500/30 items-center justify-center">
-      <View className="bg-orange-500/90 p-8 rounded-lg items-center max-w-md">
-        <Text className="text-2xl font-bold text-white text-center mb-4">No Access</Text>
-        <View className="p-2">
+    <View className="flex-1 items-center justify-center bg-orange-500/10">
+      <View className="bg-background/95 p-6 rounded-md items-center max-w-md">
+        <Text className="text-xl font-bold text-orange-600 dark:text-orange-400 text-center mb-3">Private Channel</Text>
+        <Text className="text-sm text-muted-foreground text-center mb-4">
+          This is a private channel. Join to view and participate in conversations.
+        </Text>
+        <View className="w-full">
           <JoinButton
             username={username}
             accessStatus={accessStatus}

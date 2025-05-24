@@ -185,7 +185,7 @@ export default function ExplorePage() {
       <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
         <CommonHeader title="Explore" showBackButton={true} />
         <View className="flex-1 justify-center px-6">
-          <View className="p-6 rounded-2xl bg-white dark:bg-gray-800 mt-6 shadow-lg">
+          <View className="p-6 rounded-xl bg-white dark:bg-gray-800 mt-6 shadow-sm">
             <Text className="text-2xl font-bold text-gray-900 dark:text-white">{error}</Text>
             <Text className="mt-3 text-base text-gray-600 dark:text-gray-300 leading-6">
               There was a problem loading the channels. This could be due to a network issue or the server might be unavailable.

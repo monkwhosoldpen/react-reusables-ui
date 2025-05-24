@@ -1,7 +1,15 @@
 import Constants from 'expo-constants';
 import { useChat } from '@ai-sdk/react';
 import { fetch as expoFetch } from 'expo/fetch';
-import { View, TextInput, ScrollView, Text, SafeAreaView, ActivityIndicator } from 'react-native';
+import {
+  View,
+  TextInput,
+  ScrollView,
+  Text,
+  SafeAreaView,
+  ActivityIndicator,
+  TouchableOpacity
+} from 'react-native';
 import { useState } from 'react';
 import { defaultModel } from '~/lib/ai/providers';
 
@@ -19,60 +27,55 @@ export default function AiChat() {
 
   const { messages, error, handleInputChange, input, handleSubmit, status } = useChat({
     fetch: (async (url: RequestInfo | URL, options?: RequestInit) => {
-      console.log('Making request to:', url);
-      console.log('Request options:', JSON.stringify(options, null, 2));
-      
-      try {
-        const origin = __DEV__ ? 'https://showcase.fixd.ai' : 'https://showcase.fixd.ai';
-        console.log('Using origin:', origin);
+      const origin = __DEV__ ? 'https://showcase.fixd.ai' : 'https://showcase.fixd.ai';
 
-        const response = await expoFetch(url as string, {
-          ...options,
-          headers: {
-            ...options?.headers,
-            'Content-Type': 'application/json',
-            'Accept': 'text/event-stream',
-            'Origin': origin,
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          mode: 'cors',
-          credentials: 'include'
-        });
+      const response = await expoFetch(url as string, {
+        ...options,
+        headers: {
+          ...options?.headers,
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+          'Origin': origin,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        mode: 'cors',
+        credentials: 'include'
+      });
 
-        console.log('Response status:', response.status);
-        console.log('Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
-        
-        return response as unknown as Response;
-      } catch (error) {
-        console.error('Fetch error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
-        throw error;
-      }
+      return response as unknown as Response;
     }) as typeof globalThis.fetch,
     api: generateAPIUrl('/api/chat'),
-    body: {
-      selectedModel,
-    },
+    body: { selectedModel },
     onError: error => {
-      console.error('Chat error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
-      if (error instanceof Error) {
-        if (error.message.includes("Rate limit")) {
-          console.error("Rate limit exceeded. Please try again later.");
-        }
-      }
+      console.error('Chat error:', error.message);
     },
   });
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
-  if (error) return <Text style={{ color: 'red' }}>{error.message}</Text>;
+  const suggestedPrompts = [
+    'What can you do?',
+    'Tell me a fun fact!',
+    'Give me some productivity tips.'
+  ];
+
+  const onPromptPress = (prompt: string) => {
+    const event = {
+      preventDefault: () => {},
+      target: {
+        value: prompt,
+      }
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+    handleInputChange(event);
+
+    // Trigger submit immediately
+    handleSubmit({
+      ...event,
+      nativeEvent: { text: prompt },
+      preventDefault: () => {},
+    } as unknown as any);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -86,6 +89,23 @@ export default function AiChat() {
               <Text style={{ marginTop: 10, textAlign: 'center' }}>
                 Start a conversation by typing a message below.
               </Text>
+
+              <View style={{ marginTop: 20 }}>
+                {suggestedPrompts.map((prompt, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => onPromptPress(prompt)}
+                    style={{
+                      backgroundColor: '#eee',
+                      padding: 10,
+                      borderRadius: 8,
+                      marginBottom: 10
+                    }}
+                  >
+                    <Text style={{ textAlign: 'center' }}>{prompt}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           ) : (
             messages.map(m => (
@@ -102,9 +122,11 @@ export default function AiChat() {
           )}
         </ScrollView>
 
-        <View style={{ marginTop: 16 }}>
+        {/* Input + Send Button */}
+        <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center' }}>
           <TextInput
             style={{
+              flex: 1,
               backgroundColor: '#f5f5f5',
               padding: 12,
               borderRadius: 8,
@@ -122,12 +144,26 @@ export default function AiChat() {
                 },
               } as unknown as React.ChangeEvent<HTMLInputElement>)
             }
-            onSubmitEditing={e => {
-              handleSubmit(e);
-              e.preventDefault();
-            }}
             editable={!isLoading}
           />
+          <TouchableOpacity
+            onPress={() =>
+              handleSubmit({
+                preventDefault: () => {},
+                nativeEvent: { text: input }
+              } as any)
+            }
+            style={{
+              marginLeft: 10,
+              backgroundColor: '#007bff',
+              paddingVertical: 10,
+              paddingHorizontal: 16,
+              borderRadius: 8
+            }}
+            disabled={isLoading || !input.trim()}
+          >
+            <Text style={{ color: 'white', fontWeight: 'bold' }}>Send</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>

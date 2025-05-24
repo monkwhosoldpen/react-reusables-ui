@@ -56,6 +56,7 @@ export function ChannelSidebar({
                   className="text-[10px] text-center mt-1.5 font-medium px-1 w-full text-gray-900 dark:text-white"
                   numberOfLines={1}
                   ellipsizeMode="tail"
+                  style={{ width: sidebarWidth - 16 }}
                 >
                   {mainChannelUsername}
                 </Text>

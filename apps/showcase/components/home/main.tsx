@@ -215,7 +215,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
     return (
       <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
         <View className="flex-1 justify-center px-6">
-          <View className="p-6 rounded-2xl bg-white dark:bg-gray-800 mt-6 shadow-lg">
+          <View className="p-6 rounded-xl bg-white dark:bg-gray-800 mt-6 shadow-sm">
             <ActivityIndicator size="large" className="text-blue-500" />
             <Text className="mt-6 text-2xl font-bold text-center text-gray-900 dark:text-white">
               Loading Your Data
@@ -233,13 +233,13 @@ export function MainScreen({ initialData }: MainScreenProps) {
     return (
       <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
         <View className="flex-1 justify-center px-6">
-          <View className="p-6 rounded-2xl bg-white dark:bg-gray-800 mt-6 shadow-lg">
+          <View className="p-6 rounded-xl bg-white dark:bg-gray-800 mt-6 shadow-sm">
             <Text className="text-2xl font-bold text-center text-gray-900 dark:text-white">Welcome to NChat</Text>
             <Text className="mt-3 text-base text-center text-gray-600 dark:text-gray-300">
               Sign in to access your channels and manage your requests
             </Text>
             <TouchableOpacity
-              className="mt-6 py-3.5 px-6 rounded-xl bg-blue-500 flex-row items-center justify-center shadow-md"
+              className="mt-6 py-3.5 px-6 rounded-xl bg-blue-500 flex-row items-center justify-center shadow-sm"
               onPress={() => router.push('/login')}
             >
               <LogIn size={20} color="white" className="mr-2" />
@@ -256,10 +256,10 @@ export function MainScreen({ initialData }: MainScreenProps) {
       <View className="flex-1">
         {sortedData.length === 0 ? (
           <View className="flex-1 justify-center items-center p-6">
-            <View className="p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-lg w-full max-w-md">
+            <View className="p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm w-full max-w-md">
               <Text className="text-2xl font-bold text-center text-gray-900 dark:text-white">No Channels</Text>
               <TouchableOpacity
-                className="mt-6 py-3.5 px-6 rounded-xl bg-blue-500 flex-row items-center justify-center shadow-md"
+                className="mt-6 py-3.5 px-6 rounded-xl bg-blue-500 flex-row items-center justify-center shadow-sm"
                 onPress={() => router.push('/explore')}
               >
                 <Plus size={20} color="white" className="mr-2" />
@@ -281,7 +281,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
         )}
       </View>
       <TouchableOpacity
-        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 justify-center items-center shadow-lg"
+        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 justify-center items-center shadow-md"
         onPress={() => router.push('/explore')}
       >
         <Plus size={24} color="white" />
