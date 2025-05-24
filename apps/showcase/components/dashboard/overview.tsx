@@ -56,7 +56,7 @@ export default function OverviewTab({
       >
         {/* ——— user card ——— */}
         <Card
-          className={`rounded-2xl ${cardBg} shadow-md ${borderClr} border p-5`}
+          className={`rounded-xl ${cardBg} shadow-sm ${borderClr} border p-4`}
         >
           <View className="flex-row items-center">
             {/* avatar */}

@@ -126,7 +126,7 @@ export function FollowButton({
       
       // No need to directly update IndexedDB here as followChannel already handles it
       
-      toast.success(`Following @${username}`);
+      // toast.success(`Following @${username}`);
     } catch (error) {
       toast.error(`Failed to follow channel`);
       setFollowing(false);
@@ -145,10 +145,7 @@ export function FollowButton({
     
     try {
       await unfollowChannel(username);
-      
-      // No need to directly update IndexedDB here as unfollowChannel already handles it
-      
-      toast.success(`Unfollowed @${username}`);
+      // toast.success(`Unfollowed @${username}`);
     } catch (error) {
       toast.error(`Failed to unfollow channel`);
       setFollowing(true);
@@ -170,18 +167,7 @@ export function FollowButton({
       await handleFollow();
     }
   };
-  
-  // Handle successful login
-  const handleLoginSuccess = async () => {
-    setShowLoginDialog(false);
-    // Wait for auth state to be synchronized
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    // Refresh user info to ensure state is up to date
-    await refreshUserInfo();
-    // Execute follow action after login
-    await executeFollowAction();
-  };
-  
+
   const handleSubmit = async () => {
     if (!email || !password) {
       setError('Please enter both email and password');

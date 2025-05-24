@@ -31,13 +31,13 @@ export function Landing() {
             <Text
               className={`font-extrabold text-gray-900 dark:text-white leading-tight tracking-tight ${titleSize}`}
             >
-              Connect with Your Fans & Followers!
+              NConnect
             </Text>
 
             <Text
               className={`text-gray-600 dark:text-gray-300 leading-relaxed ${subtitleSize}`}
             >
-              Build meaningful relationships with your community in a distraction‑free environment.
+              Build meaningful relationships
             </Text>
 
             {/* Features */}
@@ -57,11 +57,6 @@ export function Landing() {
                   title: 'Offline Access',
                   description: 'Stay connected even without the internet',
                   icon: 'offline-pin',
-                },
-                {
-                  title: 'Fully Customisable',
-                  description: 'Brand colours, emojis, roles & more — make it yours',
-                  icon: 'tune',
                 },
               ].map((feature, i) => (
                 <View key={i} className="flex-row items-start gap-4">

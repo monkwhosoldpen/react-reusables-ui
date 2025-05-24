@@ -133,9 +133,6 @@ export default function SettingsScreen() {
                   <Text className="text-base font-semibold text-gray-900 dark:text-white">
                     Dark Mode
                   </Text>
-                  <Text className="text-sm text-gray-600 dark:text-gray-400">
-                    Use dark theme
-                  </Text>
                 </View>
                 <ThemeToggle />
               </View>
@@ -161,40 +158,13 @@ export default function SettingsScreen() {
                 </View>
                 <View className="flex-1">
                   <Text className="text-base font-semibold text-gray-900 dark:text-white">
-                    App Language
-                  </Text>
-                  <Text className="text-sm text-gray-600 dark:text-gray-400">
-                    Choose your preferred language
+                    Language
                   </Text>
                 </View>
                 <LanguageChanger variant="settings" />
               </View>
             </View>
 
-            {/* Demo Section */}
-            <View className="py-3 px-1 mt-6">
-              <Text className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">
-                DEMO
-              </Text>
-            </View>
-            <View className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-              <TouchableOpacity
-                className="flex-row items-center p-4 bg-blue-500"
-                onPress={() => router.push('/demo')}
-              >
-                <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-white/20">
-                  <MaterialIcons name="dashboard" size={24} color="#FFFFFF" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base font-semibold text-white">
-                    Open Demo
-                  </Text>
-                  <Text className="text-sm text-white/80">
-                    View demo features
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
           </View>
         </View>
       </ScrollView>

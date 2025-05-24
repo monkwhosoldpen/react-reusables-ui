@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   SafeAreaView,
-  useColorScheme
+  useColorScheme,
+  Animated
 } from 'react-native';
 import { Text } from '~/components/ui/text';
 import {
@@ -197,6 +198,23 @@ function TabContent({
   return Comp ? <Comp /> : null;
 }
 
+// Add Material Design tab indicator component
+const TabIndicator = React.memo(({ width, position }: { width: Animated.Value; position: Animated.Value }) => {
+  return (
+    <Animated.View
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        width: width,
+        height: 2,
+        backgroundColor: '#2196F3',
+        transform: [{ translateX: position }],
+      }}
+    />
+  );
+});
+
 export function DashboardScreen({
   username,
   tabname
@@ -206,6 +224,17 @@ export function DashboardScreen({
   const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState(tabname || 'overview');
   const colorScheme = useColorScheme();
+  const [tabLayouts, setTabLayouts] = React.useState<{ [key: string]: { width: number; x: number } }>({});
+  const indicatorPosition = React.useRef(new Animated.Value(0)).current;
+  const indicatorWidth = React.useRef(new Animated.Value(0)).current;
+
+  // Initialize tab indicator position when layouts are available
+  React.useEffect(() => {
+    if (tabLayouts[activeTab]) {
+      indicatorPosition.setValue(tabLayouts[activeTab].x);
+      indicatorWidth.setValue(tabLayouts[activeTab].width);
+    }
+  }, [tabLayouts, activeTab]);
 
   // channel helpers
   const findChannelOwner = () => {
@@ -291,6 +320,34 @@ export function DashboardScreen({
     return 'border-gray-500 dark:border-gray-600';
   };
 
+  // Function to handle tab press with animation
+  const handleTabPress = (tabName: string) => {
+    setActiveTab(tabName);
+    if (tabLayouts[tabName]) {
+      Animated.parallel([
+        Animated.timing(indicatorPosition, {
+          toValue: tabLayouts[tabName].x,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(indicatorWidth, {
+          toValue: tabLayouts[tabName].width,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  };
+
+  // Function to measure tab layout
+  const onTabLayout = (tabName: string, event: any) => {
+    const { width, x } = event.nativeEvent.layout;
+    setTabLayouts(prev => ({
+      ...prev,
+      [tabName]: { width, x }
+    }));
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
       {/* Outer frame */}
@@ -312,20 +369,17 @@ export function DashboardScreen({
           >
             {/* Tabs header */}
             <View className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-t border-gray-200 dark:border-gray-700">
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View className="flex-row items-center space-x-6 px-2 py-2">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="relative">
+                <View className="flex-row items-center px-2">
                   {navItems.map(item => (
                     <TouchableOpacity
                       key={item.name}
-                      className={`py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 border-b-2 ${
-                        activeTab === item.name
-                          ? getBorderColorClass()
-                          : 'border-transparent'
-                      }`}
-                      onPress={() => setActiveTab(item.name)}
+                      onLayout={(e) => onTabLayout(item.name, e)}
+                      className="px-4 py-3"
+                      onPress={() => handleTabPress(item.name)}
                     >
                       <Text
-                        className={`text-base font-medium whitespace-nowrap ${
+                        className={`text-sm font-medium ${
                           activeTab === item.name
                             ? clientType === 'basic'
                               ? 'text-red-500 dark:text-red-400'
@@ -340,6 +394,10 @@ export function DashboardScreen({
                     </TouchableOpacity>
                   ))}
                 </View>
+                <TabIndicator 
+                  width={indicatorWidth} 
+                  position={indicatorPosition} 
+                />
               </ScrollView>
             </View>
 

@@ -78,7 +78,7 @@ export default function DashboardRoute({ username }: { username: string }) {
   if (!initialized) {
     return (
       <View className="flex-1 justify-center items-center p-6 bg-white dark:bg-gray-900">
-        <View className="w-full max-w-md mx-auto p-8 rounded-2xl bg-white dark:bg-gray-800 shadow-xl">
+        <View className="w-full max-w-md mx-auto p-8 rounded-xl bg-white dark:bg-gray-800 shadow-sm">
           <ActivityIndicator size="large" className="text-blue-500" />
           <Text className="mt-6 text-2xl font-bold text-center text-gray-900 dark:text-white">
             Initializing app...
@@ -106,7 +106,7 @@ export default function DashboardRoute({ username }: { username: string }) {
 
   return (
     <View className="flex-1 justify-center items-center p-6 bg-white dark:bg-gray-900">
-      <View className="w-full max-w-md mx-auto p-8 rounded-2xl bg-white dark:bg-gray-800 shadow-xl">
+      <View className="w-full max-w-md mx-auto p-8 rounded-xl bg-white dark:bg-gray-800 shadow-sm">
         <ActivityIndicator size="large" className="text-blue-500" />
         <Text className="mt-6 text-2xl font-bold text-center text-gray-900 dark:text-white">
           Loading...
