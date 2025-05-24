@@ -95,7 +95,6 @@ const BASIC_CLIENT_TABS = [
   'overview',
   'requests',
   'chat',
-  'ai-user-analytics'
 ];
 const PUBLIC_CLIENT_TABS = ['overview'];
 
@@ -255,7 +254,6 @@ export function DashboardScreen({
   React.useEffect(() => {}, [username, clientType, relatedChannelsCount]);
 
   useScrollToTop(ref);
-  const isDesktop = width >= 768;
 
   // client-type filtering
   const isBasicClient = clientType === 'basic';

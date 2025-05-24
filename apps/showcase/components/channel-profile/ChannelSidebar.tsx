@@ -110,4 +110,4 @@ export function ChannelSidebar({
       </View>
     </View>
   )
-} 
+}

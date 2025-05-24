@@ -66,7 +66,7 @@ export function Sidebar({ username, ownerUsername, clientType, relatedChannels =
     return (
       <TouchableOpacity
         key={channelUsername}
-        className={`flex-row items-center p-3 rounded-lg mb-2 ${getBgColorClass(isActive)}`}
+        className={`flex-row items-center p-1 rounded-lg mb-2 ${getBgColorClass(isActive)}`}
         onPress={() => router.push(`/dashboard/${channelUsername}`)}
       >
         <Avatar 

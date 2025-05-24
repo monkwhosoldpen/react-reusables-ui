@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image, Pressable, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Image, Pressable, TouchableOpacity, Platform } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { MOCK_USER_SEGMENTS, MOCK_USER_ANALYTICS, MOCK_CHANNEL_ANALYTICS } from '~/constants/mockAnalytics';
 import { Card } from '~/components/ui/card';
@@ -31,6 +31,25 @@ const chartConfig = {
     r: '6',
     strokeWidth: '2',
     stroke: '#3B82F6'
+  },
+  propsForBackgroundLines: {
+    strokeWidth: 1,
+    stroke: '#E5E7EB',
+    strokeDasharray: '5, 5',
+  },
+  useShadowColorFromDataset: false,
+  web: {
+    propsForDots: {
+      r: '6',
+      strokeWidth: '2',
+      stroke: '#3B82F6',
+      onStartShouldSetResponder: undefined,
+      onResponderTerminationRequest: undefined,
+      onResponderGrant: undefined,
+      onResponderMove: undefined,
+      onResponderRelease: undefined,
+      onResponderTerminate: undefined
+    }
   }
 };
 
@@ -73,20 +92,28 @@ export default function AIUserAnalyticsTab() {
       </View>
       <View className="flex-row flex-wrap gap-2">
         <Badge variant="secondary" className="px-3 py-1">
-          <Ionicons name="time-outline" size={16} color="#6B7280" className="mr-1" />
-          Last 7 Days
+          <View className="flex-row items-center">
+            <Ionicons name="time-outline" size={16} color="#6B7280" className="mr-1" />
+            <Text>Last 7 Days</Text>
+          </View>
         </Badge>
         <Badge variant="outline" className="px-3 py-1">
-          <Ionicons name="people-outline" size={16} color="#6B7280" className="mr-1" />
-          All Segments
+          <View className="flex-row items-center">
+            <Ionicons name="people-outline" size={16} color="#6B7280" className="mr-1" />
+            <Text>All Segments</Text>
+          </View>
         </Badge>
         <Badge variant="outline" className="px-3 py-1">
-          <Ionicons name="trending-up-outline" size={16} color="#6B7280" className="mr-1" />
-          Growth Metrics
+          <View className="flex-row items-center">
+            <Ionicons name="trending-up-outline" size={16} color="#6B7280" className="mr-1" />
+            <Text>Growth Metrics</Text>
+          </View>
         </Badge>
         <Badge variant="outline" className="px-3 py-1">
-          <Ionicons name="alert-outline" size={16} color="#6B7280" className="mr-1" />
-          Show Anomalies
+          <View className="flex-row items-center">
+            <Ionicons name="alert-outline" size={16} color="#6B7280" className="mr-1" />
+            <Text>Show Anomalies</Text>
+          </View>
         </Badge>
       </View>
     </Card>
@@ -177,7 +204,7 @@ export default function AIUserAnalyticsTab() {
         </View>
         <View className="flex-row items-center gap-2">
           <Badge variant="secondary" className="px-3 py-1">
-            {segment.count} users
+            <Text>{segment.count} users</Text>
           </Badge>
           <TouchableOpacity className="p-2">
             <Ionicons name="ellipsis-vertical" size={20} color="#6B7280" />
@@ -220,13 +247,13 @@ export default function AIUserAnalyticsTab() {
             variant={user.requestStatus === 'approved' ? 'default' : 
                     user.requestStatus === 'pending' ? 'secondary' : 'destructive'}
           >
-            {user.requestStatus}
+            <Text>{user.requestStatus}</Text>
           </Badge>
           <Badge 
             variant={user.sentiment === 'positive' ? 'default' : 
                     user.sentiment === 'neutral' ? 'secondary' : 'destructive'}
           >
-            {user.sentiment === 'positive' ? '🟢' : user.sentiment === 'neutral' ? '🟠' : '🔴'}
+            <Text>{user.sentiment === 'positive' ? '🟢' : user.sentiment === 'neutral' ? '🟠' : '🔴'}</Text>
           </Badge>
           <TouchableOpacity className="p-2">
             <Ionicons name="ellipsis-vertical" size={20} color="#6B7280" />
@@ -278,7 +305,7 @@ export default function AIUserAnalyticsTab() {
         <View className="flex-row flex-wrap gap-2 mt-2">
           {user.tags.map(tag => (
             <Badge key={tag} variant="outline" className="px-2 py-1">
-              {tag}
+              <Text>{tag}</Text>
             </Badge>
           ))}
         </View>
@@ -304,66 +331,102 @@ export default function AIUserAnalyticsTab() {
     </Card>
   );
 
-  const renderTimeSeriesChart = (data: typeof MOCK_CHANNEL_ANALYTICS.timeSeriesData.dailyActiveUsers) => (
-    <LineChart
-      data={{
+  const renderTimeSeriesChart = (data: typeof MOCK_CHANNEL_ANALYTICS.timeSeriesData.dailyActiveUsers) => {
+    const chartProps = {
+      data: {
         labels: data.labels,
         datasets: [{
           data: data.datasets[0].data,
           color: (opacity = 1) => data.datasets[0].color
         }]
-      }}
-      width={screenWidth - 32}
-      height={220}
-      chartConfig={chartConfig}
-      bezier
-      style={{
+      },
+      width: screenWidth - 32,
+      height: 220,
+      chartConfig: {
+        ...chartConfig,
+        propsForDots: Platform.select({
+          web: {
+            r: '6',
+            strokeWidth: '2',
+            stroke: '#3B82F6'
+          },
+          default: chartConfig.propsForDots
+        })
+      },
+      bezier: true,
+      style: {
         marginVertical: 8,
         borderRadius: 16
-      }}
-    />
-  );
+      }
+    };
 
-  const renderPieChart = (data: typeof MOCK_CHANNEL_ANALYTICS.distributionData.requestTypes) => (
-    <PieChart
-      data={data.labels.map((label, index) => ({
+    return <LineChart {...chartProps} />;
+  };
+
+  const renderPieChart = (data: typeof MOCK_CHANNEL_ANALYTICS.distributionData.requestTypes) => {
+    const chartProps = {
+      data: data.labels.map((label, index) => ({
         name: label,
         population: data.data[index],
         color: data.colors[index],
         legendFontColor: '#7F9C9F',
         legendFontSize: 12
-      }))}
-      width={screenWidth - 32}
-      height={220}
-      chartConfig={chartConfig}
-      accessor="population"
-      backgroundColor="transparent"
-      paddingLeft="15"
-      absolute
-    />
-  );
+      })),
+      width: screenWidth - 32,
+      height: 220,
+      chartConfig: {
+        ...chartConfig,
+        propsForDots: Platform.select({
+          web: {
+            r: '6',
+            strokeWidth: '2',
+            stroke: '#3B82F6'
+          },
+          default: chartConfig.propsForDots
+        })
+      },
+      accessor: "population",
+      backgroundColor: "transparent",
+      paddingLeft: "15",
+      absolute: true
+    };
 
-  const renderBarChart = (data: typeof MOCK_CHANNEL_ANALYTICS.distributionData.timeDistribution) => (
-    <BarChart
-      data={{
+    return <PieChart {...chartProps} />;
+  };
+
+  const renderBarChart = (data: typeof MOCK_CHANNEL_ANALYTICS.distributionData.timeDistribution) => {
+    const chartProps = {
+      data: {
         labels: data.labels,
         datasets: [{
           data: data.datasets[0].data,
           color: (opacity = 1) => data.datasets[0].color
         }]
-      }}
-      width={screenWidth - 32}
-      height={220}
-      chartConfig={chartConfig}
-      style={{
+      },
+      width: screenWidth - 32,
+      height: 220,
+      chartConfig: {
+        ...chartConfig,
+        propsForDots: Platform.select({
+          web: {
+            r: '6',
+            strokeWidth: '2',
+            stroke: '#3B82F6'
+          },
+          default: chartConfig.propsForDots
+        })
+      },
+      style: {
         marginVertical: 8,
         borderRadius: 16
-      }}
-      yAxisLabel=""
-      yAxisSuffix=""
-      showValuesOnTopOfBars
-    />
-  );
+      },
+      yAxisLabel: "",
+      yAxisSuffix: "",
+      showValuesOnTopOfBars: true
+    };
+
+    return <BarChart {...chartProps} />;
+  };
 
   const renderChannelStats = () => (
     <View className="flex-row flex-wrap justify-between mb-6">
@@ -464,7 +527,9 @@ export default function AIUserAnalyticsTab() {
         <View key={request.status} className="mb-3">
           <View className="flex-row justify-between items-center">
             <Text className="text-sm font-medium capitalize">{request.status}</Text>
-            <Badge variant="secondary">{request.count} requests</Badge>
+            <Badge variant="secondary">
+              <Text>{request.count} requests</Text>
+            </Badge>
           </View>
           <Text className="text-sm text-gray-500">
             Avg. time: {formatDuration(request.averageTime)}
@@ -535,23 +600,44 @@ export default function AIUserAnalyticsTab() {
           <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
         </TouchableOpacity>
       </View>
-      <View className="flex-row justify-between">
-        <View>
-          <Text className="text-sm font-medium">New Users</Text>
-          <Text className="text-sm text-gray-500">{MOCK_CHANNEL_ANALYTICS.growthForecast.newUsers}</Text>
+      <View className="space-y-4">
+        <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-sm font-medium">New Users</Text>
+            <Badge variant="default">
+              <Text>{MOCK_CHANNEL_ANALYTICS.growthForecast.newUsers}</Text>
+            </Badge>
+          </View>
+          <Text className="text-sm text-gray-600 dark:text-gray-400">Expected new user growth</Text>
         </View>
-        <View>
-          <Text className="text-sm font-medium">Active Users</Text>
-          <Text className="text-sm text-gray-500">{MOCK_CHANNEL_ANALYTICS.growthForecast.activeUsers}</Text>
+        <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-sm font-medium">Active Users</Text>
+            <Badge variant="secondary">
+              <Text>{MOCK_CHANNEL_ANALYTICS.growthForecast.activeUsers}</Text>
+            </Badge>
+          </View>
+          <Text className="text-sm text-gray-600 dark:text-gray-400">Projected active user count</Text>
         </View>
-        <View>
-          <Text className="text-sm font-medium">Requests</Text>
-          <Text className="text-sm text-gray-500">{MOCK_CHANNEL_ANALYTICS.growthForecast.requests}</Text>
+        <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-sm font-medium">Requests</Text>
+            <Badge variant="outline">
+              <Text>{MOCK_CHANNEL_ANALYTICS.growthForecast.requests}</Text>
+            </Badge>
+          </View>
+          <Text className="text-sm text-gray-600 dark:text-gray-400">Anticipated request volume</Text>
+        </View>
+        <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-sm font-medium">Confidence</Text>
+            <Badge variant="secondary">
+              <Text>{formatPercentage(MOCK_CHANNEL_ANALYTICS.growthForecast.confidence)}</Text>
+            </Badge>
+          </View>
+          <Text className="text-sm text-gray-600 dark:text-gray-400">Forecast confidence level</Text>
         </View>
       </View>
-      <Text className="text-xs text-gray-500 mt-2">
-        Confidence: {MOCK_CHANNEL_ANALYTICS.growthForecast.confidence * 100}%
-      </Text>
     </Card>
   );
 
@@ -724,6 +810,38 @@ export default function AIUserAnalyticsTab() {
     </View>
   );
   
+  const renderUserSegments = () => (
+    <Card className="p-4 mb-6">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-semibold">User Segments</Text>
+        <TouchableOpacity className="p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      <View className="space-y-4">
+        {MOCK_CHANNEL_ANALYTICS.distributionData.userSegments.labels.map((segment, index) => (
+          <View key={index} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-sm font-medium">{segment}</Text>
+              <Badge variant="secondary">
+                <Text>{MOCK_CHANNEL_ANALYTICS.distributionData.userSegments.data[index]}%</Text>
+              </Badge>
+            </View>
+            <View className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <View 
+                className="h-full rounded-full"
+                style={{ 
+                  width: `${MOCK_CHANNEL_ANALYTICS.distributionData.userSegments.data[index]}%`,
+                  backgroundColor: MOCK_CHANNEL_ANALYTICS.distributionData.userSegments.colors[index]
+                }}
+              />
+            </View>
+          </View>
+        ))}
+      </View>
+    </Card>
+  );
+
   return (
     <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900">
       <View className="p-4">
@@ -741,11 +859,7 @@ export default function AIUserAnalyticsTab() {
         {renderAnomalies()}
         {renderGrowthForecast()}
         {renderUserActivityTimeline()}
-
-        <Text className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          User Segments
-        </Text>
-        {MOCK_USER_SEGMENTS.map(renderUserSegment)}
+        {renderUserSegments()}
 
         <Text className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 mt-6">
           Recent Users
