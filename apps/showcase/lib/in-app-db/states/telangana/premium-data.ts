@@ -168,7 +168,7 @@ export const PREMIUM_CONFIGS: Record<string, any> = {
         is_update_only: false,
         is_premium: true,
         is_public: false,
-        is_agent: true,
+        is_agent: false,
         is_owner_db: true
       }
     ],

@@ -7,6 +7,7 @@ export const telanganaData = {
       { username: "madhavaram_krishna_mp" },
       { username: "komatireddy_venkat_mp" },
       { username: "janedoe", ...PREMIUM_CONFIGS.janedoe },
+      { username: "janedoe_pro", ...PREMIUM_CONFIGS.janedoe_pro },
       { username: "elonmusk", ...PREMIUM_CONFIGS.elonmusk },
     ],
     "Malakpet": {},
