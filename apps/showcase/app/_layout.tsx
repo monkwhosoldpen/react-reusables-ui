@@ -87,15 +87,6 @@ export default function RootLayout() {
                     headerShown: false,
                   }}
                 />
-
-                <Stack.Screen
-                  name='modal'
-                  options={{
-                    presentation: 'modal',
-                    title: 'Modal',
-                    headerShown: true,
-                  }}
-                />
               </Stack>
             </BottomSheetModalProvider>
             <PortalHost />
