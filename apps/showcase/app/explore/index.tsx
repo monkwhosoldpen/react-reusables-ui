@@ -20,28 +20,26 @@ const IMAGE_SUFFIX = '_dp.png';
 
 const ChannelGridSkeleton = memo(() => {
   const { width } = useWindowDimensions();
-  const cardWidth = (width - 32) / 2 - 8;
 
   return (
     <View>
       <View className="px-4 py-3">
       </View>
-      <View className="flex-row flex-wrap justify-between px-4">
+      <View className="flex-row flex-wrap px-0 md:px-4 justify-start">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <View
             key={`skeleton-${i}`}
-            style={{ width: cardWidth }}
-            className="mb-4"
+            className={`w-full mb-0 px-4 py-3 border-b border-gray-200 dark:border-gray-700 ${width >= 768 ? 'md:mb-4 md:rounded-xl md:shadow-sm md:border md:border-gray-100 dark:md:border-gray-700 md:mr-4' : ''} ${i % 2 === 0 && width >= 768 ? 'md:mr-0' : ''}`}
           >
-            <View className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden p-4">
-              <View className="flex-row items-center mb-3">
-                <Skeleton className="w-10 h-10 rounded-full mr-3" />
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center flex-1 mr-3">
+                <Skeleton className="w-12 h-12 rounded-full mr-3" />
                 <View className="flex-1">
-                  <Skeleton className="h-5 w-24 mb-1" />
-                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-5 w-3/5 mb-1" />
+                  <Skeleton className="h-3 w-2/5" />
                 </View>
               </View>
-              <Skeleton className="h-9 w-full rounded-lg" />
+              <Skeleton className="h-9 w-20 rounded-full" />
             </View>
           </View>
         ))}
@@ -191,13 +189,13 @@ export default function ExplorePage() {
 
   const renderChannelGrid = () => {
     return (
-      <View className="flex-row flex-wrap justify-between px-4">
+      <View className="flex-row flex-wrap px-0 md:px-4 justify-start">
         {channels.map((item, index) => (
           <Animated.View
             key={`channel-${item.username}-${index}`}
             style={{
-              width: cardWidth,
-              marginBottom: 16,
+              width: width < 768 ? '100%' : (width - (width < 768 ? 0 : 32 + 16)) / 2,
+              marginBottom: 0,
               opacity: fadeAnim,
               transform: [
                 {
@@ -210,14 +208,14 @@ export default function ExplorePage() {
             }}
           >
             <TouchableOpacity
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+              className={`bg-white dark:bg-gray-900 rounded-none shadow-none overflow-hidden border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors px-4 py-3 ${width >= 768 ? 'md:mb-4 md:rounded-xl md:shadow-sm md:border md:border-gray-100 dark:md:border-gray-700 md:mr-4' : ''} ${index % 2 === 1 && width >= 768 ? 'md:mr-0' : ''}`}
               onPress={() => {
                 router.push(`/${item.username}`);
               }}
             >
-              <View className="p-4">
-                <View className="flex-row items-center mb-3">
-                  <View className="w-10 h-10 rounded-full justify-center items-center mr-3 bg-gray-100 dark:bg-gray-700 shadow-sm overflow-hidden border border-gray-200 dark:border-gray-600">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1 mr-3">
+                  <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-gray-100 dark:bg-gray-700 shadow-sm overflow-hidden">
                     {item.username ? (
                       <img
                         src={`${STORAGE_PREFIX}/${item.username}${IMAGE_SUFFIX}`}
@@ -225,29 +223,29 @@ export default function ExplorePage() {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
-                          e.currentTarget.parentElement.innerHTML = `<Text className="text-base font-semibold text-blue-500">${item.username[0].toUpperCase()}</Text>`;
+                          e.currentTarget.parentElement.innerHTML = `<Text className="text-lg font-semibold text-blue-500">${item.username[0]?.toUpperCase() || '#'}</Text>`;
                         }}
                       />
                     ) : (
-                      <Text className="text-base font-semibold text-blue-500">#</Text>
+                      <Text className="text-lg font-semibold text-blue-500">#</Text>
                     )}
                   </View>
                   <View className="flex-1">
-                    <Text 
+                    <Text
                       className="text-base font-semibold text-gray-900 dark:text-white tracking-tight"
                       numberOfLines={1}
                     >
                       {item.username}
                     </Text>
-                    <Text 
+                    <Text
                       className="text-xs text-gray-500 dark:text-gray-400 mt-0.5"
                       numberOfLines={1}
                     >
-                      {item.stateName || 'No state available'}
+                      {item.stateName || 'Unknown state'}
                     </Text>
                   </View>
                 </View>
-                
+
                 <FollowButton
                   username={item.username}
                   initialFollowing={followingUsernames.has(item.username)}

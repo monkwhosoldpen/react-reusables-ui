@@ -8,12 +8,14 @@ import {
   useWindowDimensions,
   SafeAreaView,
   ActivityIndicator,
+  Animated,
 } from "react-native";
 import { TenantRequest, useAuth } from '~/lib/core/contexts/AuthContext';
 import { LogIn, LogOut, Plus } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useInAppDB } from '~/lib/core/providers/InAppDBProvider';
 import { FlashList } from '@shopify/flash-list';
+import { MainScreenHeader } from './MainScreenHeader';
 
 interface MainScreenProps {
   initialData?: {
@@ -43,14 +45,19 @@ export function MainScreen({ initialData }: MainScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const dataLoadedRef = useRef(false);
 
+  // Add state for tabs
+  const [activeTab, setActiveTab] = useState<string>('All');
+
+  const { width } = useWindowDimensions(); // Add useWindowDimensions hook
+
   // Check if store is initialized with data
   useEffect(() => {
     if (user?.id) {
       const unsubscribe = useInAppDB.subscribe(
         (state) => ({
-          hasData: state.user_language.size > 0 || 
-                   state.user_notifications.size > 0 || 
-                   state.push_subscriptions.size > 0
+          hasData: state.user_language.size > 0 ||
+            state.user_notifications.size > 0 ||
+            state.push_subscriptions.size > 0
         }),
         (newState, prevState) => {
           if (newState.hasData && !prevState.hasData) {
@@ -61,10 +68,10 @@ export function MainScreen({ initialData }: MainScreenProps) {
 
       // Check initial state
       const initialState = useInAppDB.getState();
-      const hasInitialData = initialState.user_language.size > 0 || 
-                           initialState.user_notifications.size > 0 || 
-                           initialState.push_subscriptions.size > 0;
-      
+      const hasInitialData = initialState.user_language.size > 0 ||
+        initialState.user_notifications.size > 0 ||
+        initialState.push_subscriptions.size > 0;
+
       if (hasInitialData) {
         setLoadingState(prev => ({ ...prev, storeInitialized: true }));
       }
@@ -161,16 +168,15 @@ export function MainScreen({ initialData }: MainScreenProps) {
     return (
       <TouchableOpacity
         key={item.id || index}
-        className={`flex-row items-center p-4 bg-white dark:bg-gray-800 rounded-xl my-1 shadow-sm ${
-          selectedItem?.id === item.id ? 'bg-gray-50 dark:bg-gray-700/50' : ''
-        }`}
+        className={`flex-row items-center px-4 py-3 bg-white dark:bg-[#111B21] border-b border-gray-200 dark:border-gray-700 ${selectedItem?.id === item.id ? 'bg-gray-50 dark:bg-[#1D2B36]' : ''
+          }`}
         onPress={() => {
           setSelectedItem(item);
           router.push(`/${item.username}` as any);
         }}
       >
-        <View className="w-12 h-12 rounded-full justify-center items-center mr-3 bg-gray-100 dark:bg-gray-700 shadow-sm">
-          <Text className="text-base font-semibold text-blue-500">
+        <View className="w-14 h-14 rounded-full justify-center items-center mr-4 bg-gray-200 dark:bg-[#2A3F4A]">
+          <Text className="text-xl font-semibold text-gray-700 dark:text-gray-300">
             {item.username?.[0]?.toUpperCase() || '#'}
           </Text>
         </View>
@@ -179,14 +185,14 @@ export function MainScreen({ initialData }: MainScreenProps) {
             <Text className="text-base font-semibold text-gray-900 dark:text-white" numberOfLines={1}>
               {item.username || 'Unknown'}
             </Text>
-            <Text className="text-xs text-gray-400 dark:text-gray-500">{formattedDate}</Text>
+            <Text className="text-xs text-gray-500 dark:text-gray-400">{formattedDate}</Text>
           </View>
           <View className="flex-row justify-between items-center">
-            <Text className="text-sm text-gray-600 dark:text-gray-300 flex-1 mr-2" numberOfLines={1}>
+            <Text className="text-sm text-gray-600 dark:text-gray-400 flex-1 mr-2" numberOfLines={1}>
               {lastMessage ? lastMessage.content : 'No messages yet'}
             </Text>
             {messageCount > 0 && (
-              <View className="min-w-[24px] h-6 rounded-full justify-center items-center px-2 bg-blue-500">
+              <View className="min-w-[20px] h-5 rounded-full justify-center items-center px-1 bg-[#06D755]">
                 <Text className="text-xs font-semibold text-white">{messageCount}</Text>
               </View>
             )}
@@ -210,6 +216,33 @@ export function MainScreen({ initialData }: MainScreenProps) {
     });
     return sorted;
   }, [channelData]);
+
+  // Modify sortedData or create a new memo hook to filter data based on activeTab
+  const filteredData = useMemo(() => {
+    const allData = [...channelData.requests, ...channelData.follows];
+    const sorted = allData.sort((a, b) => {
+      const aDate = a.channelActivity?.[0]?.last_updated_at;
+      const bDate = b.channelActivity?.[0]?.last_updated_at;
+      if (aDate && bDate) {
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
+      }
+      if (aDate) return -1;
+      if (bDate) return 1;
+      return 0;
+    });
+
+    if (activeTab === 'All') {
+      return sorted;
+    } else if (activeTab === 'Unread') {
+      return sorted.filter(item => item.channelActivity?.[0]?.message_count > 0);
+    } else {
+      return []; // Should not happen with current tabs
+    }
+  }, [channelData, activeTab]);
+
+  const handleTabPress = useCallback((tab: string) => {
+    setActiveTab(tab);
+  }, []);
 
   if (authLoading || (user && loadingState.dataLoading)) {
     return (
@@ -252,12 +285,54 @@ export function MainScreen({ initialData }: MainScreenProps) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
+    <SafeAreaView className="flex-1 bg-white dark:bg-[#111B21]">
+      <MainScreenHeader />
       <View className="flex-1">
-        {sortedData.length === 0 ? (
+        {/* Always show tabs */}
+        <View className="bg-white dark:bg-[#111B21] border-b border-gray-200 dark:border-gray-700">
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
+  >
+    {['All', 'Unread', 'Favourites', 'Groups', 'Test2'].map((tab) => (
+      <TouchableOpacity
+        key={tab}
+        className={`rounded-full px-4 py-1 mr-2 ${
+          activeTab === tab
+            ? 'bg-[#06D755]'
+            : 'bg-gray-200 dark:bg-[#2A3F4A]'
+        }`}
+        onPress={() => handleTabPress(tab)}
+      >
+        <Text
+          className={`text-sm font-semibold ${
+            activeTab === tab
+              ? 'text-white'
+              : 'text-gray-700 dark:text-gray-300'
+          }`}
+        >
+          {tab}
+        </Text>
+      </TouchableOpacity>
+    ))}
+  </ScrollView>
+</View>
+
+
+        {filteredData.length === 0 ? (
           <View className="flex-1 justify-center items-center p-6">
-            <View className="p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm w-full max-w-md">
+            <View className="p-6 rounded-xl bg-white dark:bg-[#111B21] shadow-sm w-full max-w-md">
               <Text className="text-2xl font-bold text-center text-gray-900 dark:text-white">No Channels</Text>
+              {activeTab === 'All' ? (
+                <Text className="mt-3 text-base text-center text-gray-600 dark:text-gray-300 leading-6">
+                  There are currently no channels available.
+                </Text>
+              ) : (
+                <Text className="mt-3 text-base text-center text-gray-600 dark:text-gray-300 leading-6">
+                  No unread messages in any channel.
+                </Text>
+              )}
               <TouchableOpacity
                 className="mt-6 py-3.5 px-6 rounded-xl bg-blue-500 flex-row items-center justify-center shadow-sm"
                 onPress={() => router.push('/explore')}
@@ -271,7 +346,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             <View className="p-4">
               <FlashList
-                data={sortedData}
+                data={filteredData}
                 estimatedItemSize={76}
                 renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
@@ -280,6 +355,7 @@ export function MainScreen({ initialData }: MainScreenProps) {
           </ScrollView>
         )}
       </View>
+
       <TouchableOpacity
         className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 justify-center items-center shadow-md"
         onPress={() => router.push('/explore')}

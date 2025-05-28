@@ -232,21 +232,21 @@ export function FollowButton({
       <Button
         variant={following ? "default" : "outline"}
         size={size}
-        className={`rounded-md px-3 py-1.5 ${
+        className={`rounded-full px-3 py-1.5 ${
           following 
-            ? 'bg-blue-500 dark:bg-blue-600 border-transparent' 
-            : 'bg-transparent border-blue-500 dark:border-blue-400'
+            ? 'bg-black dark:bg-gray-800 border-transparent' 
+            : 'bg-neutral-200 dark:bg-neutral-700 border-transparent'
         }`}
         onPress={handleToggleFollow}
         disabled={loading}
       >
         {loading ? (
-          <Text className={`text-sm ${following ? 'text-white' : 'text-blue-500 dark:text-blue-400'}`}>
+          <Text className={`text-sm ${following ? 'text-white' : 'text-gray-800 dark:text-gray-200'}`}>
             Loading...
           </Text>
         ) : (
           <View className="flex-row items-center gap-2">
-            <Text className={`text-sm font-medium ${following ? 'text-white' : 'text-blue-500 dark:text-blue-400'}`}>
+            <Text className={`text-sm font-medium ${following ? 'text-white' : 'text-gray-800 dark:text-gray-200'}`}>
               {following ? 'Following' : 'Follow'}
             </Text>
           </View>
