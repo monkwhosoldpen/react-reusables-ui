@@ -1,6 +1,7 @@
 import { PREMIUM_CONFIGS } from '~/lib/in-app-db/states/telangana/premium-data';
 import { Link } from 'expo-router';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Toolbox } from '~/components/notifications/notification-toolbox';
 
 export default function DashboardRoute() {
   const users = Object.keys(PREMIUM_CONFIGS);
@@ -8,6 +9,9 @@ export default function DashboardRoute() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Select User Dashboard</Text>
+      
+      <Toolbox />
+
       <View style={styles.cardContainer}>
         {users.map((username) => (
           <Link key={username} href={`/dashboard/${username}`} asChild>

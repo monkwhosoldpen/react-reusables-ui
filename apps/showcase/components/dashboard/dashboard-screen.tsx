@@ -24,6 +24,9 @@ import CreateMessageScreen from './create-message';
 import OverviewTab from './overview';
 import AIUserAnalyticsTab from './ai-user-analytics';
 
+// Add fetch import
+import fetch from 'node-fetch';
+
 interface DashboardScreenProps {
   username: string;
   tabname?: string;
@@ -108,6 +111,29 @@ function TabContent({
 }) {
   const { user } = useAuth();
 
+  // Add sendHelloWorldNotification function
+  const sendHelloWorldNotification = async () => {
+    try {
+      const response = await fetch('https://demo.fixd.ai/api/alerts/elon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: 'Hello World',
+          message: 'This is a test notification from the dashboard!'
+        })
+      });
+      
+      const data = await response.json();
+      console.log('Notification sent:', data);
+      alert('Hello World notification sent successfully!');
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      alert('Failed to send notification. Please try again.');
+    }
+  };
+
   // util: find channel owner
   const findChannelOwner = () => {
     for (const [ownerUsername, config] of Object.entries(PREMIUM_CONFIGS)) {
@@ -170,15 +196,25 @@ function TabContent({
 
   const components = {
     overview: () => (
-      <OverviewTab
-        username={username}
-        user={user}
-        userRole={userRole}
-        hasAccess={hasAccess}
-        premiumConfig={premiumConfig}
-        channelInfo={channelInfo}
-        relatedChannelsCount={relatedChannelsCount}
-      />
+      <View>
+        <OverviewTab
+          username={username}
+          user={user}
+          userRole={userRole}
+          hasAccess={hasAccess}
+          premiumConfig={premiumConfig}
+          channelInfo={channelInfo}
+          relatedChannelsCount={relatedChannelsCount}
+        />
+        <TouchableOpacity
+          onPress={sendHelloWorldNotification}
+          className="m-4 p-4 bg-blue-500 rounded-lg"
+        >
+          <Text className="text-white text-center font-bold">
+            Send Hello World Notification
+          </Text>
+        </TouchableOpacity>
+      </View>
     ),
     chat: () => (
       <CreateMessageScreen
