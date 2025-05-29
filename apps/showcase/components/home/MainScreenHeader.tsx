@@ -54,12 +54,6 @@ export function MainScreenHeader({ selectionMode, selectedCount, onCancelSelecti
             </>
           )}
         </View>
-        {!selectionMode && (
-          <View className="flex-row items-center bg-gray-100 dark:bg-[#2A3942] rounded-xl px-3 py-2 mt-3">
-            <Search size={20} color={isDark ? '#8796A1' : '#54656F'} className="mr-2" />
-            <Text className="flex-1 text-gray-500 dark:text-[#8796A1]">Ask Meta AI or Search</Text>
-          </View>
-        )}
       </View>
     </View>
   );

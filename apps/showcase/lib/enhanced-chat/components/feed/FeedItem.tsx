@@ -467,23 +467,8 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
     );
   };
 
-  const renderContent = () => {
-    return (
-      <View className={`relative w-full ${isCollapsed ? 'overflow-hidden' : ''}`}>
-        {data.content && (
-          <View className="px-6">
-            <Text className="text-base text-foreground">{data.content}</Text>
-          </View>
-        )}
-
-        {data.media && data.media.length > 0 && renderMediaItems()}
-        {renderInteractiveContent()}
-      </View>
-    );
-  };
-
   return (
-    <View className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden w-full self-stretch shadow-sm mb-2 ${isDesktop ? 'max-w-[800px] mx-auto' : ''}`}>
+    <View className={`bg-white dark:bg-gray-800 rounded-lg overflow-hidden w-full self-stretch shadow-sm mb-2 ${isDesktop ? 'max-w-[800px] mx-auto' : ''}`}>
       {showHeader && (
         <View className={`flex-row justify-between items-start ${isDesktop ? 'px-6 py-4' : 'px-3 py-1'} flex-wrap`}>
           <View className="flex-1 flex-row items-center justify-between min-w-[200px]">
@@ -510,6 +495,7 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
               <Text
                 className={`${isDesktop ? 'text-base' : 'text-sm'} text-gray-900 dark:text-white`}
                 numberOfLines={isCollapsed ? 2 : undefined}
+                ellipsizeMode="tail"
               >
                 {data.content}
               </Text>
@@ -530,24 +516,18 @@ export function FeedItem({ data, showHeader = true, showFooter = true }: FeedIte
         </View>
 
         {isCollapsed && data.metadata?.isCollapsible && (
-          <View className="flex-row justify-end px-3 w-full">
-            <Button
-              variant="ghost"
-              onPress={toggleCollapse}
-            >
-              <Text className="text-sm text-gray-900 dark:text-white font-bold">Show more</Text>
-            </Button>
+          <View className="flex-row justify-end px-3 w-full mb-2">
+            <TouchableOpacity onPress={toggleCollapse}>
+              <Text className="text-sm text-blue-600 dark:text-blue-400 font-bold">Show more</Text>
+            </TouchableOpacity>
           </View>
         )}
 
         {!isCollapsed && data.metadata?.isCollapsible && (
           <View className="flex-row justify-end px-3 py-2">
-            <Button
-              variant="ghost"
-              onPress={toggleCollapse}
-            >
-              <Text className="text-sm text-gray-900 dark:text-white font-medium">Show less</Text>
-            </Button>
+            <TouchableOpacity onPress={toggleCollapse}>
+              <Text className="text-sm text-blue-600 dark:text-blue-400 font-medium">Show less</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>

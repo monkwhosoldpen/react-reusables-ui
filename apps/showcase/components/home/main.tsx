@@ -84,6 +84,12 @@ export function MainScreen({ initialData }: MainScreenProps) {
     if (activeTab === 'Unread') {
       return sortedData.filter(item => item.channelActivity?.[0]?.message_count > 0);
     }
+    if (activeTab === 'Private') {
+      return sortedData.filter(item => item.is_owner_db === true);
+    }
+    if (activeTab === 'Public') {
+      return sortedData.filter(item => item.is_owner_db !== true);
+    }
     return sortedData;
   }, [activeTab, sortedData]);
 
@@ -237,34 +243,36 @@ export function MainScreen({ initialData }: MainScreenProps) {
         selectedCount={selectedItems.size}
         onCancelSelection={cancelSelection}
       />
-      <View className="flex-row items-center px-4 py-2 bg-white dark:bg-[#111B21] border-b dark:border-gray-700">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {['All', 'Unread'].map(tab => (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-full mr-2 ${
-                activeTab === tab ? 'bg-[#06D755]' : 'bg-gray-200 dark:bg-[#2A3F4A]'
-              }`}
-            >
-              <Text
-                className={`text-sm font-semibold ${
-                  activeTab === tab ? 'text-white' : 'text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {tab}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
 
       <FlashList
         data={filteredData}
         renderItem={renderItem}
         estimatedItemSize={76}
         contentContainerStyle={{ paddingBottom: 100 }}
-        extraData={{ selectedItems, selectionMode }} // use stable object
+        extraData={{ selectedItems, selectionMode }}
+        ListHeaderComponent={() => (
+          <View className="flex-row items-center px-4 py-2 bg-white dark:bg-[#111B21] border-b dark:border-gray-700">
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {['All', 'Unread', 'Public', 'Private'].map(tab => (
+                <TouchableOpacity
+                  key={tab}
+                  onPress={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-full mr-2 ${
+                    activeTab === tab ? 'bg-[#06D755]' : 'bg-gray-200 dark:bg-[#2A3F4A]'
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-semibold ${
+                      activeTab === tab ? 'text-white' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    {tab}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       />
 
       {!selectionMode && (
