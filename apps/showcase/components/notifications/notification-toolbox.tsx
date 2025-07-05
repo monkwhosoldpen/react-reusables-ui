@@ -7,7 +7,7 @@ export const Toolbox = () => {
 
   const sendNotification = async (username?: string) => {
     try {
-      const response = await fetch('https://demo.fixd.ai/api/alerts/elon', {
+      const response = await fetch('https://showcase-nconnect-api.vercel.app/api/alerts/elon', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ export const Toolbox = () => {
 
   const sendRichNotification = async () => {
     try {
-      const response = await fetch('https://demo.fixd.ai/api/alerts/elon', {
+      const response = await fetch('https://showcase-nconnect-api.vercel.app/api/alerts/elon', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
