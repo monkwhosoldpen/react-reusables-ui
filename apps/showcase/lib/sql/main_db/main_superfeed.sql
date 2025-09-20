@@ -23,6 +23,7 @@ CREATE TABLE superfeed (
     content TEXT NOT NULL,
     caption TEXT,
     message TEXT,
+    tweet_id TEXT,
     media JSONB DEFAULT '[]'::jsonb,
     metadata JSONB DEFAULT '{
         "isCollapsible": true, 

@@ -14,7 +14,7 @@ import { Skeleton } from '~/components/ui/skeleton';
 import { indiaData } from '~/lib/in-app-db/states';
 
 // Add URL constants for profile images
-const SUPABASE_URL = 'https://ilzjdtlikhhavnfzfnvj.supabase.co';
+const SUPABASE_URL = 'https://ivmqzthpqocpfplcjgfd.supabase.co';
 const STORAGE_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/channels/assets/media/images`;
 const IMAGE_SUFFIX = '_dp.png';
 
